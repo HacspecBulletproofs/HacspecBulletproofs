@@ -1,2 +1,3 @@
 - What is the generator (`G`)?
 - Why mirror `R`?
+- Some new question
