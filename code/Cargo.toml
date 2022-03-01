@@ -1,0 +1,20 @@
+[package]
+name = "hacspec-linalg"
+version = "0.1.0"
+authors = ["Rasmus Kirk <mail@rasmuskirk.com>"]
+edition = "2018"
+
+[lib]
+path = "src/linalg.rs"
+
+[dependencies]
+hacspec-lib = { path = "../../hacspec/lib" }
+
+[dev-dependencies]
+hacspec-dev = { path = "../../hacspec/utils/dev" }
+criterion = "0.3"
+rand = "0.8"
+
+[[bench]]
+name = "benchmarks"
+harness = false
