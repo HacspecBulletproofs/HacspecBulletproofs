@@ -1,0 +1,27 @@
+[package]
+name = "hacspec-pedersen"
+version = "0.1.0"
+authors = ["Rasmus Kirk <mail@rasmuskirk.com>"]
+edition = "2018"
+
+[lib]
+path = "src/pedersen.rs"
+
+[dependencies]
+hacspec-lib = { path = "../../lib" }
+hacspec-secp256k1 = { path = "../secp256k1" }
+
+
+
+[dev-dependencies]
+hacspec-dev = { path = "../../utils/dev" }
+crypto-bigint = "0.3.2"
+criterion = "0.3"
+rand = "0.8"
+quickcheck = "1"
+rustc-serialize = "0.3.24"
+
+
+[[bench]]
+name = "benchmarks"
+harness = false

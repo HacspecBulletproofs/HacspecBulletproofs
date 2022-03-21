@@ -1,0 +1,54 @@
+/// Helper type for generating quickcheck Arbitrary trait
+#[derive(Clone, Debug)]
+struct AffineGenerator(Affine);
+
+impl From<AffineGenerator> for Affine {
+    fn from(e: AffineGenerator) -> Affine {
+        e.0
+    }
+}
+
+impl From<&Affine> for AffineGenerator {
+    fn from(e: &Affine) -> AffineGenerator {
+        AffineGenerator(*e)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Secp256k1ScalarGenerator(Secp256k1Scalar);
+
+impl From<Secp256k1ScalarGenerator> for Secp256k1Scalar {
+    fn from(e: Secp256k1ScalarGenerator) -> Secp256k1Scalar {
+        e.0
+    }
+}
+
+impl From<Secp256k1Scalar> for Secp256k1ScalarGenerator {
+    fn from(e: Secp256k1Scalar) -> Secp256k1ScalarGenerator {
+        Secp256k1ScalarGenerator(e)
+    }
+}
+
+use quickcheck::*;
+
+impl Arbitrary for AffineGenerator {
+    fn arbitrary(g: &mut Gen) -> AffineGenerator {
+        let p = BASE_POINT();
+        let k = Secp256k1ScalarGenerator::arbitrary(g).into();
+        let res = scalar_multiplication(k, p);
+        match g.choose(&[res, INFINITY()]) {
+            Some(v) => v.into(),
+            None => panic!("Whoops"),
+        }
+    }
+}
+
+impl Arbitrary for Secp256k1ScalarGenerator {
+    fn arbitrary(g: &mut Gen) -> Secp256k1ScalarGenerator {
+        let mut b: [u8; 32] = [0; 32];
+        for i in 0..32 {
+            b[i] = u8::arbitrary(g);
+        }
+        Secp256k1Scalar::from_byte_seq_le(Seq::<U8>::from_public_slice(&b)).into()
+    }
+}

@@ -1,0 +1,21 @@
+[package]
+name = "hacspec-secp256k1"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+path = "src/secp256k1.rs"
+
+[dependencies]
+hacspec-lib = { path = "../../lib" }
+hacspec-attributes = { path = "../../utils/attributes" }
+num-bigint = "0.4"
+quickcheck = "1"
+quickcheck_macros = "1"
+
+[dev-dependencies]
+hacspec-dev = { path = "../../utils/dev" }
+quickcheck = "1"
+quickcheck_macros = "1"
