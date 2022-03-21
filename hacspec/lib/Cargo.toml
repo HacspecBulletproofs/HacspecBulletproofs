@@ -1,0 +1,28 @@
+[package]
+name = "hacspec-lib"
+version = "0.1.0-beta.1"
+authors = ["Franziskus Kiefer <franziskuskiefer@gmail.com>", "Denis Merigoux <denis.merigoux@gmail.com>"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+documentation = "https://docs.rs/hacspec-lib"
+description = "The hacspec library."
+readme = "README.md"
+repository = "https://github.com/hacspec/hacspec"
+
+[dependencies]
+num = "0.4"
+secret_integers = { path = "../utils/secret-integers", version = "0.1.7" } #FIXME: publish new version
+abstract_integers = { path = "../utils/abstract-integers", version = "0.1.5" } #FIXME: publish new version
+hacspec-attributes = { path = "../utils/attributes",  optional = true, version = "0.1.0-beta.1" }
+
+[features]
+use_attributes = ["hacspec-attributes", "hacspec-attributes/print_attributes"]
+
+[dev-dependencies]
+rand = "0.8"
+hacspec-dev = { path = "../utils/dev" }
+criterion = "0.3"
+
+[[bench]]
+name = "copy"
+harness = false
