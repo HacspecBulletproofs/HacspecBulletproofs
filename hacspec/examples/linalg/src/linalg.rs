@@ -86,5 +86,35 @@ pub fn hadamard(m1: Matrix, m2: Matrix) -> Result<Matrix, ()> {
 	res
 }
 
-pub fn dot(m1: Matrix, m2: Matrix) {
+pub fn mul(m1: Matrix, m2: Matrix) -> Result<Matrix, ()> {
+	let (dim_1, seq_1) = m1;
+	let (dim_2, seq_2) = m2;
+	let (m, n) = dim_1;
+	let (n_2, p) = dim_2;
+	let mut ret = Seq::<Scalar>::new(m*p);
+	let mut res = Result::<Matrix, ()>::Err(());
+
+	if n == n_2 {
+		for i in 0..m {
+			for j in 0..p {
+				let mut acc = Scalar::ZERO();
+				let index = i * p + j;
+
+				for k in 0..n {
+					let index_1 = i * n + k;
+					let index_2 = k * p + j;
+
+					acc = acc + seq_1[index_1] * seq_2[index_2];
+				}
+
+				ret[index] = acc
+			}
+		}
+
+		res = Result::<Matrix, ()>::Ok(new(m, p, ret).unwrap())
+	}
+
+	res
 }
+
+
