@@ -17,7 +17,7 @@ pub fn clise(start: (DimType, DimType), new_rows: DimType, new_cols: DimType, ma
 	let mut res = Result::<Matrix, ()>::Err(());
 
 	println!("start_loop");
-	if start_index + new_rows*new_cols < rows*cols {
+	if start_index + new_rows*new_cols <= rows*cols {
 		for i in 0..new_rows {
 			for j in 0..new_cols {
 				let ret_index = i*new_cols + j;
@@ -37,15 +37,12 @@ pub fn clise(start: (DimType, DimType), new_rows: DimType, new_cols: DimType, ma
 
 fn main() {
 	let xs = bv(vec![
-		0,1,2, 3,
-		4,5,6, 7,
-		8,9,10,11]);
-	let ys = bv(vec![7,2,7, 1,3,0]);
+		0,1,
+		2,3]);
 
-	let hac_xs = new(3, 4, Seq::<Scalar>::from_vec(xs.clone())).unwrap();
-	let hac_ys = new(2, 3, Seq::<Scalar>::from_vec(ys.clone())).unwrap();
+	let hac_xs = new(2, 2, Seq::<Scalar>::from_vec(xs.clone())).unwrap();
 
-	let hac_slice = clise((1,1), 2, 3, hac_xs).unwrap();
+	let hac_slice = clise((1,1), 1, 1, hac_xs).unwrap();
 
 	println!("{:?}", hac_slice.1);
 }

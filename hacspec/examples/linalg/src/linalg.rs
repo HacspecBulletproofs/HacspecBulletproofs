@@ -13,6 +13,21 @@ pub fn new(rows: DimType, cols: DimType, seq: Seq<Scalar>) -> Result<Matrix, ()>
 	}
 }
 
+pub fn zeros(n:DimType, m:DimType) -> Result::<Matrix,()> {
+	new(n,m,Seq::<Scalar>::new(n*m))
+}
+
+pub fn identity(n: DimType) -> Result::<Matrix,()> {
+	let mut ret = Seq::<Scalar>::new(n*n);
+
+	for i in 0..n {
+		let index = i * n + i;
+		ret[index] = Scalar::ONE()
+	}
+
+	new(n,n,ret)
+}
+
 pub fn index(i: DimType, j: DimType, m: Matrix) -> Result<Scalar, ()> {
 	let (dim, seq) = m;
 	let (rows, cols) = dim;
@@ -39,6 +54,30 @@ pub fn transpose(matrix: Matrix) -> Matrix {
 	}
 
 	new(cols, rows, ret).unwrap()
+}
+
+pub fn slice(start: (DimType, DimType), new_rows: DimType, new_cols: DimType, matrix: Matrix) -> Result<Matrix, ()> {
+	let (dim, seq) = matrix;
+	let (rows, cols) = dim;
+	let (start_row, start_col) = start;
+	let start_index = start_row*cols + start_col;
+	let mut ret = Seq::<Scalar>::new(new_rows*new_cols);
+	let mut res = Result::<Matrix, ()>::Err(());
+
+	if start_index + new_rows*new_cols <= rows*cols {
+		for i in 0..new_rows {
+			for j in 0..new_cols {
+				let ret_index = i*new_cols + j;
+				let seq_index = (start_row+i)*cols + (start_col+j);
+				ret[ret_index] = seq[seq_index].clone()
+			}
+		}
+
+		res = new(new_rows, new_cols, ret);
+	}
+
+	res
+
 }
 
 pub fn add(m1: Matrix, m2: Matrix) -> Result<Matrix, ()> {
@@ -71,7 +110,7 @@ pub fn sub(m1: Matrix, m2: Matrix) -> Result<Matrix, ()> {
 	res
 }
 
-pub fn hadamard(m1: Matrix, m2: Matrix) -> Result<Matrix, ()> {
+pub fn component_mul(m1: Matrix, m2: Matrix) -> Result<Matrix, ()> {
 	let (m1_dim, m1_s) = m1;
 	let (m2_dim, m2_s) = m2;
 	let mut ret = Seq::<Scalar>::new(m1_s.len());
@@ -115,73 +154,4 @@ pub fn mul(m1: Matrix, m2: Matrix) -> Result<Matrix, ()> {
 	}
 
 	res
-}
-
-pub fn slice_col(matrix: Matrix, col: DimType) -> Result<Matrix, ()> {
-	let (dim, seq) = matrix;
-	let (rows, cols) = dim;
-	let mut ret = Seq::<Scalar>::new(rows);
-	let mut res = Result::<Matrix, ()>::Err(());
-
-	if col < cols {
-		for i in 0..rows {
-			let index = i * cols + col;
-			ret[i] = seq[index].clone()
-		}
-
-		res = new(rows, 1, ret);
-	}
-
-	res
-}
-
-pub fn slice_row(matrix: Matrix, sel_row: DimType) -> Result<Matrix, ()> {
-	let (dim, seq) = matrix;
-	let (rows, cols) = dim;
-	let mut ret = Seq::<Scalar>::new(cols);
-	let mut res = Result::<Matrix, ()>::Err(());
-
-	if sel_row < rows {
-		let ret = seq.slice(sel_row*cols, cols);
-
-		res = new(1, cols, ret);
-	}
-
-	res
-}
-
-pub fn slice(start: (DimType, DimType), new_rows: DimType, new_cols: DimType, matrix: Matrix) -> Result<Matrix, ()> {
-	let (dim, seq) = matrix;
-	let (rows, cols) = dim;
-	let (start_row, start_col) = start;
-	let start_index = start_row*cols + start_col;
-	let mut ret = Seq::<Scalar>::new(new_rows*new_cols);
-	let mut res = Result::<Matrix, ()>::Err(());
-
-	if start_index + new_rows*new_cols < rows*cols {
-		for i in 0..new_rows {
-			for j in 0..new_cols {
-				let ret_index = i*new_cols + j;
-				let seq_index = (start_row+i)*cols + (start_col+j);
-				ret[ret_index] = seq[seq_index].clone()
-			}
-		}
-		res = new(new_rows, new_cols, ret);
-	}
-	res
-}
-
-pub fn identity(n: DimType) -> Result::<Matrix,()> {
-	let mut ret = Seq::<Scalar>::new(n*n);
-
-	for i in 0..n {
-		let index = i * n + i;
-		ret[index] = Scalar::ONE()
-	}
-
-	new(n,n,ret)
-}
-
-pub fn zero(n: DimType) -> Result::<Matrix,()> {
-	new(n,n,Seq::<Scalar>::new(n*n))
 }
