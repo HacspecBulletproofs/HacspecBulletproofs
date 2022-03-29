@@ -28,8 +28,8 @@ fn assert_matrices(x: Matrix, y: DMatrix<Scalar>) -> bool {
 
 fn quickcheck(helper: impl Testable) {
 	QuickCheck::new()
-		.tests(200)
-		.min_tests_passed(200)
+		.tests(100)
+		.min_tests_passed(100)
 		.max_tests(100000000000)
 		.quickcheck(helper);
 }
