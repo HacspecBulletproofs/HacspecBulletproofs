@@ -28,8 +28,8 @@ fn assert_matrices(x: Matrix, y: DMatrix<Scalar>) -> bool {
 
 fn quickcheck(helper: impl Testable) {
 	QuickCheck::new()
-		.tests(50)
-		.min_tests_passed(50)
+		.tests(200)
+		.min_tests_passed(200)
 		.max_tests(100000000000)
 		.quickcheck(helper);
 }
@@ -45,7 +45,7 @@ fn dmatrix(n:usize, m:usize, xs:Vec<BigInt>) -> DMatrix<BigInt> {
 // === Tests ===
 
 #[test]
-fn test_index() {
+fn test_quick_index() {
 	fn helper(xs:Vec<i128>, n:u8, m:u8) -> TestResult {
 		let mut xs = bv(xs);
 		let n = n as usize;
@@ -78,7 +78,7 @@ fn test_index() {
 }
 
 #[test]
-fn test_transpose() {
+fn test_quick_transpose() {
 	fn helper(xs:Vec<i128>, n:u8, m:u8) -> TestResult {
 		let mut xs = bv(xs);
 		let n = n as usize;
@@ -102,7 +102,7 @@ fn test_transpose() {
 }
 
 #[test]
-fn test_zeros() {
+fn test_quick_zeros() {
 	fn helper(n:u8, m:u8) -> TestResult {
 		let n = n as usize;
 		let m = m as usize;
@@ -120,7 +120,7 @@ fn test_zeros() {
 }
 
 #[test]
-fn test_identity() {
+fn test_quick_identity() {
 	fn helper(n:u8) -> TestResult {
 		let n = n as usize;
 
@@ -137,7 +137,7 @@ fn test_identity() {
 }
 
 #[test]
-fn test_slice() {
+fn test_quick_slice() {
 	fn helper(xs:Vec<i128>, n:u8, m:u8) -> TestResult {
 		let mut xs = bv(xs);
 		let n = n as usize;
@@ -174,7 +174,7 @@ fn test_slice() {
 }
 
 #[test]
-fn test_add() {
+fn test_quick_add() {
 	fn helper(xs:Vec<i128>, ys:Vec<i128>, n:u8, m:u8) -> TestResult {
 		let mut xs = bv(xs);
 		let mut ys = bv(ys);
@@ -203,7 +203,7 @@ fn test_add() {
 }
 
 #[test]
-fn test_sub() {
+fn test_quick_sub() {
 	fn helper(xs:Vec<i128>, ys:Vec<i128>, n:u8, m:u8) -> TestResult {
 		let mut xs = bv(xs);
 		let mut ys = bv(ys);
@@ -233,7 +233,7 @@ fn test_sub() {
 }
 
 #[test]
-fn test_component_mul() {
+fn test_quick_component_mul() {
 	fn helper(xs:Vec<i128>, ys:Vec<i128>, n:u8, m:u8) -> TestResult {
 		let mut xs = bv(xs);
 		let mut ys = bv(ys);
@@ -263,7 +263,7 @@ fn test_component_mul() {
 }
 
 #[test]
-fn test_mul() {
+fn test_quick_mul() {
 	fn helper(xs:Vec<i128>, ys:Vec<i128>, n:u8, m:u8, p:u8) -> TestResult {
 		let mut xs = bv(xs);
 		let mut ys = bv(ys);
