@@ -1,7 +1,0 @@
-- Transposition
-- Matrix Multiplication
-- Scalar Multiplicatoin
-- Addition
-- Subtraction
-- Hadamard product
-- Slicing

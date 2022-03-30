@@ -1,3 +1,3 @@
-- What is the generator (`G`)?
-- Why mirror `R`?
-- Why do we use Commits?
+- Archived links?
+- Reproducible builds?
+- Automated proofs?
