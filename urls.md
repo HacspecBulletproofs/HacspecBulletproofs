@@ -2,3 +2,4 @@
 - Hacspec: https://github.com/hacspec/hacspec
 - Zulip: https://hacspec.zulipchat.com/
 - From ZK to Bulletproofs: https://github.com/AdamISZ/from0k2bp/blob/master/from0k2bp.pdf
+- Generic Impl: type aliases

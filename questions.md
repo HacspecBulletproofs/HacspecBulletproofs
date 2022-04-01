@@ -1,7 +1,8 @@
 - Archived links?
 - Reproducible builds?
 - Automated proofs?
-
+- Type aliases
+- Description of groups, fields, etc?
 
 # Ristretto Questions: 
  - What to do if decoding fails? 
