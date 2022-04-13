@@ -9,6 +9,9 @@ path = "src/linalg.rs"
 
 [dependencies]
 hacspec-lib = { path = "../../lib" }
+secret_integers = { path = "../../utils/secret-integers" }
+abstract_integers = { path = "../../utils/abstract-integers" }
+
 ndarray = "0.15"
 nalgebra = "0.30"
 rulinalg = "0.4"

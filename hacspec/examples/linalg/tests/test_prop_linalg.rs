@@ -7,31 +7,32 @@ use hacspec_linalg::*;
 use nalgebra::DMatrix;
 use quickcheck::*;
 
+type IntSize = i32;
+
 // === Helper functions ===
 
 fn assert_matrices(x: Matrix, y: DMatrix<Scalar>) -> bool {
-    if x.0 != (y.nrows(), y.ncols()) {
-        false
-    } else {
+    if x.0 == (y.nrows(), y.ncols()) {
         let y = y.transpose();
         let zipped = x.1.iter().zip(y.iter());
 
         for z in zipped {
             if z.0 != z.1 {
-                panic!(
-                    "({:?}) == ({:?}), ({},{}) == ({},{})",
-                    x.1.native_slice(),
-                    y.as_slice(),
-                    x.0 .0,
-                    x.0 .1,
-                    y.nrows(),
-                    y.ncols()
-                );
+                break;
             }
         }
 
-        true
+        return true;
     }
+    panic!(
+        "({:?}) == ({:?}), ({},{}) == ({},{})",
+        x.1.native_slice(),
+        y.as_slice(),
+        x.0 .0,
+        x.0 .1,
+        y.nrows(),
+        y.ncols()
+    );
 }
 
 fn quickcheck(helper: impl Testable) {
@@ -42,15 +43,15 @@ fn quickcheck(helper: impl Testable) {
         .quickcheck(helper);
 }
 
-fn bv(xs: Vec<i128>) -> Vec<BigInt> {
-    xs.into_iter().map(|x| BigInt::from(x)).collect()
+fn castVec(xs: Vec<IntSize>) -> Vec<Scalar> {
+    xs.into_iter().map(|x| x.into()).collect()
 }
 
-fn dmatrix(n: usize, m: usize, xs: Vec<BigInt>) -> DMatrix<BigInt> {
+fn dmatrix(n: usize, m: usize, xs: Vec<Scalar>) -> DMatrix<Scalar> {
     DMatrix::from_vec(m, n, xs).transpose()
 }
 
-// === Tests ===
+// === Test Functions ===
 
 #[test]
 fn test_prop_zeros() {
@@ -66,6 +67,25 @@ fn test_prop_zeros() {
         let ext = DMatrix::zeros(n, m);
 
         TestResult::from_bool(assert_matrices(hac, ext))
+    }
+    quickcheck(helper as fn(u8, u8) -> TestResult);
+}
+
+#[test]
+fn test_prop_ones() {
+    fn helper(n: u8, m: u8) -> TestResult {
+        let n = n as usize;
+        let m = m as usize;
+
+        if n * m == 0 {
+            return TestResult::discard();
+        }
+
+        let hac = ones(n, m).unwrap();
+        let mut ext = DMatrix::zeros(n, m);
+        ext.fill(Scalar::ONE());
+
+        TestResult::from_bool(assert_matrices(hac, ext.clone()))
     }
     quickcheck(helper as fn(u8, u8) -> TestResult);
 }
@@ -89,8 +109,8 @@ fn test_prop_identity() {
 
 #[test]
 fn test_prop_index() {
-    fn helper(xs: Vec<i128>, n: u8, m: u8) -> TestResult {
-        let mut xs = bv(xs);
+    fn helper(xs: Vec<IntSize>, n: u8, m: u8) -> TestResult {
+        let mut xs = castVec(xs);
         let n = n as usize;
         let m = m as usize;
 
@@ -106,7 +126,7 @@ fn test_prop_index() {
         let mut eq = true;
         for i in 0..n {
             for j in 0..m {
-                let hac_op = index(i, j, hac.clone()).unwrap();
+                let hac_op = index(hac.clone(), i, j).unwrap();
                 let ext_op = ext.index((i, j));
 
                 if hac_op != *ext_op {
@@ -117,13 +137,13 @@ fn test_prop_index() {
 
         TestResult::from_bool(eq)
     }
-    quickcheck(helper as fn(Vec<i128>, u8, u8) -> TestResult);
+    quickcheck(helper as fn(Vec<IntSize>, u8, u8) -> TestResult);
 }
 
 #[test]
 fn test_prop_transpose() {
-    fn helper(xs: Vec<i128>, n: u8, m: u8) -> TestResult {
-        let mut xs = bv(xs);
+    fn helper(xs: Vec<IntSize>, n: u8, m: u8) -> TestResult {
+        let mut xs = castVec(xs);
         let n = n as usize;
         let m = m as usize;
 
@@ -141,13 +161,13 @@ fn test_prop_transpose() {
 
         TestResult::from_bool(assert_matrices(hac_op, ext_op))
     }
-    quickcheck(helper as fn(Vec<i128>, u8, u8) -> TestResult);
+    quickcheck(helper as fn(Vec<IntSize>, u8, u8) -> TestResult);
 }
 
 #[test]
 fn test_prop_slice() {
-    fn helper(xs: Vec<i128>, n: u8, m: u8) -> TestResult {
-        let mut xs = bv(xs);
+    fn helper(xs: Vec<IntSize>, n: u8, m: u8) -> TestResult {
+        let mut xs = castVec(xs);
         let n = n as usize;
         let m = m as usize;
 
@@ -160,13 +180,14 @@ fn test_prop_slice() {
         let hac = new(n, m, Seq::<Scalar>::from_vec(xs.clone())).unwrap();
         let ext = dmatrix(n, m, xs.clone());
 
+        // Try all combinations of slices
         let mut eq = true;
         for i in 0..n - 1 {
             for j in 0..m - 1 {
                 for k in 1..n - i - 1 {
                     for l in 1..m - j - 1 {
-                        let hac_op = slice((i, j), (k, l), hac.clone()).unwrap();
-                        let ext_op: DMatrix<BigInt> = ext.slice((i, j), (k, l)).into();
+                        let hac_op = slice(hac.clone(), (i, j), (k, l)).unwrap();
+                        let ext_op: DMatrix<Scalar> = ext.slice((i, j), (k, l)).into();
 
                         if !assert_matrices(hac_op.clone(), ext_op.clone()) {
                             eq = false
@@ -178,14 +199,39 @@ fn test_prop_slice() {
 
         TestResult::from_bool(eq)
     }
-    quickcheck(helper as fn(Vec<i128>, u8, u8) -> TestResult);
+    quickcheck(helper as fn(Vec<IntSize>, u8, u8) -> TestResult);
+}
+
+#[test]
+fn test_prop_scale() {
+    fn helper(xs: Vec<IntSize>, n: u8, m: u8, scalar: IntSize) -> TestResult {
+        let mut xs = castVec(xs);
+        let n = n as usize;
+        let m = m as usize;
+        let scalar = scalar as Scalar;
+
+        if n * m == 0 || n * m > xs.len() {
+            return TestResult::discard();
+        }
+
+        xs.truncate(n * m);
+
+        let hac = new(n, m, Seq::<Scalar>::from_vec(xs.clone())).unwrap();
+        let ext = dmatrix(n, m, xs.clone());
+
+        let hac_op = scale(hac, scalar);
+        let ext_op = ext * scalar;
+
+        TestResult::from_bool(assert_matrices(hac_op, ext_op))
+    }
+    quickcheck(helper as fn(Vec<IntSize>, u8, u8, IntSize) -> TestResult);
 }
 
 #[test]
 fn test_prop_add() {
-    fn helper(xs: Vec<i128>, ys: Vec<i128>, n: u8, m: u8) -> TestResult {
-        let mut xs = bv(xs);
-        let mut ys = bv(ys);
+    fn helper(xs: Vec<IntSize>, ys: Vec<IntSize>, n: u8, m: u8) -> TestResult {
+        let mut xs = castVec(xs);
+        let mut ys = castVec(ys);
         let n = n as usize;
         let m = m as usize;
 
@@ -207,14 +253,14 @@ fn test_prop_add() {
 
         TestResult::from_bool(assert_matrices(hac_op, ext_op))
     }
-    quickcheck(helper as fn(Vec<i128>, Vec<i128>, u8, u8) -> TestResult);
+    quickcheck(helper as fn(Vec<IntSize>, Vec<IntSize>, u8, u8) -> TestResult);
 }
 
 #[test]
 fn test_prop_sub() {
-    fn helper(xs: Vec<i128>, ys: Vec<i128>, n: u8, m: u8) -> TestResult {
-        let mut xs = bv(xs);
-        let mut ys = bv(ys);
+    fn helper(xs: Vec<IntSize>, ys: Vec<IntSize>, n: u8, m: u8) -> TestResult {
+        let mut xs = castVec(xs);
+        let mut ys = castVec(ys);
         let n = n as usize;
         let m = m as usize;
 
@@ -236,14 +282,14 @@ fn test_prop_sub() {
 
         TestResult::from_bool(assert_matrices(hac_op, ext_op))
     }
-    quickcheck(helper as fn(Vec<i128>, Vec<i128>, u8, u8) -> TestResult);
+    quickcheck(helper as fn(Vec<IntSize>, Vec<IntSize>, u8, u8) -> TestResult);
 }
 
 #[test]
 fn test_prop_component_mul() {
-    fn helper(xs: Vec<i128>, ys: Vec<i128>, n: u8, m: u8) -> TestResult {
-        let mut xs = bv(xs);
-        let mut ys = bv(ys);
+    fn helper(xs: Vec<IntSize>, ys: Vec<IntSize>, n: u8, m: u8) -> TestResult {
+        let mut xs = castVec(xs);
+        let mut ys = castVec(ys);
         let n = n as usize;
         let m = m as usize;
 
@@ -265,14 +311,14 @@ fn test_prop_component_mul() {
 
         TestResult::from_bool(assert_matrices(hac_op, ext_op))
     }
-    quickcheck(helper as fn(Vec<i128>, Vec<i128>, u8, u8) -> TestResult);
+    quickcheck(helper as fn(Vec<IntSize>, Vec<IntSize>, u8, u8) -> TestResult);
 }
 
 #[test]
 fn test_prop_mul() {
-    fn helper(xs: Vec<i128>, ys: Vec<i128>, n: u8, m: u8, p: u8) -> TestResult {
-        let mut xs = bv(xs);
-        let mut ys = bv(ys);
+    fn helper(xs: Vec<IntSize>, ys: Vec<IntSize>, n: u8, m: u8, p: u8) -> TestResult {
+        let mut xs = castVec(xs);
+        let mut ys = castVec(ys);
         let n = n as usize;
         let m = m as usize;
         let p = p as usize;
@@ -295,5 +341,37 @@ fn test_prop_mul() {
 
         TestResult::from_bool(assert_matrices(hac_op, ext_op))
     }
-    quickcheck(helper as fn(Vec<i128>, Vec<i128>, u8, u8, u8) -> TestResult);
+    quickcheck(helper as fn(Vec<IntSize>, Vec<IntSize>, u8, u8, u8) -> TestResult);
+}
+
+// === Test Properties ===
+
+#[test]
+fn test_prop_multiplicative_identity() {
+    fn helper(xs: Vec<IntSize>, ys: Vec<IntSize>, n: u8, m: u8, p: u8) -> TestResult {
+        let mut xs = castVec(xs);
+        let mut ys = castVec(ys);
+        let n = n as usize;
+        let m = m as usize;
+        let p = p as usize;
+
+        if n * m * p == 0 || n * m > xs.len() || m * p > ys.len() {
+            return TestResult::discard();
+        }
+
+        xs.truncate(n * m);
+        ys.truncate(m * p);
+
+        let hac_xs = new(n, m, Seq::<Scalar>::from_vec(xs.clone())).unwrap();
+        let hac_ys = new(m, p, Seq::<Scalar>::from_vec(ys.clone())).unwrap();
+
+        let ext_xs = dmatrix(n, m, xs.clone());
+        let ext_ys = dmatrix(m, p, ys.clone());
+
+        let hac_op = mul(hac_xs, hac_ys).unwrap();
+        let ext_op = ext_xs.mul(&ext_ys);
+
+        TestResult::from_bool(assert_matrices(hac_op, ext_op))
+    }
+    quickcheck(helper as fn(Vec<IntSize>, Vec<IntSize>, u8, u8, u8) -> TestResult);
 }

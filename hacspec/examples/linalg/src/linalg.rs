@@ -1,7 +1,7 @@
 use hacspec_lib::*;
 
 pub type DimType = usize;
-pub type Scalar = BigInt;
+pub type Scalar = i128;
 pub type Dims = (DimType, DimType);
 pub type Matrix = (Dims, Seq<Scalar>);
 
@@ -17,18 +17,28 @@ pub fn zeros(n: DimType, m: DimType) -> Result<Matrix, ()> {
     new(n, m, Seq::<Scalar>::new(n * m))
 }
 
+pub fn ones(n: DimType, m: DimType) -> Result<Matrix, ()> {
+    let mut ret = Seq::<Scalar>::new(n * m);
+
+    for i in 0..n * m {
+        ret[i] = Scalar::ONE();
+    }
+
+    new(n, m, ret)
+}
+
 pub fn identity(n: DimType) -> Result<Matrix, ()> {
     let mut ret = Seq::<Scalar>::new(n * n);
 
     for i in 0..n {
         let index = i * n + i;
-        ret[index] = Scalar::ONE()
+        ret[index] = Scalar::ONE();
     }
 
     new(n, n, ret)
 }
 
-pub fn index(i: DimType, j: DimType, m: Matrix) -> Result<Scalar, ()> {
+pub fn index(m: Matrix, i: DimType, j: DimType) -> Result<Scalar, ()> {
     let (dim, seq) = m;
     let (rows, cols) = dim;
     let index = i * cols + j;
@@ -36,7 +46,7 @@ pub fn index(i: DimType, j: DimType, m: Matrix) -> Result<Scalar, ()> {
     if index >= rows * cols {
         Result::<Scalar, ()>::Err(())
     } else {
-        Result::<Scalar, ()>::Ok(seq[index].clone())
+        Result::<Scalar, ()>::Ok(seq[index])
     }
 }
 
@@ -49,14 +59,14 @@ pub fn transpose(matrix: Matrix) -> Matrix {
         for j in 0..cols {
             let seq_index = j * rows + i;
             let index = i * cols + j;
-            ret[seq_index] = seq[index].clone()
+            ret[seq_index] = seq[index]
         }
     }
 
-    new(cols, rows, ret).unwrap()
+    ((cols, rows), ret)
 }
 
-pub fn slice(start: Dims, len: Dims, matrix: Matrix) -> Result<Matrix, ()> {
+pub fn slice(matrix: Matrix, start: Dims, len: Dims) -> Result<Matrix, ()> {
     let (dim, seq) = matrix;
     let (rows, cols) = dim;
     let (start_row, start_col) = start;
@@ -80,6 +90,17 @@ pub fn slice(start: Dims, len: Dims, matrix: Matrix) -> Result<Matrix, ()> {
     res
 }
 
+pub fn scale(matrix: Matrix, scalar: Scalar) -> Matrix {
+    let (dim, seq) = matrix;
+    let mut ret = Seq::<Scalar>::new(seq.len());
+
+    for i in 0..seq.len() {
+        ret[i] = scalar * seq[i].clone()
+    }
+
+    (dim, ret)
+}
+
 pub fn add(matrix_1: Matrix, matrix_2: Matrix) -> Result<Matrix, ()> {
     let (m1_dim, m1_s) = matrix_1;
     let (m2_dim, m2_s) = matrix_2;
@@ -88,7 +109,7 @@ pub fn add(matrix_1: Matrix, matrix_2: Matrix) -> Result<Matrix, ()> {
 
     if m1_dim == m2_dim {
         for i in 0..m1_s.len() {
-            ret[i] = m1_s[i].clone() + m2_s[i].clone()
+            ret[i] = m1_s[i] + m2_s[i]
         }
         res = Result::<Matrix, ()>::Ok((m1_dim, ret))
     }
