@@ -1,17 +1,15 @@
 [package]
-name = "hacspec-pedersen"
+name = "hacspec-ristretto"
 version = "0.1.0"
-authors = ["Rasmus Kirk <mail@rasmuskirk.com>"]
+authors = ["Anders Wibrand Larsen <anderswila@hotmail.dk>"]
 edition = "2018"
 
 [lib]
-path = "src/pedersen.rs"
+path = "src/ristretto25519.rs"
 
 [dependencies]
 hacspec-lib = { path = "../../lib" }
 hacspec-curve25519 = { path = "../curve25519" }
-
-
 
 [dev-dependencies]
 hacspec-dev = { path = "../../utils/dev" }
@@ -20,8 +18,4 @@ criterion = "0.3"
 rand = "0.8"
 quickcheck = "1"
 rustc-serialize = "0.3.24"
-
-
-[[bench]]
-name = "benchmarks"
-harness = false
+curve25519-dalek = "3"

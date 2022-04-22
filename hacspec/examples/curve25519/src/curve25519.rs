@@ -6,6 +6,7 @@ public_nat_mod!(
     bit_size_of_field: 256,
     modulo_value: "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed"
 );
+
 public_nat_mod!(
     type_name: Scalar,
     type_of_canvas: ScalarCanvas,
@@ -17,6 +18,16 @@ type Point = (X25519FieldElement, X25519FieldElement);
 
 bytes!(X25519SerializedPoint, 32);
 bytes!(X25519SerializedScalar, 32);
+
+fn infinity() -> Point {
+    (X25519FieldElement::ONE(), X25519FieldElement::ZERO())
+}
+
+pub fn base_point() -> X25519SerializedPoint {
+    let mut base = X25519SerializedPoint::new();
+    base[0] = U8(0x09u8);
+    base 
+}
 
 fn mask_scalar(s: X25519SerializedScalar) -> X25519SerializedScalar {
     let mut k = s;
@@ -75,10 +86,7 @@ fn swap(x: (Point, Point)) -> (Point, Point) {
 }
 
 fn montgomery_ladder(k: Scalar, init: Point) -> Point {
-    let inf = (
-        X25519FieldElement::from_literal(1u128),
-        X25519FieldElement::from_literal(0u128),
-    );
+    let inf = infinity();
     let mut acc: (Point, Point) = (inf, init);
     for i in 0..256 {
         if k.bit(255 - i) {
@@ -99,8 +107,8 @@ pub fn x25519_scalarmult(
 ) -> X25519SerializedPoint {
     let s_ = decode_scalar(s);
     let p_ = decode_point(p);
-    let r = montgomery_ladder(s_, p_);
-    encode_point(r)
+    let r = montgomery_ladder(s_, p_); 
+    encode_point(r) 
 }
 
 pub fn x25519_secret_to_public(s: X25519SerializedScalar) -> X25519SerializedPoint {

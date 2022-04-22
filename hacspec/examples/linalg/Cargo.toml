@@ -21,7 +21,3 @@ ndarray = "0.15"
 rulinalg = "0.4"
 criterion = "0.3"
 rand = "0.8"
-
-[[bench]]
-name = "benchmarks"
-harness = false

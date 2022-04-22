@@ -1,17 +1,17 @@
 use hacspec_lib::*;
-use hacspec_secp256k1::*;
+use hacspec_curve25519::*;
 
 
-pub fn pederson_commit(randomness: Secp256k1Scalar, secret_key: Secp256k1Scalar, message: Secp256k1Scalar) -> Affine {
+pub fn pederson_commit(randomness: X25519SerializedScalar, secret_key: X25519SerializedScalar, message: X25519SerializedScalar) -> X25519SerializedPoint {
 
-	let h = scalar_multiplication(secret_key, BASE_POINT());
+	let h = x25519_scalarmult(secret_key, BASE_POINT());
 
-	let r_h = scalar_multiplication(randomness,h);
+	let r_h = x25519_scalarmult(randomness,h);
 
-	let a_g = scalar_multiplication(message, BASE_POINT());
+	let a_g = x25519_scalarmult(message, BASE_POINT());
 
-	let commitment = add_points(a_g, r_h);
+	//let commitment = x25519_addpoints(a_g, r_h);
 
-	commitment
+	a_g
 
 }
