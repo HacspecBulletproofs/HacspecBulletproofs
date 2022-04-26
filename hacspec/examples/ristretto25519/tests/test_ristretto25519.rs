@@ -39,7 +39,7 @@ fn unit_test_pos_SQRT_RATIO() {
 fn unit_test_neg_SQRT_RATIO() {
     let u = FieldElement::from_literal(15);
     let v = FieldElement::from_literal(2);
-    let (was_SQRT,ratio) = SQRT_RATIO_M1(u,v);
+    let (was_SQRT,_) = SQRT_RATIO_M1(u,v);
     println!("condition: {}", was_SQRT);
     assert!(!was_SQRT);
 }
@@ -113,7 +113,6 @@ fn is_bigger_than_p (n: Vec<u8>) -> bool {
 
 #[test]
 fn quickcheck_is_negative() {
-
     fn helper(mut n: Vec<u8>) -> TestResult {
         if n.len() < 32 {
             return TestResult::discard()
@@ -124,21 +123,14 @@ fn quickcheck_is_negative() {
             return TestResult::discard()
         }
 
-        let n_hacspec = hex::encode(n.clone());
-        let n_rust = n.as_slice();
+        let n = n.as_slice();
 
-
-        let rust_element = RistrettoPoint::create_field_element(n_rust.try_into().unwrap());
-        let hacspec_element = FieldElement::from_le_bytes(n_rust);
+        let rust_element = RistrettoPoint::create_field_element(n.try_into().unwrap());
+        let hacspec_element = FieldElement::from_le_bytes(n);
 
         let hacspec_negative = IS_NEGATIVE(hacspec_element);
         let rust_negative = rust_element.is_negative();
 
-        println!("Rust: {:?}", rust_element);
-
-        println!("Hacspec: {:?}", hacspec_element);
-
-        
         TestResult::from_bool(hacspec_negative == rust_negative.into())
     }
     quickcheck(helper as fn(Vec<u8>) -> TestResult)
@@ -160,9 +152,7 @@ fn quickcheck_SQRT_RATIO_M1() {
 
         let n = n.as_slice();
 
-        
         let rust_element = RistrettoPoint::create_field_element(n.try_into().unwrap());
-
         let hacspec_element = FieldElement::from_le_bytes(n);
 
         let (was_square_hacspec, ratio_hacspec) = SQRT_RATIO_M1(flit(1),hacspec_element);
@@ -173,7 +163,6 @@ fn quickcheck_SQRT_RATIO_M1() {
 
         let rust_ratio_bytes = ratio_rust.to_bytes();
 
-        
         TestResult::from_bool(was_square_hacspec == was_square_rust.into() && rust_ratio_bytes == hacspec_ratio_slice)
     }
     quickcheck(helper as fn(Vec<u8>) -> TestResult)
@@ -181,7 +170,6 @@ fn quickcheck_SQRT_RATIO_M1() {
 
 #[test]
 fn quickcheck_neg() {
-
     fn helper(mut n: Vec<u8>) -> TestResult {
         if n.len() < 32 {
             return TestResult::discard()
@@ -194,19 +182,17 @@ fn quickcheck_neg() {
 
         let n = n.as_slice();
 
-        
         let rust_element = RistrettoPoint::create_field_element(n.try_into().unwrap());
-
         let hacspec_element = FieldElement::from_le_bytes(n);
 
-        let inverse_hacspec = neg(hacspec_element);
-        let inverse_rust = &(-&rust_element);
+        let neg_hacspec = neg(hacspec_element);
+        let neg_rust = &(-&rust_element);
 
-        let hacspec_inverse_bytes = inverse_hacspec.to_le_bytes();
-        let hacspec_inverse_slice = hacspec_inverse_bytes.as_slice();
-        let rust_inverse_bytes = inverse_rust.to_bytes();
-        
-        TestResult::from_bool(rust_inverse_bytes == hacspec_inverse_slice)
+        let hacspec_neg_bytes = neg_hacspec.to_le_bytes();
+        let hacspec_neg_slice = hacspec_neg_bytes.as_slice();
+        let rust_neg_bytes = neg_rust.to_bytes();
+
+        TestResult::from_bool(rust_neg_bytes == hacspec_neg_slice)
     }
     quickcheck(helper as fn(Vec<u8>) -> TestResult)
 }
@@ -226,7 +212,7 @@ fn quickcheck_invert() {
 
         let n = n.as_slice();
 
-        
+
         let rust_element = RistrettoPoint::create_field_element(n.try_into().unwrap());
 
         let hacspec_element = FieldElement::from_le_bytes(n);
@@ -237,7 +223,7 @@ fn quickcheck_invert() {
         let hacspec_inverse_bytes = inverse_hacspec.to_le_bytes();
         let hacspec_inverse_slice = hacspec_inverse_bytes.as_slice();
         let rust_inverse_bytes = inverse_rust.to_bytes();
-        
+
         TestResult::from_bool(rust_inverse_bytes == hacspec_inverse_slice)
     }
     quickcheck(helper as fn(Vec<u8>) -> TestResult)
@@ -245,7 +231,6 @@ fn quickcheck_invert() {
 
 #[test]
 fn quickcheck_decode() { //Note: this test only checks if our decode function fails if and only if the other fails as well.
-
     fn helper(mut n: Vec<u8>) -> TestResult {
         if n.len() < 32 {
             return TestResult::discard()
@@ -259,11 +244,9 @@ fn quickcheck_decode() { //Note: this test only checks if our decode function fa
         let n = n.as_slice();
 
         let hacspec_encoded_point = EncodedPoint::from_public_slice(n);
-
         let rust_encoded_point = CompressedRistretto::from_slice(&n);
 
         let h_decoded = decode(hacspec_encoded_point);
-
         let r_decoded = rust_encoded_point.decompress();
 
         if h_decoded.is_err() && r_decoded.is_none() {
@@ -278,9 +261,8 @@ fn quickcheck_decode() { //Note: this test only checks if our decode function fa
     quickcheck(helper as fn(Vec<u8>) -> TestResult)
 }
 
-
 #[test]
-fn quickcheck_decode_encode() { 
+fn quickcheck_decode_encode() {
 
     fn helper(mut n: Vec<u8>) -> TestResult {
         if n.len() < 32 {
@@ -319,7 +301,7 @@ fn quickcheck_decode_encode() {
 
         let rust_slice = rust_reencoded.to_bytes();
 
-        
+
         TestResult::from_bool(rust_slice == hacspec_slice)
     }
     quickcheck(helper as fn(Vec<u8>) -> TestResult)
@@ -334,10 +316,10 @@ fn unit_test_point_addition() {
 
 #[test]
 fn unit_test_point_negation() {
-    
+
 }
 
 #[test]
 fn unit_test_scalar_multiplication(){
-    
+
 }
