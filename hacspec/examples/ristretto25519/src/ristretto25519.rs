@@ -1,7 +1,6 @@
 #![allow(non_snake_case)]
 
 use hacspec_lib::*;
-use num::BigUint;
 
 public_nat_mod!(
     type_name: FieldElement,
@@ -17,13 +16,57 @@ public_nat_mod!(
     modulo_value: "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
 );
 
-fn P() -> FieldElement{ return FieldElement::from_hex("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed")}
-fn D() -> FieldElement{ return FieldElement::from_hex("52036cee2b6ffe738cc740797779e89800700a4d4141d8ab75eb4dca135978a3")}
-fn SQRT_M1() -> FieldElement{ return FieldElement::from_hex("2b8324804fc1df0b2b4d00993dfbd7a72f431806ad2fe478c4ee1b274a0ea0b0")}
-fn SQRT_AD_MINUS_ONE() -> FieldElement { return FieldElement::from_hex("376931bf2b8348ac0f3cfcc931f5d1fdaf9d8e0c1b7854bd7e97f6a0497b2e1b")}
-fn INVSQRT_A_MINUS_D() -> FieldElement { return FieldElement::from_hex("786c8905cfaffca216c27b91fe01d8409d2f16175a4172be99c8fdaa805d40ea")}
-fn ONE_MINUS_D_SQ() -> FieldElement { return FieldElement::from_hex("29072a8b2b3e0d79994abddbe70dfe42c81a138cd5e350fe27c09c1945fc176")}
-fn D_MINUS_ONE_SQ() -> FieldElement { FieldElement::from_hex("5968b37af66c22414cdcd32f529b4eebd29e4a2cb01e199931ad5aaa44ed4d20")}
+fn P() -> FieldElement{ 
+    FieldElement::from_byte_seq_be(&byte_seq!(
+        0x7fu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 
+        0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8,
+        0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 
+        0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xedu8))
+    }
+
+fn D() -> FieldElement{ 
+    FieldElement::from_byte_seq_be(&byte_seq!(
+        0x52u8, 0x03u8, 0x6cu8, 0xeeu8, 0x2bu8, 0x6fu8, 0xfeu8, 0x73u8,
+        0x8cu8, 0xc7u8, 0x40u8, 0x79u8, 0x77u8, 0x79u8, 0xe8u8, 0x98u8,
+        0x00u8, 0x70u8, 0x0au8, 0x4du8, 0x41u8, 0x41u8, 0xd8u8, 0xabu8,
+        0x75u8, 0xebu8, 0x4du8, 0xcau8, 0x13u8, 0x59u8, 0x78u8, 0xa3u8))
+    }
+fn SQRT_M1() -> FieldElement{ 
+    FieldElement::from_byte_seq_be(&byte_seq!(
+        0x2bu8, 0x83u8, 0x24u8, 0x80u8, 0x4fu8, 0xc1u8, 0xdfu8, 0x0bu8,
+        0x2bu8, 0x4du8, 0x00u8, 0x99u8, 0x3du8, 0xfbu8, 0xd7u8, 0xa7u8,
+        0x2fu8, 0x43u8, 0x18u8, 0x06u8, 0xadu8, 0x2fu8, 0xe4u8, 0x78u8,
+        0xc4u8, 0xeeu8, 0x1bu8, 0x27u8, 0x4au8, 0x0eu8, 0xa0u8, 0xb0u8))
+    }
+fn SQRT_AD_MINUS_ONE() -> FieldElement { 
+    FieldElement::from_byte_seq_be(&byte_seq!(
+        0x37u8, 0x69u8, 0x31u8, 0xbfu8, 0x2bu8, 0x83u8, 0x48u8, 0xacu8,
+        0x0fu8, 0x3cu8, 0xfcu8, 0xc9u8, 0x31u8, 0xf5u8, 0xd1u8, 0xfdu8,
+        0xafu8, 0x9du8, 0x8eu8, 0x0cu8, 0x1bu8, 0x78u8, 0x54u8, 0xbdu8,
+        0x7eu8, 0x97u8, 0xf6u8, 0xa0u8, 0x49u8, 0x7bu8, 0x2eu8, 0x1bu8))
+    }
+fn INVSQRT_A_MINUS_D() -> FieldElement { 
+    FieldElement::from_byte_seq_be(&byte_seq!(
+        0x78u8, 0x6cu8, 0x89u8, 0x05u8, 0xcfu8, 0xafu8, 0xfcu8, 0xa2u8,
+        0x16u8, 0xc2u8, 0x7bu8, 0x91u8, 0xfeu8, 0x01u8, 0xd8u8, 0x40u8,
+        0x9du8, 0x2fu8, 0x16u8, 0x17u8, 0x5au8, 0x41u8, 0x72u8, 0xbeu8,
+        0x99u8, 0xc8u8, 0xfdu8, 0xaau8, 0x80u8, 0x5du8, 0x40u8, 0xeau8))
+    }
+fn ONE_MINUS_D_SQ() -> FieldElement { 
+    FieldElement::from_byte_seq_be(&byte_seq!(
+        0x02u8, 0x90u8, 0x72u8, 0xa8u8, 0xb2u8, 0xb3u8, 0xe0u8, 0xd7u8,
+        0x99u8, 0x94u8, 0xabu8, 0xddu8, 0xbeu8, 0x70u8, 0xdfu8, 0xe4u8, 
+        0x2cu8, 0x81u8, 0xa1u8, 0x38u8, 0xcdu8, 0x5eu8, 0x35u8, 0x0fu8, 
+        0xe2u8, 0x7cu8, 0x09u8, 0xc1u8, 0x94u8, 0x5fu8, 0xc1u8, 0x76u8))
+    }
+fn D_MINUS_ONE_SQ() -> FieldElement { 
+    FieldElement::from_byte_seq_be(&byte_seq!(
+        0x59u8, 0x68u8, 0xb3u8, 0x7au8, 0xf6u8, 0x6cu8, 0x22u8, 0x41u8, 
+        0x4cu8, 0xdcu8, 0xd3u8, 0x2fu8, 0x52u8, 0x9bu8, 0x4eu8, 0xebu8, 
+        0xd2u8, 0x9eu8, 0x4au8, 0x2cu8, 0xb0u8, 0x1eu8, 0x19u8, 0x99u8, 
+        0x31u8, 0xadu8, 0x5au8, 0xaau8, 0x44u8, 0xedu8, 0x4du8, 0x20u8))
+    }
+    
 
 type Point = (FieldElement,FieldElement,FieldElement,FieldElement);
 
@@ -31,9 +74,8 @@ bytes!(EncodedPoint,32);
 
 pub fn IS_NEGATIVE(e: FieldElement) -> bool { //What the fuck??????????
 
-    let bytes = e.to_public_byte_seq_le();
+    e % flit(2u128) == flit(1u128)
 
-    (bytes[0u32] & 1u8) == 1u8
 }
 
 fn CT_EQ(u: FieldElement, v:FieldElement) -> bool {
@@ -50,10 +92,11 @@ fn CT_ABS(u: FieldElement) -> FieldElement {
 }
 
 pub fn invert(u: FieldElement) -> FieldElement {
-    if u == flit(0) { 
-        return flit(0)
+    let mut ret = u.pow_felem(P()-flit(2u128));
+    if u == flit(0u128) { 
+        ret = flit(0u128)
     }
-    u.pow_felem(P()-flit(2))
+    ret
 }
 
 pub fn neg(u: FieldElement) -> FieldElement {
@@ -68,7 +111,7 @@ pub fn SQRT_RATIO_M1(u: FieldElement, v: FieldElement) -> (bool, FieldElement) {
 
     let v3 = v.pow(2u128)*v;
     let v7 = v3.pow(2u128)*v;
-    let mut r = (u * v3) * (u * v7).pow_felem((P()-flit(5))/flit(8));
+    let mut r = (u * v3) * (u * v7).pow_felem((P()-flit(5u128))/flit(8u128));
     let check = v * r.pow(2u128);
     
     let correct_sign_sqrt = CT_EQ(check, u);
@@ -91,39 +134,37 @@ pub fn SQRT_RATIO_M1(u: FieldElement, v: FieldElement) -> (bool, FieldElement) {
 
 }*/
 
-pub fn  decode(u: EncodedPoint) -> Result<Point, ()> { // if s is larger than p decoding should fail. But Fieldelement.    
+pub fn  decode(u: EncodedPoint) -> Result<Point, ()> { // if s is larger than p decoding should fail. But Fieldelement.
+    let mut ret = Result::<Point, ()>::Err(());
     let temp_s = Scalar::from_byte_seq_le(u);
-    let p_as_s = Scalar::from_hex("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed");
-    if temp_s >= p_as_s {
-        return Result::<Point, ()>::Err(())
-    }
+    let p_as_s = Scalar::from_byte_seq_be(&byte_seq!(
+        0x7fu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 
+        0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8,
+        0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 
+        0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xedu8));
     let s = FieldElement::from_byte_seq_le(u);
-    if IS_NEGATIVE(s) {
-        return Result::<Point, ()>::Err(())
-    }
-    let ss = s.pow(2);
-    let u1 = flit(1) - ss;
-    let u2 = flit(1) + ss;
-    let u2_sqr = u2.pow(2);
+    if temp_s < p_as_s && !IS_NEGATIVE(s) {
+        let ss = s.pow(2u128);
+        let u1 = flit(1u128) - ss;
+        let u2 = flit(1u128) + ss;
+        let u2_sqr = u2.pow(2u128);
 
-    let v = neg(D() * u1.pow(2)) - u2_sqr;
+        let v = neg(D() * u1.pow(2u128)) - u2_sqr;
 
-    let (was_square, invsqrt) = SQRT_RATIO_M1(flit(1), v * u2_sqr);
+        let (was_square, invsqrt) = SQRT_RATIO_M1(flit(1u128), v * u2_sqr);
 
-    let den_x = invsqrt * u2;
-    let den_y = invsqrt * den_x * v;
+        let den_x = invsqrt * u2;
+        let den_y = invsqrt * den_x * v;
 
-    let x = CT_ABS((s + s) * den_x);
-    let y = u1 * den_y;
-    let t = x * y;
+        let x = CT_ABS((s + s) * den_x);
+        let y = u1 * den_y;
+        let t = x * y;
 
-    let mut ret = Result::<Point, ()>::Ok((x,y,flit(1),t));
-
-    if !was_square || IS_NEGATIVE(t) || y == flit(0) {
-        ret = Result::<Point, ()>::Err(())
+        if !(!was_square || IS_NEGATIVE(t) || y == flit(0u128)) {
+            ret = Result::<Point, ()>::Ok((x,y,flit(1u128),t));
+        }
     }
     ret
-
 }
 
 pub fn encode(u: Point) -> EncodedPoint {
@@ -133,7 +174,7 @@ pub fn encode(u: Point) -> EncodedPoint {
     let u2 = x0 * y0;
 
     // Ignore was_square since this is always square
-    let (_, invsqrt) = SQRT_RATIO_M1(flit(1), u1 * u2.pow(2));
+    let (_, invsqrt) = SQRT_RATIO_M1(flit(1u128), u1 * u2.pow(2u128));
 
     let den1 = invsqrt * u1;
     let den2 = invsqrt * u2;
@@ -164,11 +205,48 @@ pub fn equals(u: Point, v: Point) -> bool {
     x1*y2 ==x2*y1 || y1*y2 ==x1*x2
 }
 
-/*pub fn add_points(u: Point, v: Point) -> Point {
+pub fn add_points(u: Point, v: Point) -> Point {
+    let d = D();
+    let (X1,Y1,Z1,T1) = u;
+    let (X2,Y2,Z2,T2) = v;
+    let A = (Y1-X1)*(Y2-X2);
+    let B = (Y1+X1)*(Y2+X2);
+    let C = T1*flit(2u128)*d*T2;
+    let D = Z1*flit(2u128)*Z2;
+    let E = B-A;
+    let F = D-C;
+    let G = D+C;
+    let H = B+A;
+    let X3 = E*F;
+    let Y3 = G*H;
+    let T3 = E*H;
+    let Z3 = F*G;
+    (X3,Y3,Z3,T3)
     
 }
 
+pub fn double_point(u: Point) -> Point {
+    let (X1,Y1,Z1,_) = u;
+    let A = X1.pow(2u128);
+    let B = Y1.pow(2u128);
+    let C = flit(2u128)*(Z1.pow(2u128));
+    let H = A+B;
+    let E = H-((X1+Y1).pow(2u128));
+    let G = A-B;
+    let F = C+G;
+    let X2 = E*F;
+    let Y2 = G*H;
+    let T2 = E*H;
+    let Z2 = F*G;
+    (X2,Y2,Z2,T2)
+}
+
 pub fn negate_point(u: Point) -> Point {
+    let (X1,Y1,Z1,T1) = u;
+    (neg(X1),Y1,neg(Z1),T1)
+}
+
+/*pub fn subtract_points(u: Point, v: Point) -> Point {
 
 }
 

@@ -326,6 +326,8 @@ fn quickcheck_decode_encode() {
 }
 
 #[test]
+
+#[test]
 fn unit_test_point_addition() {
 
 }
