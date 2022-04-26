@@ -29,7 +29,6 @@ fn unit_test_pos_SQRT_RATIO() {
     let v = FieldElement::from_literal(2);
     let (was_SQRT, ratio) = SQRT_RATIO_M1(u, v);
     let expectedRes = FieldElement::from_literal(2);
-    println!("condition: {}", was_SQRT);
     assert_eq!(ratio, expectedRes);
 }
 
@@ -38,7 +37,6 @@ fn unit_test_neg_SQRT_RATIO() {
     let u = FieldElement::from_literal(15);
     let v = FieldElement::from_literal(2);
     let (was_SQRT, _) = SQRT_RATIO_M1(u, v);
-    println!("condition: {}", was_SQRT);
     assert!(!was_SQRT);
 }
 
@@ -81,10 +79,8 @@ fn unit_test_big_neg_decode() {
         "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
     ]);
 
-    hexs.iter().for_each(|x| {
-        println!("{}", x);
-        assert!(decode(EncodedPoint::from_hex(x)).is_err())
-    });
+    hexs.iter()
+        .for_each(|x| assert!(decode(EncodedPoint::from_hex(x)).is_err()));
 }
 
 #[test]
@@ -225,8 +221,8 @@ fn quickcheck_invert() {
 }
 
 #[test]
+//Note: this test only checks if our decode function fails if and only if the other fails as well.
 fn quickcheck_decode() {
-    //Note: this test only checks if our decode function fails if and only if the other fails as well.
     fn helper(mut n: Vec<u8>) -> TestResult {
         if n.len() < 32 {
             return TestResult::discard();
@@ -301,7 +297,6 @@ fn quickcheck_decode_encode() {
     quickcheck(helper as fn(Vec<u8>) -> TestResult)
 }
 
-#[test]
 #[test]
 fn unit_test_point_addition() {}
 
