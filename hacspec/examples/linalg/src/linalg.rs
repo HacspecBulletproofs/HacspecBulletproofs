@@ -6,10 +6,10 @@ pub type Dims = (DimType, DimType);
 pub type Matrix = (Dims, Seq<Scalar>);
 
 pub fn new(rows: DimType, cols: DimType, seq: Seq<Scalar>) -> Result<Matrix, ()> {
-    if rows <= 0 || cols <= 0 || rows * cols != seq.len() {
-        Result::<Matrix, ()>::Err(())
-    } else {
+    if seq.len() > 0 && rows * cols == seq.len() {
         Result::<Matrix, ()>::Ok(((rows, cols), seq))
+    } else {
+        Result::<Matrix, ()>::Err(())
     }
 }
 

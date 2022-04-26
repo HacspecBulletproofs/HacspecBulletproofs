@@ -1,8 +1,10 @@
 - Archived links?
-- Reproducible builds?
 - Automated proofs?
 - Type aliases
 - Description of groups, fields, etc?
+- i128
+- Creusot
+- Ariel Gabizon
 
 # Ristretto Questions: 
  - What to do if decoding fails? 
