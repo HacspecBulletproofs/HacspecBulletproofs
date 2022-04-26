@@ -1,3 +1,4 @@
+//Todo remove decode_hex
 #![allow(non_snake_case)]
 extern crate quickcheck;
 
@@ -221,39 +222,6 @@ fn quickcheck_invert() {
 }
 
 #[test]
-//Note: this test only checks if our decode function fails if and only if the other fails as well.
-fn quickcheck_decode() {
-    fn helper(mut n: Vec<u8>) -> TestResult {
-        if n.len() < 32 {
-            return TestResult::discard();
-        }
-        n.truncate(32);
-
-        if is_bigger_than_p(n.clone()) {
-            return TestResult::discard();
-        }
-
-        let n = n.as_slice();
-
-        let hacspec_encoded_point = EncodedPoint::from_public_slice(n);
-        let rust_encoded_point = CompressedRistretto::from_slice(&n);
-
-        let h_decoded = decode(hacspec_encoded_point);
-        let r_decoded = rust_encoded_point.decompress();
-
-        if h_decoded.is_err() && r_decoded.is_none() {
-            return TestResult::from_bool(true);
-        }
-
-        let hacspec_decoded = h_decoded.unwrap();
-        let rust_decoded = r_decoded.unwrap();
-
-        TestResult::from_bool(true)
-    }
-    quickcheck(helper as fn(Vec<u8>) -> TestResult)
-}
-
-#[test]
 fn quickcheck_decode_encode() {
     fn helper(mut n: Vec<u8>) -> TestResult {
         if n.len() < 32 {
@@ -268,11 +236,9 @@ fn quickcheck_decode_encode() {
         let n = n.as_slice();
 
         let hacspec_encoded_point = EncodedPoint::from_public_slice(n);
-
         let rust_encoded_point = CompressedRistretto::from_slice(&n);
 
         let h_decoded = decode(hacspec_encoded_point);
-
         let r_decoded = rust_encoded_point.decompress();
 
         if h_decoded.is_err() && r_decoded.is_none() {
@@ -283,7 +249,6 @@ fn quickcheck_decode_encode() {
         let rust_decoded = r_decoded.unwrap();
 
         let hacspec_reencoded = encode(hacspec_decoded);
-
         let rust_reencoded = rust_decoded.compress();
 
         let hacspec_bytes = hacspec_reencoded.to_le_bytes();

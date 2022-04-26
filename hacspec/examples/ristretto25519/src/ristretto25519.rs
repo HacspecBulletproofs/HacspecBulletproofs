@@ -71,7 +71,6 @@ fn D_MINUS_ONE_SQ() -> FieldElement {
 }
 
 pub fn IS_NEGATIVE(e: FieldElement) -> bool {
-    //What the fuck??????????
     e % flit(2u128) == flit(1u128)
 }
 
@@ -128,9 +127,7 @@ pub fn SQRT_RATIO_M1(u: FieldElement, v: FieldElement) -> (bool, FieldElement) {
     (was_square, r)
 }
 
-/*fn MAP() -> X25519SerializedPoint {
-
-}*/
+//fn MAP() -> X25519SerializedPoint {}
 
 // if s is larger than p decoding should fail. But Fieldelement.
 pub fn decode(u: EncodedPoint) -> Result<Point, ()> {
@@ -244,10 +241,5 @@ pub fn negate_point(u: Point) -> Point {
     (neg(X1), Y1, neg(Z1), T1)
 }
 
-/*pub fn subtract_points(u: Point, v: Point) -> Point {
-
-}
-
-pub fn scalar_multiplication(s: Scalar, u: Point) -> Point {
-
-}*/
+//pub fn subtract_points(u: Point, v: Point) -> Point {}
+//pub fn scalar_multiplication(s: Scalar, u: Point) -> Point {}
