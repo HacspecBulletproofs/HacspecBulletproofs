@@ -17,5 +17,5 @@ crypto-bigint = "0.3.2"
 criterion = "0.3"
 rand = "0.8"
 quickcheck = "1"
-rustc-serialize = "0.3.24"
-curve25519-dalek = "3"
+curve25519-dalek = { path = "../../../curve25519-dalek" }
+hex = "0.4"

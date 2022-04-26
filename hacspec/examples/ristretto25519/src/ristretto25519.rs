@@ -1,12 +1,20 @@
 #![allow(non_snake_case)]
 
 use hacspec_lib::*;
+use num::BigUint;
 
 public_nat_mod!(
     type_name: FieldElement,
     type_of_canvas: FieldCanvas,
     bit_size_of_field: 256,
     modulo_value: "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed"
+);
+
+public_nat_mod!(
+    type_name: Scalar,
+    type_of_canvas: ScalarCanvas,
+    bit_size_of_field: 256,
+    modulo_value: "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
 );
 
 fn P() -> FieldElement{ return FieldElement::from_hex("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed")}
@@ -21,8 +29,11 @@ type Point = (FieldElement,FieldElement,FieldElement,FieldElement);
 
 bytes!(EncodedPoint,32);
 
-fn IS_NEGATIVE(e: FieldElement) -> bool { //What the fuck??????
-    e >= (P()-flit(1))/flit(2)
+pub fn IS_NEGATIVE(e: FieldElement) -> bool { //What the fuck??????????
+
+    let bytes = e.to_public_byte_seq_le();
+
+    (bytes[0u32] & 1u8) == 1u8
 }
 
 fn CT_EQ(u: FieldElement, v:FieldElement) -> bool {
@@ -38,11 +49,18 @@ fn CT_ABS(u: FieldElement) -> FieldElement {
     CT_SELECT(neg(u),IS_NEGATIVE(u),u)
 }
 
+pub fn invert(u: FieldElement) -> FieldElement {
+    if u == flit(0) { 
+        return flit(0)
+    }
+    u.pow_felem(P()-flit(2))
+}
+
 pub fn neg(u: FieldElement) -> FieldElement {
     P()-u
 }
 
-fn flit(x: u128) -> FieldElement {
+pub fn flit(x: u128) -> FieldElement {
     FieldElement::from_literal(x)
 }
 
@@ -58,10 +76,10 @@ pub fn SQRT_RATIO_M1(u: FieldElement, v: FieldElement) -> (bool, FieldElement) {
     let flipped_sign_sqrt_i = CT_EQ(check, neg(u)*SQRT_M1());
     
     let r_prime = SQRT_M1()*r;
-    let r = CT_SELECT(r_prime, flipped_sign_sqrt || flipped_sign_sqrt_i, r);
+    r = CT_SELECT(r_prime, flipped_sign_sqrt || flipped_sign_sqrt_i, r);
     
     // Choose the nonnegative square root.
-    let r = CT_ABS(r);
+    r = CT_ABS(r);
     
     let was_square = correct_sign_sqrt || flipped_sign_sqrt;
     
@@ -74,27 +92,30 @@ pub fn SQRT_RATIO_M1(u: FieldElement, v: FieldElement) -> (bool, FieldElement) {
 }*/
 
 pub fn  decode(u: EncodedPoint) -> Result<Point, ()> { // if s is larger than p decoding should fail. But Fieldelement.    
+    let temp_s = Scalar::from_byte_seq_le(u);
+    let p_as_s = Scalar::from_hex("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed");
+    if temp_s >= p_as_s {
+        return Result::<Point, ()>::Err(())
+    }
     let s = FieldElement::from_byte_seq_le(u);
-
+    if IS_NEGATIVE(s) {
+        return Result::<Point, ()>::Err(())
+    }
     let ss = s.pow(2);
     let u1 = flit(1) - ss;
     let u2 = flit(1) + ss;
     let u2_sqr = u2.pow(2);
 
-    let v = neg((D() * u1.pow(2)) - u2_sqr);
+    let v = neg(D() * u1.pow(2)) - u2_sqr;
 
     let (was_square, invsqrt) = SQRT_RATIO_M1(flit(1), v * u2_sqr);
 
     let den_x = invsqrt * u2;
     let den_y = invsqrt * den_x * v;
 
-    println!("Was square: {}", was_square);
-
-    let x = CT_ABS(flit(2) * s * den_x);
+    let x = CT_ABS((s + s) * den_x);
     let y = u1 * den_y;
     let t = x * y;
-    println!("y: {}", y);
-    println!("t is negative: {}", IS_NEGATIVE(t));
 
     let mut ret = Result::<Point, ()>::Ok((x,y,flit(1),t));
 
@@ -129,9 +150,6 @@ pub fn encode(u: Point) -> EncodedPoint {
     let z = z0;
     let den_inv = CT_SELECT(enchanted_denominator, rotate, den2);
 
-    println!("SYVOGTYVE: {}", x*z_inv);
-    println!("OTTEOGTYVE: {}", IS_NEGATIVE(x*z_inv));
-    println!("");
     y = CT_SELECT(neg(y), IS_NEGATIVE(x * z_inv), y);
 
     let s = CT_ABS(den_inv * (z - y));
