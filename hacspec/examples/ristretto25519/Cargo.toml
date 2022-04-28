@@ -17,5 +17,7 @@ crypto-bigint = "0.3.2"
 criterion = "0.3"
 rand = "0.8"
 quickcheck = "1"
-curve25519-dalek = { path = "../../../curve25519-dalek" }
+curve25519-dalek = "2"
 hex = "0.4"
+getrandom = "0.2"
+rand_chacha = "0.3"

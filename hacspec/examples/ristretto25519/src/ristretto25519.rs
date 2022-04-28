@@ -16,9 +16,9 @@ public_nat_mod!(
     modulo_value: "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
 );
 
-type Point = (FieldElement, FieldElement, FieldElement, FieldElement);
+pub type RistrettoPoint = (FieldElement, FieldElement, FieldElement, FieldElement);
 
-bytes!(EncodedPoint, 32);
+bytes!(RistrettoPointEncoded, 32);
 
 fn P() -> FieldElement {
     FieldElement::from_byte_seq_be(&byte_seq!(
@@ -41,18 +41,19 @@ fn SQRT_M1() -> FieldElement {
         0xe4u8, 0x78u8, 0xc4u8, 0xeeu8, 0x1bu8, 0x27u8, 0x4au8, 0x0eu8, 0xa0u8, 0xb0u8
     ))
 }
-fn SQRT_AD_MINUS_ONE() -> FieldElement {
-    FieldElement::from_byte_seq_be(&byte_seq!(
-        0x37u8, 0x69u8, 0x31u8, 0xbfu8, 0x2bu8, 0x83u8, 0x48u8, 0xacu8, 0x0fu8, 0x3cu8, 0xfcu8,
-        0xc9u8, 0x31u8, 0xf5u8, 0xd1u8, 0xfdu8, 0xafu8, 0x9du8, 0x8eu8, 0x0cu8, 0x1bu8, 0x78u8,
-        0x54u8, 0xbdu8, 0x7eu8, 0x97u8, 0xf6u8, 0xa0u8, 0x49u8, 0x7bu8, 0x2eu8, 0x1bu8
-    ))
-}
 fn INVSQRT_A_MINUS_D() -> FieldElement {
     FieldElement::from_byte_seq_be(&byte_seq!(
         0x78u8, 0x6cu8, 0x89u8, 0x05u8, 0xcfu8, 0xafu8, 0xfcu8, 0xa2u8, 0x16u8, 0xc2u8, 0x7bu8,
         0x91u8, 0xfeu8, 0x01u8, 0xd8u8, 0x40u8, 0x9du8, 0x2fu8, 0x16u8, 0x17u8, 0x5au8, 0x41u8,
         0x72u8, 0xbeu8, 0x99u8, 0xc8u8, 0xfdu8, 0xaau8, 0x80u8, 0x5du8, 0x40u8, 0xeau8
+    ))
+}
+/*
+fn SQRT_AD_MINUS_ONE() -> FieldElement {
+    FieldElement::from_byte_seq_be(&byte_seq!(
+        0x37u8, 0x69u8, 0x31u8, 0xbfu8, 0x2bu8, 0x83u8, 0x48u8, 0xacu8, 0x0fu8, 0x3cu8, 0xfcu8,
+        0xc9u8, 0x31u8, 0xf5u8, 0xd1u8, 0xfdu8, 0xafu8, 0x9du8, 0x8eu8, 0x0cu8, 0x1bu8, 0x78u8,
+        0x54u8, 0xbdu8, 0x7eu8, 0x97u8, 0xf6u8, 0xa0u8, 0x49u8, 0x7bu8, 0x2eu8, 0x1bu8
     ))
 }
 fn ONE_MINUS_D_SQ() -> FieldElement {
@@ -69,8 +70,29 @@ fn D_MINUS_ONE_SQ() -> FieldElement {
         0x19u8, 0x99u8, 0x31u8, 0xadu8, 0x5au8, 0xaau8, 0x44u8, 0xedu8, 0x4du8, 0x20u8
     ))
 }
+*/
+pub fn BASE_POINT_ENCODED() -> RistrettoPointEncoded {
+	RistrettoPointEncoded::from_hex("e2f2ae0a6abc4e71a884a961c500515f58e30b6aa582dd8db6a65945e08d2d76")
+}
+pub fn BASE_POINT() -> RistrettoPoint {
+	decode(RistrettoPointEncoded::from_hex("e2f2ae0a6abc4e71a884a961c500515f58e30b6aa582dd8db6a65945e08d2d76")).unwrap()
+}
+pub fn IDENTITY_POINT() -> RistrettoPoint {
+    (flit(0), flit(1), flit(1), flit(0))
+}
 
-pub fn IS_NEGATIVE(e: FieldElement) -> bool {
+// === Helper functions ===
+
+pub fn flit(x: u128) -> FieldElement {
+    FieldElement::from_literal(x)
+}
+
+pub fn to_bytes(p: RistrettoPoint) -> Seq<U8> {
+	let p_enc = encode(p);
+	p_enc.to_le_bytes()
+}
+
+fn IS_NEGATIVE(e: FieldElement) -> bool {
     e % flit(2u128) == flit(1u128)
 }
 
@@ -87,34 +109,22 @@ fn CT_SELECT(u: FieldElement, cond: bool, v: FieldElement) -> FieldElement {
 }
 
 fn CT_ABS(u: FieldElement) -> FieldElement {
-    CT_SELECT(neg(u), IS_NEGATIVE(u), u)
+    CT_SELECT(neg_elem(u), IS_NEGATIVE(u), u)
 }
 
-pub fn invert(u: FieldElement) -> FieldElement {
-    let mut ret = u.pow_felem(P() - flit(2u128));
-    if u == flit(0u128) {
-        ret = flit(0u128)
-    }
-    ret
-}
-
-pub fn neg(u: FieldElement) -> FieldElement {
+fn neg_elem(u: FieldElement) -> FieldElement {
     P() - u
 }
 
-pub fn flit(x: u128) -> FieldElement {
-    FieldElement::from_literal(x)
-}
-
-pub fn SQRT_RATIO_M1(u: FieldElement, v: FieldElement) -> (bool, FieldElement) {
+fn SQRT_RATIO_M1(u: FieldElement, v: FieldElement) -> (bool, FieldElement) {
     let v3 = v.pow(2u128) * v;
     let v7 = v3.pow(2u128) * v;
     let mut r = (u * v3) * (u * v7).pow_felem((P() - flit(5u128)) / flit(8u128));
     let check = v * r.pow(2u128);
 
     let correct_sign_sqrt = CT_EQ(check, u);
-    let flipped_sign_sqrt = CT_EQ(check, neg(u));
-    let flipped_sign_sqrt_i = CT_EQ(check, neg(u) * SQRT_M1());
+    let flipped_sign_sqrt = CT_EQ(check, neg_elem(u));
+    let flipped_sign_sqrt_i = CT_EQ(check, neg_elem(u) * SQRT_M1());
 
     let r_prime = SQRT_M1() * r;
     r = CT_SELECT(r_prime, flipped_sign_sqrt || flipped_sign_sqrt_i, r);
@@ -127,11 +137,10 @@ pub fn SQRT_RATIO_M1(u: FieldElement, v: FieldElement) -> (bool, FieldElement) {
     (was_square, r)
 }
 
-//fn MAP() -> X25519SerializedPoint {}
+//fn MAP() -> RistrettoX25519SerializedPoint {}
 
-// if s is larger than p decoding should fail. But Fieldelement.
-pub fn decode(u: EncodedPoint) -> Result<Point, ()> {
-    let mut ret = Result::<Point, ()>::Err(());
+pub fn decode(u: RistrettoPointEncoded) -> Result<RistrettoPoint, ()> {
+    let mut ret = Result::<RistrettoPoint, ()>::Err(());
     let temp_s = Scalar::from_byte_seq_le(u);
     let p_as_s = Scalar::from_byte_seq_be(&byte_seq!(
         0x7fu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8,
@@ -146,7 +155,7 @@ pub fn decode(u: EncodedPoint) -> Result<Point, ()> {
         let u2 = flit(1u128) + ss;
         let u2_sqr = u2.pow(2u128);
 
-        let v = neg(D() * u1.pow(2u128)) - u2_sqr;
+        let v = neg_elem(D() * u1.pow(2u128)) - u2_sqr;
 
         let (was_square, invsqrt) = SQRT_RATIO_M1(flit(1u128), v * u2_sqr);
 
@@ -158,13 +167,13 @@ pub fn decode(u: EncodedPoint) -> Result<Point, ()> {
         let t = x * y;
 
         if !(!was_square || IS_NEGATIVE(t) || y == flit(0u128)) {
-            ret = Result::<Point, ()>::Ok((x, y, flit(1u128), t));
+            ret = Result::<RistrettoPoint, ()>::Ok((x, y, flit(1u128), t));
         }
     }
     ret
 }
 
-pub fn encode(u: Point) -> EncodedPoint {
+pub fn encode(u: RistrettoPoint) -> RistrettoPointEncoded {
     let (x0, y0, z0, t0) = u;
 
     let u1 = (z0 + y0) * (z0 - y0);
@@ -188,23 +197,24 @@ pub fn encode(u: Point) -> EncodedPoint {
     let z = z0;
     let den_inv = CT_SELECT(enchanted_denominator, rotate, den2);
 
-    y = CT_SELECT(neg(y), IS_NEGATIVE(x * z_inv), y);
+    y = CT_SELECT(neg_elem(y), IS_NEGATIVE(x * z_inv), y);
 
     let s = CT_ABS(den_inv * (z - y));
 
-    EncodedPoint::new().update_start(&s.to_byte_seq_le())
+    RistrettoPointEncoded::new().update_start(&s.to_byte_seq_le())
 }
 
-pub fn equals(u: Point, v: Point) -> bool {
+pub fn equals(u: RistrettoPoint, v: RistrettoPoint) -> bool {
     let (x1, y1, _, _) = u;
     let (x2, y2, _, _) = v;
     x1 * y2 == x2 * y1 || y1 * y2 == x1 * x2
 }
 
-pub fn add_points(u: Point, v: Point) -> Point {
+pub fn add(u: RistrettoPoint, v: RistrettoPoint) -> RistrettoPoint {
     let d = D();
     let (X1, Y1, Z1, T1) = u;
     let (X2, Y2, Z2, T2) = v;
+
     let A = (Y1 - X1) * (Y2 - X2);
     let B = (Y1 + X1) * (Y2 + X2);
     let C = T1 * flit(2u128) * d * T2;
@@ -217,11 +227,13 @@ pub fn add_points(u: Point, v: Point) -> Point {
     let Y3 = G * H;
     let T3 = E * H;
     let Z3 = F * G;
+
     (X3, Y3, Z3, T3)
 }
 
-pub fn double_point(u: Point) -> Point {
+pub fn double(u: RistrettoPoint) -> RistrettoPoint {
     let (X1, Y1, Z1, _) = u;
+
     let A = X1.pow(2u128);
     let B = Y1.pow(2u128);
     let C = flit(2u128) * (Z1.pow(2u128));
@@ -233,13 +245,28 @@ pub fn double_point(u: Point) -> Point {
     let Y2 = G * H;
     let T2 = E * H;
     let Z2 = F * G;
+
     (X2, Y2, Z2, T2)
 }
 
-pub fn negate_point(u: Point) -> Point {
+pub fn neg(u: RistrettoPoint) -> RistrettoPoint {
     let (X1, Y1, Z1, T1) = u;
-    (neg(X1), Y1, neg(Z1), T1)
+    (neg_elem(X1), Y1, neg_elem(Z1), T1)
 }
 
-//pub fn subtract_points(u: Point, v: Point) -> Point {}
-//pub fn scalar_multiplication(s: Scalar, u: Point) -> Point {}
+pub fn sub(u: RistrettoPoint, v: RistrettoPoint) -> RistrettoPoint {
+    add(u, neg(v))
+}
+
+pub fn mul(k: FieldElement, p: RistrettoPoint) -> RistrettoPoint {
+    let mut acc = IDENTITY_POINT();
+    let mut q = p;
+    for i in 0..256 {
+        if k.get_bit(i) == flit(1) {
+            acc = add(acc, q)
+        }
+        q = double(q)
+    }
+    acc
+}
+
