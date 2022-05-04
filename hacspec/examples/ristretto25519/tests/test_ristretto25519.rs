@@ -158,4 +158,36 @@ fn test_dalek_scalar_multiplication() {
 }
 
 #[test]
-fn test_dalek_point_negation() {}
+fn test_dalek_point_negation() {
+    fn helper(mut v: Vec<u8>) -> TestResult {
+		if v.len() < 32 {
+			return TestResult::discard();
+		}
+		v.truncate(32);
+
+		if is_bigger_than_p(v.clone()) {
+			return TestResult::discard();
+		}
+
+		let v = v.as_slice();
+
+		let hac_enc = RistrettoPointEncoded::from_public_slice(v);
+		let dal_enc = DalekRistrettoPointEncoded::from_slice(&v);
+
+		let hac_dec = decode(hac_enc);
+		let dal_dec = dal_enc.decompress();
+
+		if hac_dec.is_err() && dal_dec.is_none() {
+			return TestResult::discard();
+		}
+
+		let hac_dec = hac_dec.unwrap();
+		let dal_dec = dal_dec.unwrap();
+
+		let hac_scal = neg(hac_dec);
+		let dal_scal = dal_dec.neg();
+
+		TestResult::from_bool(cmp_points(hac_scal, dal_scal))
+	}
+	quickcheck(10, helper as fn(Vec<u8>) -> TestResult)
+}
