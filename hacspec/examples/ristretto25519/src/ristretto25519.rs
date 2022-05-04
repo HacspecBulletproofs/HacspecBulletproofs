@@ -1,5 +1,25 @@
 #![allow(non_snake_case)]
 
+/*
+* A hacspec Ristretto implementation modelled on the curve25519_dalek rust library.
+* Functions are modelled and tested against their dalek counterparts
+* using Quickcheck.
+
+* This ensures, with reasonable probability, that the
+* these functions and the dalek functions work identically. With this
+* assumption, properties about the dalek library can be proven in
+* hacspec target languages, and allows hacspec implementations to use
+* the defined ristretto operations.
+*
+* Each internal representation of a point is kept in its Twisted Edwards 
+* representation, while each encoded point is a byte-string of length 32.
+*
+* Each public function in the library is based on the IETF-standard for Ristretto
+* while all helper functions are private. It is also important to note that 
+* the internal representation of each point is kept hidden and inaccessible 
+* to the outside in order to avoid giving incorrect encodings.
+*/
+
 use hacspec_lib::*;
 
 public_nat_mod!(
@@ -19,6 +39,8 @@ public_nat_mod!(
 pub type RistrettoPoint = (FieldElement, FieldElement, FieldElement, FieldElement);
 
 bytes!(RistrettoPointEncoded, 32);
+
+//Constants as defined by the IETF standard.
 
 fn P() -> FieldElement {
     FieldElement::from_byte_seq_be(&byte_seq!(
@@ -71,6 +93,9 @@ fn D_MINUS_ONE_SQ() -> FieldElement {
     ))
 }
 */
+
+//Special points needed for certain computations.
+
 pub fn BASE_POINT_ENCODED() -> RistrettoPointEncoded {
 	RistrettoPointEncoded::from_hex("e2f2ae0a6abc4e71a884a961c500515f58e30b6aa582dd8db6a65945e08d2d76")
 }
@@ -83,23 +108,28 @@ pub fn IDENTITY_POINT() -> RistrettoPoint {
 
 // === Helper functions ===
 
+//Creates a field element from the given literal.
 pub fn flit(x: u128) -> FieldElement {
     FieldElement::from_literal(x)
 }
 
+//Converts a given points to a byte-sequence. Used for testing.
 pub fn to_bytes(p: RistrettoPoint) -> Seq<U8> {
 	let p_enc = encode(p);
 	p_enc.to_le_bytes()
 }
 
+//Checks if a given field element is negative. A negative field element is defined as an odd number.
 fn IS_NEGATIVE(e: FieldElement) -> bool {
     e % flit(2u128) == flit(1u128)
 }
 
+//Checks if two given field elements are equal.
 fn CT_EQ(u: FieldElement, v: FieldElement) -> bool {
     u == v
 }
 
+//given a condition it selects u if the condition is true and v if it is false.
 fn CT_SELECT(u: FieldElement, cond: bool, v: FieldElement) -> FieldElement {
     if cond {
         u
@@ -108,14 +138,23 @@ fn CT_SELECT(u: FieldElement, cond: bool, v: FieldElement) -> FieldElement {
     }
 }
 
-fn CT_ABS(u: FieldElement) -> FieldElement {
-    CT_SELECT(neg_elem(u), IS_NEGATIVE(u), u)
-}
-
+//Computes the additive negation of the given field element.
 fn neg_elem(u: FieldElement) -> FieldElement {
     P() - u
 }
 
+//returns the absolute value of the given field element. 
+fn CT_ABS(u: FieldElement) -> FieldElement {
+    CT_SELECT(neg_elem(u), IS_NEGATIVE(u), u)
+}
+
+
+//Computes if the division of the two given field elements is square and returns said square.
+//This function has four different cases it can return with.
+//1: if u, the numerator is 0 it returns (true,0).
+//2: if v, the denominator is 0 it returns (false, 0) as you cannot divide by 0.
+//3: if both are non-zero and u/v is square it returns (true, square).
+//4: if both are non-zero and u/v is not square it returns (false, SQRT_M1*(u/v)).
 fn SQRT_RATIO_M1(u: FieldElement, v: FieldElement) -> (bool, FieldElement) {
     let v3 = v.pow(2u128) * v;
     let v7 = v3.pow(2u128) * v;
@@ -139,6 +178,9 @@ fn SQRT_RATIO_M1(u: FieldElement, v: FieldElement) -> (bool, FieldElement) {
 
 //fn MAP() -> RistrettoX25519SerializedPoint {}
 
+//Decodes the given point in accordance with the IETF standard. 
+//Note: There are many byte-strings resulting in incorrect decodings. 
+//These are all checked for, once more in accordance with the IETF standards.
 pub fn decode(u: RistrettoPointEncoded) -> Result<RistrettoPoint, ()> {
     let mut ret = Result::<RistrettoPoint, ()>::Err(());
     let temp_s = Scalar::from_byte_seq_le(u);
@@ -173,6 +215,7 @@ pub fn decode(u: RistrettoPointEncoded) -> Result<RistrettoPoint, ()> {
     ret
 }
 
+//Encodes the given point to its encoded equivalent in accordance with the IETF standard.
 pub fn encode(u: RistrettoPoint) -> RistrettoPointEncoded {
     let (x0, y0, z0, t0) = u;
 
@@ -204,12 +247,14 @@ pub fn encode(u: RistrettoPoint) -> RistrettoPointEncoded {
     RistrettoPointEncoded::new().update_start(&s.to_byte_seq_le())
 }
 
+//Checks that two points are equivalent, in accordance with the definition given by the IETF standard.
 pub fn equals(u: RistrettoPoint, v: RistrettoPoint) -> bool {
     let (x1, y1, _, _) = u;
     let (x2, y2, _, _) = v;
     x1 * y2 == x2 * y1 || y1 * y2 == x1 * x2
 }
 
+//adds two points together.
 pub fn add(u: RistrettoPoint, v: RistrettoPoint) -> RistrettoPoint {
     let d = D();
     let (X1, Y1, Z1, T1) = u;
@@ -231,6 +276,7 @@ pub fn add(u: RistrettoPoint, v: RistrettoPoint) -> RistrettoPoint {
     (X3, Y3, Z3, T3)
 }
 
+//Doubles the given point.
 pub fn double(u: RistrettoPoint) -> RistrettoPoint {
     let (X1, Y1, Z1, _) = u;
 
@@ -249,15 +295,18 @@ pub fn double(u: RistrettoPoint) -> RistrettoPoint {
     (X2, Y2, Z2, T2)
 }
 
+//computes the negation of the given point.
 pub fn neg(u: RistrettoPoint) -> RistrettoPoint {
     let (X1, Y1, Z1, T1) = u;
     (neg_elem(X1), Y1, neg_elem(Z1), T1)
 }
 
+//Subtracts v from u, using negation on v and adding them.
 pub fn sub(u: RistrettoPoint, v: RistrettoPoint) -> RistrettoPoint {
     add(u, neg(v))
 }
 
+//performs scalar multiplication.
 pub fn mul(k: FieldElement, p: RistrettoPoint) -> RistrettoPoint {
     let mut acc = IDENTITY_POINT();
     let mut q = p;
