@@ -19,7 +19,3 @@ criterion = "0.3"
 rand = "0.8"
 quickcheck = "1"
 rustc-serialize = "0.3.24"
-
-[[bench]]
-name = "benchmarks"
-harness = false

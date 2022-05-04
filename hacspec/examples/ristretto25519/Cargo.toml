@@ -1,7 +1,7 @@
 [package]
 name = "hacspec-ristretto"
 version = "0.1.0"
-authors = ["Anders Wibrand Larsen <anderswila@hotmail.dk>"]
+authors = ["Anders Wibrand Larsen <anderswila@hotmail.dk>", "Rasmus Kirk Jakobsen <mail@rasmuskirk.com>"]
 edition = "2018"
 
 [lib]
