@@ -306,11 +306,33 @@ pub fn sub(u: RistrettoPoint, v: RistrettoPoint) -> RistrettoPoint {
     add(u, neg(v))
 }
 
+fn leading_zeros(k: FieldElement) -> usize {
+    let mut acc = 256usize;
+    for i in 0..256 {
+        if k.get_bit(256-i) == flit(1) {
+            acc = i-1;
+            break
+        }
+    }
+    println!("");
+    for i in 0..256 {
+        print!("{}", k.get_bit(256-i));
+    }
+    println!("");
+    for i in 0..256 {
+        print!("{}", k.get_bit(i));
+    }
+    println!("");
+    println!("{}", acc);
+    println!("{}", k);
+    acc
+}
+
 //performs scalar multiplication.
 pub fn mul(k: FieldElement, p: RistrettoPoint) -> RistrettoPoint {
     let mut acc = IDENTITY_POINT();
     let mut q = p;
-    for i in 0..256 {
+    for i in 0..256-leading_zeros(k) {
         if k.get_bit(i) == flit(1) {
             acc = add(acc, q)
         }

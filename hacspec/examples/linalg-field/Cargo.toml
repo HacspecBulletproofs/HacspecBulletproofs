@@ -12,10 +12,7 @@ hacspec-lib = { path = "../../lib" }
 hacspec-ristretto = { path = "../ristretto25519" }
 secret_integers = { path = "../../utils/secret-integers" }
 abstract_integers = { path = "../../utils/abstract-integers" }
-ndarray = "0.15"
 nalgebra = "0.30"
-rulinalg = "0.4"
-rand = "0.8"
 
 [dev-dependencies]
 hacspec-dev = { path = "../../utils/dev" }
@@ -23,4 +20,3 @@ quickcheck = "1"
 ndarray = "0.15"
 rulinalg = "0.4"
 criterion = "0.3"
-rand = "0.8"

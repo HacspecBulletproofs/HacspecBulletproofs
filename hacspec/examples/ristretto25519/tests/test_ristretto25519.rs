@@ -189,5 +189,5 @@ fn test_dalek_point_negation() {
 
 		TestResult::from_bool(cmp_points(hac_scal, dal_scal))
 	}
-	quickcheck(10, helper as fn(Vec<u8>) -> TestResult)
+	quickcheck(1000, helper as fn(Vec<u8>) -> TestResult)
 }

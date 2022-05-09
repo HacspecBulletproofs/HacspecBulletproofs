@@ -21,16 +21,17 @@ fn quickcheck(helper: impl Testable) {
 
 #[test]
 fn test() {
+    let n = 16;
     let Q = BASE_POINT();
-    let G = Seq::new(10);
-    let H = Seq::new(10);
-    let G_factors = Seq::new(10);
-    let H_factors = Seq::new(10);
-    let a = Seq::new(10);
-    let b = Seq::new(10);
+    let G = Seq::new(n);
+    let H = Seq::new(n);
+    let G_factors = Seq::new(n);
+    let H_factors = Seq::new(n);
+    let a = Seq::new(n);
+    let b = Seq::new(n);
 
-    create("".into(), Q, G_factors, H_factors, G, H, a, b);
-    assert!(true)
+    let res = create("".into(), Q, G_factors, H_factors, G, H, a, b);
+    assert!(res.is_ok())
 }
 
 #[test]

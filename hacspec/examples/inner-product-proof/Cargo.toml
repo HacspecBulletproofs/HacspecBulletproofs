@@ -10,6 +10,7 @@ path = "src/linalg.rs"
 [dependencies]
 hacspec-lib = { path = "../../lib" }
 hacspec-ristretto = { path = "../ristretto25519/" }
+hacspec-linalg-field = { path = "../linalg-field/" }
 
 [dev-dependencies]
 hacspec-dev = { path = "../../utils/dev" }
