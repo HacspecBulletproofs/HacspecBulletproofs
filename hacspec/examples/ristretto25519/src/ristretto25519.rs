@@ -29,6 +29,7 @@ public_nat_mod!(
     modulo_value: "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed"
 );
 
+//Scalar is used only in decode to ensure the decoding is valid.
 public_nat_mod!(
     type_name: Scalar,
     type_of_canvas: ScalarCanvas,
@@ -309,7 +310,7 @@ pub fn sub(u: RistrettoPoint, v: RistrettoPoint) -> RistrettoPoint {
 fn leading_zeros(k: FieldElement) -> usize {
     let mut acc = 256usize;
     for i in 0..256 {
-        if k.get_bit(256-i) == flit(1) {
+        if k.get_bit(256-i-1) == flit(1) {
             acc = i-1;
             break
         }
