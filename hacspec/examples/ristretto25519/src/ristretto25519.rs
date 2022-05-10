@@ -29,6 +29,7 @@ public_nat_mod!(
     modulo_value: "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed"
 );
 
+//Scalar is used only in decode to ensure the decoding is valid.
 public_nat_mod!(
     type_name: Scalar,
     type_of_canvas: ScalarCanvas,
@@ -97,13 +98,18 @@ fn D_MINUS_ONE_SQ() -> FieldElement {
 //Special points needed for certain computations.
 
 pub fn BASE_POINT_ENCODED() -> RistrettoPointEncoded {
-	RistrettoPointEncoded::from_hex("e2f2ae0a6abc4e71a884a961c500515f58e30b6aa582dd8db6a65945e08d2d76")
+    RistrettoPointEncoded::from_seq(&byte_seq!(
+        0xe2u8,0xf2u8,0xaeu8,0x0au8,0x6au8,0xbcu8,0x4eu8,0x71u8,
+        0xa8u8,0x84u8,0xa9u8,0x61u8,0xc5u8,0x00u8,0x51u8,0x5fu8,
+        0x58u8,0xe3u8,0x0bu8,0x6au8,0xa5u8,0x82u8,0xddu8,0x8du8,
+        0xb6u8,0xa6u8,0x59u8,0x45u8,0xe0u8,0x8du8,0x2du8,0x76u8
+    ))
 }
 pub fn BASE_POINT() -> RistrettoPoint {
-	decode(RistrettoPointEncoded::from_hex("e2f2ae0a6abc4e71a884a961c500515f58e30b6aa582dd8db6a65945e08d2d76")).unwrap()
+	decode(BASE_POINT_ENCODED()).unwrap()
 }
 pub fn IDENTITY_POINT() -> RistrettoPoint {
-    (flit(0), flit(1), flit(1), flit(0))
+    (flit(0u128), flit(1u128), flit(1u128), flit(0u128))
 }
 
 // === Helper functions ===
@@ -308,23 +314,13 @@ pub fn sub(u: RistrettoPoint, v: RistrettoPoint) -> RistrettoPoint {
 
 fn leading_zeros(k: FieldElement) -> usize {
     let mut acc = 256usize;
+    let mut done = false;
     for i in 0..256 {
-        if k.get_bit(256-i) == flit(1) {
+        if !done && k.get_bit(256-i-1) == flit(1u128) {
+            done = true;
             acc = i-1;
-            break
         }
     }
-    println!("");
-    for i in 0..256 {
-        print!("{}", k.get_bit(256-i));
-    }
-    println!("");
-    for i in 0..256 {
-        print!("{}", k.get_bit(i));
-    }
-    println!("");
-    println!("{}", acc);
-    println!("{}", k);
     acc
 }
 
@@ -333,7 +329,7 @@ pub fn mul(k: FieldElement, p: RistrettoPoint) -> RistrettoPoint {
     let mut acc = IDENTITY_POINT();
     let mut q = p;
     for i in 0..256-leading_zeros(k) {
-        if k.get_bit(i) == flit(1) {
+        if k.get_bit(i) == flit(1u128) {
             acc = add(acc, q)
         }
         q = double(q)
