@@ -1,0 +1,15 @@
+[package]
+name = "hacspec-keccak"
+version = "0.1.0"
+authors = ["Rasmus Kirk <mail@rasmuskirk.com>"]
+edition = "2018"
+
+[lib]
+path = "src/keccak.rs"
+
+[dependencies]
+hacspec-lib = { path = "../../lib" }
+
+[dev-dependencies]
+keccak = { version = "0.1.0", default-features = false }
+quickcheck = "1"
