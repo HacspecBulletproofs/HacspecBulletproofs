@@ -41,6 +41,9 @@ pub type RistrettoPoint = (FieldElement, FieldElement, FieldElement, FieldElemen
 
 bytes!(RistrettoPointEncoded, 32);
 
+//Bytestrings are used as the input of the one-way-map
+bytes!(ByteString, 64);
+
 //Constants as defined by the IETF standard.
 
 fn P() -> FieldElement {
@@ -50,6 +53,7 @@ fn P() -> FieldElement {
         0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xedu8
     ))
 }
+
 fn D() -> FieldElement {
     FieldElement::from_byte_seq_be(&byte_seq!(
         0x52u8, 0x03u8, 0x6cu8, 0xeeu8, 0x2bu8, 0x6fu8, 0xfeu8, 0x73u8, 0x8cu8, 0xc7u8, 0x40u8,
@@ -57,6 +61,7 @@ fn D() -> FieldElement {
         0xd8u8, 0xabu8, 0x75u8, 0xebu8, 0x4du8, 0xcau8, 0x13u8, 0x59u8, 0x78u8, 0xa3u8
     ))
 }
+
 fn SQRT_M1() -> FieldElement {
     FieldElement::from_byte_seq_be(&byte_seq!(
         0x2bu8, 0x83u8, 0x24u8, 0x80u8, 0x4fu8, 0xc1u8, 0xdfu8, 0x0bu8, 0x2bu8, 0x4du8, 0x00u8,
@@ -64,6 +69,7 @@ fn SQRT_M1() -> FieldElement {
         0xe4u8, 0x78u8, 0xc4u8, 0xeeu8, 0x1bu8, 0x27u8, 0x4au8, 0x0eu8, 0xa0u8, 0xb0u8
     ))
 }
+
 fn INVSQRT_A_MINUS_D() -> FieldElement {
     FieldElement::from_byte_seq_be(&byte_seq!(
         0x78u8, 0x6cu8, 0x89u8, 0x05u8, 0xcfu8, 0xafu8, 0xfcu8, 0xa2u8, 0x16u8, 0xc2u8, 0x7bu8,
@@ -71,7 +77,7 @@ fn INVSQRT_A_MINUS_D() -> FieldElement {
         0x72u8, 0xbeu8, 0x99u8, 0xc8u8, 0xfdu8, 0xaau8, 0x80u8, 0x5du8, 0x40u8, 0xeau8
     ))
 }
-/*
+
 fn SQRT_AD_MINUS_ONE() -> FieldElement {
     FieldElement::from_byte_seq_be(&byte_seq!(
         0x37u8, 0x69u8, 0x31u8, 0xbfu8, 0x2bu8, 0x83u8, 0x48u8, 0xacu8, 0x0fu8, 0x3cu8, 0xfcu8,
@@ -79,6 +85,7 @@ fn SQRT_AD_MINUS_ONE() -> FieldElement {
         0x54u8, 0xbdu8, 0x7eu8, 0x97u8, 0xf6u8, 0xa0u8, 0x49u8, 0x7bu8, 0x2eu8, 0x1bu8
     ))
 }
+
 fn ONE_MINUS_D_SQ() -> FieldElement {
     FieldElement::from_byte_seq_be(&byte_seq!(
         0x02u8, 0x90u8, 0x72u8, 0xa8u8, 0xb2u8, 0xb3u8, 0xe0u8, 0xd7u8, 0x99u8, 0x94u8, 0xabu8,
@@ -86,6 +93,7 @@ fn ONE_MINUS_D_SQ() -> FieldElement {
         0x35u8, 0x0fu8, 0xe2u8, 0x7cu8, 0x09u8, 0xc1u8, 0x94u8, 0x5fu8, 0xc1u8, 0x76u8
     ))
 }
+
 fn D_MINUS_ONE_SQ() -> FieldElement {
     FieldElement::from_byte_seq_be(&byte_seq!(
         0x59u8, 0x68u8, 0xb3u8, 0x7au8, 0xf6u8, 0x6cu8, 0x22u8, 0x41u8, 0x4cu8, 0xdcu8, 0xd3u8,
@@ -93,7 +101,7 @@ fn D_MINUS_ONE_SQ() -> FieldElement {
         0x19u8, 0x99u8, 0x31u8, 0xadu8, 0x5au8, 0xaau8, 0x44u8, 0xedu8, 0x4du8, 0x20u8
     ))
 }
-*/
+
 
 //Special points needed for certain computations.
 
@@ -182,7 +190,50 @@ fn SQRT_RATIO_M1(u: FieldElement, v: FieldElement) -> (bool, FieldElement) {
     (was_square, r)
 }
 
-//fn MAP() -> RistrettoX25519SerializedPoint {}
+//Takes a uniformly distributed Bytestring of length 64.
+//Returns a pseudo-randomly generated Ristretto point using the defined IETF standard.
+//While this function is not used for any computations later on it is useful for generating points.
+pub fn one_way_map(b: ByteString) -> RistrettoPoint {
+    let P1_bytes = b.slice(0,32);
+    let P2_bytes = b.slice(32,32);
+
+    let mut P1_bytes = P1_bytes.declassify();
+    let mut P2_bytes = P2_bytes.declassify();
+
+    P1_bytes[31] = P1_bytes[31] % 128u8;
+    P2_bytes[31] = P2_bytes[31] % 128u8;
+
+    let P1_field = FieldElement::from_public_byte_seq_le(P1_bytes);
+    let P2_field = FieldElement::from_public_byte_seq_le(P2_bytes);
+
+    let P1 = MAP(P1_field);
+    let P2 = MAP(P2_field);
+
+    add(P1,P2)
+}
+
+//A helper function for the one-way-map function. 
+//Placed here as it is only used here and is used immedietely before returning.
+//computes a ristretto point using the IETF standard on the given field element.
+fn MAP(t: FieldElement) -> RistrettoPoint {
+    let r = SQRT_M1() * t.pow(2u128);
+    let u = (r + flit(1u128)) * ONE_MINUS_D_SQ();
+    let v = (neg_elem(flit(1u128)) - r*D()) * (r + D());
+
+    let (was_square, mut s) = SQRT_RATIO_M1(u, v);
+    let s_prime = neg_elem(CT_ABS(s*t));
+    s = CT_SELECT(s, was_square, s_prime);
+    let c = CT_SELECT(neg_elem(flit(1u128)), was_square, r);
+
+    let N = c * (r - flit(1u128)) * D_MINUS_ONE_SQ() - v;
+
+    let w0 = flit(2u128) * s * v;
+    let w1 = N * SQRT_AD_MINUS_ONE();
+    let w2 = flit(1u128) - s.pow(2u128);
+    let w3 = flit(1u128) + s.pow(2u128);
+    (w0*w3,w2*w1,w1*w3,w0*w2)
+}
+
 
 //Decodes the given point in accordance with the IETF standard. 
 //Note: There are many byte-strings resulting in incorrect decodings. 
@@ -312,6 +363,7 @@ pub fn sub(u: RistrettoPoint, v: RistrettoPoint) -> RistrettoPoint {
     add(u, neg(v))
 }
 
+//computes the leading zeroes of the given field element. This is used for point multiplication
 fn leading_zeros(k: FieldElement) -> usize {
     let mut acc = 256usize;
     let mut done = false;
@@ -328,7 +380,7 @@ fn leading_zeros(k: FieldElement) -> usize {
 pub fn mul(k: FieldElement, p: RistrettoPoint) -> RistrettoPoint {
     let mut acc = IDENTITY_POINT();
     let mut q = p;
-    for i in 0..256-leading_zeros(k) {
+    for i in 0..256 - leading_zeros(k) {
         if k.get_bit(i) == flit(1u128) {
             acc = add(acc, q)
         }

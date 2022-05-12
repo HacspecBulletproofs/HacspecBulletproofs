@@ -1,12 +1,10 @@
 //Todo remove decode_hex
 #![allow(non_snake_case)]
 extern crate quickcheck;
-extern crate hex;
 
 use hacspec_lib::*;
 use hacspec_ristretto::*;
 use curve25519_dalek::ristretto::RistrettoPoint as DalekRistrettoPoint;
-use curve25519_dalek::ristretto::CompressedRistretto as DalekRistrettoPointEncoded;
 use quickcheck::*;
 
 // === Helper Functions
@@ -15,7 +13,7 @@ fn quickcheck(tests: u64, helper: impl Testable) {
     QuickCheck::new()
         .tests(tests)
         .min_tests_passed(tests)
-        .max_tests(100000000)
+        .max_tests(10000000000)
         .quickcheck(helper);
 }
 
@@ -31,163 +29,115 @@ fn cmp_points(p: RistrettoPoint, q: DalekRistrettoPoint) -> bool {
 	q_slice == p_slice
 }
 
-fn is_bigger_than_p(n: Vec<u8>) -> bool {
-    let mut n_ = n;
-    let p = hex::decode("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed").unwrap();
-    n_.reverse();
-    n_.cmp(&p) == Ordering::Greater
+fn bytestring_to_array(b: ByteString) -> [u8;64] {
+
+
+    let dalek_seq = b.to_be_bytes();
+
+    let mut res: [u8;64] = [0;64];
+
+    for i in 0..dalek_seq.len() {
+        res[i] = dalek_seq[i].declassify();
+    }
+    res
+
+}
+
+fn hac_and_dalek_points(mut vec: Vec<u8>) -> (RistrettoPoint, DalekRistrettoPoint) {
+    vec.truncate(64);
+    let b = ByteString::from_public_slice(vec.as_slice());
+    let hac_b = one_way_map(b);
+    let dal_b = DalekRistrettoPoint::from_uniform_bytes(&bytestring_to_array(b));
+    (hac_b,dal_b)
 }
 
 // === Tests ===
 
 #[test]
 fn test_dalek_decode_encode() {
-    fn helper(mut v: Vec<u8>) -> TestResult {
-        if v.len() < 32 {
-            return TestResult::discard();
-        }
-        v.truncate(32);
-
-        if is_bigger_than_p(v.clone()) {
-            return TestResult::discard();
-        }
-        let v = v.as_slice();
-
-        let hac_enc = RistrettoPointEncoded::from_public_slice(v);
-        let dal_enc = DalekRistrettoPointEncoded::from_slice(&v);
-
-        let hac_dec = decode(hac_enc);
-        let dal_dec = dal_enc.decompress();
-
-        if hac_dec.is_err() && dal_dec.is_none() {
+    fn helper(v: Vec<u8>) -> TestResult {
+        if v.len() < 64 {
             return TestResult::discard();
         }
 
-        let hac_dec = hac_dec.unwrap();
-        let dal_dec = dal_dec.unwrap();
+        let (hac_pnt,dal_pnt) = hac_and_dalek_points(v);
+
+        let hac_enc = encode(hac_pnt);
+        let dal_enc = dal_pnt.compress();
+
+        let hac_dec = decode(hac_enc).unwrap();
+        let dal_dec = dal_enc.decompress().unwrap();
 
         TestResult::from_bool(cmp_points(hac_dec, dal_dec))
     }
-    quickcheck(10, helper as fn(Vec<u8>) -> TestResult)
+    quickcheck(100, helper as fn(Vec<u8>) -> TestResult)
 }
 
 #[test]
 fn test_dalek_point_addition() {
-    fn helper(mut v: Vec<u8>, mut u: Vec<u8>) -> TestResult {
-        if v.len() < 32 ||  u.len() < 32 {
-            return TestResult::discard();
-        }
-        v.truncate(32);
-        u.truncate(32);
-
-        if is_bigger_than_p(v.clone()) || is_bigger_than_p(u.clone()) {
+    fn helper(v: Vec<u8>, u: Vec<u8>) -> TestResult {
+        if v.len() < 64 ||  u.len() < 64 {
             return TestResult::discard();
         }
 
-        let v = v.as_slice();
-        let u = u.as_slice();
+        let (hac_v, dal_v) = hac_and_dalek_points(v);
+        let (hac_u, dal_u) = hac_and_dalek_points(u);
 
-        let hac_enc_v = RistrettoPointEncoded::from_public_slice(v);
-        let hac_enc_u = RistrettoPointEncoded::from_public_slice(u);
+        let hac_add = add(hac_v, hac_u);
+        let hac_sub = sub(hac_v, hac_u);
 
-        let dal_enc_v = DalekRistrettoPointEncoded::from_slice(&v);
-        let dal_enc_u = DalekRistrettoPointEncoded::from_slice(&u);
-
-        let hac_dec_res_v = decode(hac_enc_v);
-        let hac_dec_res_u = decode(hac_enc_u);
-
-        let dal_dec_res_v = dal_enc_v.decompress();
-        let dal_dec_res_u = dal_enc_u.decompress();
-
-        if hac_dec_res_v.is_err() && dal_dec_res_v.is_none() {
-            return TestResult::discard();
-        }
-        if hac_dec_res_u.is_err() && dal_dec_res_u.is_none() {
-            return TestResult::discard();
-        }
-
-        let hac_dec_v = hac_dec_res_v.unwrap();
-        let hac_dec_u = hac_dec_res_u.unwrap();
-        let dal_dec_v = dal_dec_res_v.unwrap();
-        let dal_dec_u = dal_dec_res_u.unwrap();
-
-        let hac_add = add(hac_dec_v, hac_dec_u);
-        let hac_sub = sub(hac_dec_v, hac_dec_u);
-
-        let dal_add = dal_dec_v + dal_dec_u;
-        let dal_sub = dal_dec_v - dal_dec_u;
+        let dal_add = dal_v + dal_u;
+        let dal_sub = dal_v - dal_u;
 
         TestResult::from_bool(cmp_points(hac_add, dal_add) && cmp_points(hac_sub, dal_sub))
     }
-    quickcheck(10, helper as fn(Vec<u8>, Vec<u8>) -> TestResult)
+    quickcheck(100, helper as fn(Vec<u8>, Vec<u8>) -> TestResult)
 }
 
 #[test]
 fn test_dalek_scalar_multiplication() {
-	fn helper(mut v: Vec<u8>, x: u128) -> TestResult {
-		if v.len() < 32 {
-			return TestResult::discard();
-		}
-		v.truncate(32);
-
-		if is_bigger_than_p(v.clone()) {
+	fn helper(v: Vec<u8>, x: u128) -> TestResult {
+		if v.len() < 64 {
 			return TestResult::discard();
 		}
 
-		let v = v.as_slice();
+        let (hac_pnt,dal_pnt) = hac_and_dalek_points(v);
 
-		let hac_enc = RistrettoPointEncoded::from_public_slice(v);
-		let dal_enc = DalekRistrettoPointEncoded::from_slice(&v);
-
-		let hac_dec = decode(hac_enc);
-		let dal_dec = dal_enc.decompress();
-
-		if hac_dec.is_err() && dal_dec.is_none() {
-			return TestResult::discard();
-		}
-
-		let hac_dec = hac_dec.unwrap();
-		let dal_dec = dal_dec.unwrap();
-
-		let hac_scal = mul(flit(x), hac_dec);
-		let dal_scal = curve25519_dalek::scalar::Scalar::from(x) * dal_dec;
+		let hac_scal = mul(flit(x), hac_pnt);
+		let dal_scal = curve25519_dalek::scalar::Scalar::from(x) * dal_pnt;
 
 		TestResult::from_bool(cmp_points(hac_scal, dal_scal))
 	}
-	quickcheck(10, helper as fn(Vec<u8>, u128) -> TestResult)
+	quickcheck(100, helper as fn(Vec<u8>, u128) -> TestResult)
 }
 
 #[test]
 fn test_dalek_point_negation() {
-    fn helper(mut v: Vec<u8>) -> TestResult {
-		if v.len() < 32 {
-			return TestResult::discard();
-		}
-		v.truncate(32);
-
-		if is_bigger_than_p(v.clone()) {
+    fn helper(v: Vec<u8>) -> TestResult {
+		if v.len() < 64 {
 			return TestResult::discard();
 		}
 
-		let v = v.as_slice();
+		let (hac_pnt,dal_pnt) = hac_and_dalek_points(v);
 
-		let hac_enc = RistrettoPointEncoded::from_public_slice(v);
-		let dal_enc = DalekRistrettoPointEncoded::from_slice(&v);
+		let hac_neg = neg(hac_pnt);
+		let dal_neg = dal_pnt.neg();
 
-		let hac_dec = decode(hac_enc);
-		let dal_dec = dal_enc.decompress();
-
-		if hac_dec.is_err() && dal_dec.is_none() {
-			return TestResult::discard();
-		}
-
-		let hac_dec = hac_dec.unwrap();
-		let dal_dec = dal_dec.unwrap();
-
-		let hac_scal = neg(hac_dec);
-		let dal_scal = dal_dec.neg();
-
-		TestResult::from_bool(cmp_points(hac_scal, dal_scal))
+		TestResult::from_bool(cmp_points(hac_neg, dal_neg))
 	}
-	quickcheck(10, helper as fn(Vec<u8>) -> TestResult)
+	quickcheck(100, helper as fn(Vec<u8>) -> TestResult)
+}
+
+#[test]
+fn test_dalek_one_way_map() {
+	fn helper(v: Vec<u8>) -> TestResult {
+		if v.len() < 64 {
+			return TestResult::discard();
+		}
+
+        let (hac_map,dal_map) = hac_and_dalek_points(v);
+
+		TestResult::from_bool(cmp_points(hac_map, dal_map))
+	}
+	quickcheck(100, helper as fn(Vec<u8>) -> TestResult)
 }

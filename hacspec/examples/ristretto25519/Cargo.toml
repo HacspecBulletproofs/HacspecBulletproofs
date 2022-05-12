@@ -12,12 +12,5 @@ hacspec-lib = { path = "../../lib" }
 hacspec-curve25519 = { path = "../curve25519" }
 
 [dev-dependencies]
-hacspec-dev = { path = "../../utils/dev" }
-crypto-bigint = "0.3.2"
-criterion = "0.3"
-rand = "0.8"
 quickcheck = "1"
 curve25519-dalek = "2"
-hex = "0.4"
-getrandom = "0.2"
-rand_chacha = "0.3"
