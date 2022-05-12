@@ -141,7 +141,7 @@ fn test_dalek_scalar_multiplication() {
 
         let (hac_pnt,dal_pnt) = hac_and_dalek_points(v);
 
-		let hac_scal = mul(flit(x), hac_pnt);
+		let hac_scal = mul(FieldElement::from_literal(x), hac_pnt);
 		let dal_scal = curve25519_dalek::scalar::Scalar::from(x) * dal_pnt;
 
 		TestResult::from_bool(cmp_points(hac_scal, dal_scal))
