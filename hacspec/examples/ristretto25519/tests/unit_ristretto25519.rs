@@ -1,7 +1,38 @@
 use hacspec_ristretto::*;
 use hacspec_lib::*;
 
-// === Negative Tests ===
+// === Unit Tests === //
+
+#[test]
+fn unit_test_scalar_mul_one() {
+    let point = BASE_POINT();
+    let one = flit(1);
+    let res = mul(one,point);
+    assert!(equals(point,res))
+}
+
+#[test]
+fn unit_test_inverse_sub() {
+    let point = BASE_POINT();
+    let res = sub(point,point);
+    assert!(equals(res,IDENTITY_POINT()))
+}
+
+#[test]
+fn unit_test_add_zero() {
+    let point = BASE_POINT();
+    let zero = IDENTITY_POINT();
+    let res = add(point,zero);
+    assert!(equals(point,res));
+}
+
+#[test]
+fn unit_test_add_to_self_double(){
+    let point = BASE_POINT();
+    let double_res = double(point);
+    let add_res = add(point,point);
+    assert!(equals(double_res,add_res))
+}
 
 #[test]
 fn test_unit_neg_decode() {
@@ -45,7 +76,6 @@ fn test_unit_neg_decode() {
     hexs.iter()
         .for_each(|x| assert!(decode(RistrettoPointEncoded::from_hex(x)).is_err()));
 }
-
 
 #[test]
 fn unit_test_add_encode() { 
@@ -98,47 +128,32 @@ fn test_unit_one_way_map() {
         "e2705652ff9f5e44d3e841bf1c251cf7dddb77d140870d1ab2ed64f1a9ce8628",
         "80bd07262511cdde4863f8a7434cef696750681cb9510eea557088f76d9e5065",
     ]);
+
     let input_bytes: Vec<ByteString> = input_hexs.iter()
         .map(|x| ByteString::from_hex(x)).collect();
+
     let res_hacspec: Vec<RistrettoPoint> = input_bytes.iter()
         .map(|x| one_way_map(*x)).collect();
     
     let exp_res: Vec<RistrettoPoint> = result_hexs.iter()
     .map(|x| decode(RistrettoPointEncoded::from_hex(x)).unwrap()).collect();
 
-    
     for i in 0..res_hacspec.len() {
         assert!(equals(res_hacspec[i],exp_res[i]));
     }
 }
 
 #[test]
-fn unit_test_scalar_mul_one() {
-    let point = BASE_POINT();
-    let one = flit(1);
-    let res = mul(one,point);
-    assert!(equals(point,res))
-}
+fn unit_test_same_point_map() { 
+    let input_hexs = Seq::<&str>::from_vec(vec![
+        "edffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1200000000000000000000000000000000000000000000000000000000000000",
+        "edffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "0000000000000000000000000000000000000000000000000000000000000080ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+        "00000000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000000080",
+    ]);
+    let result_hex = "304282791023b73128d277bdcb5c7746ef2eac08dde9f2983379cb8e5ef0517f";
+    let result_point = decode(RistrettoPointEncoded::from_hex(result_hex)).unwrap();
 
-#[test]
-fn unit_test_inverse_sub() {
-    let point = BASE_POINT();
-    let res = sub(point,point);
-    assert!(equals(res,IDENTITY_POINT()))
-}
-
-#[test]
-fn unit_test_add_zero() {
-    let point = BASE_POINT();
-    let zero = IDENTITY_POINT();
-    let res = add(point,zero);
-    assert!(equals(point,res));
-}
-
-#[test]
-fn unit_test_add_to_self_double(){
-    let point = BASE_POINT();
-    let double_res = double(point);
-    let add_res = add(point,point);
-    assert!(equals(double_res,add_res))
+    input_hexs.iter()
+        .for_each(|x| assert!(equals(result_point,one_way_map(ByteString::from_hex(x)))))
 }

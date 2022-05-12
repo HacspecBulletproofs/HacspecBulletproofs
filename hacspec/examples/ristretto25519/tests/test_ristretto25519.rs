@@ -1,13 +1,12 @@
-//Todo remove decode_hex
 #![allow(non_snake_case)]
 extern crate quickcheck;
 
+use quickcheck::*;
 use hacspec_lib::*;
 use hacspec_ristretto::*;
 use curve25519_dalek::ristretto::RistrettoPoint as DalekRistrettoPoint;
-use quickcheck::*;
 
-// === Helper Functions
+// === Helper Functions === //
 
 fn quickcheck(tests: u64, helper: impl Testable) {
     QuickCheck::new()
@@ -18,6 +17,7 @@ fn quickcheck(tests: u64, helper: impl Testable) {
 }
 
 fn cmp_points(p: RistrettoPoint, q: DalekRistrettoPoint) -> bool {
+
 	let p_enc = encode(p);
 	let p_bytes = p_enc.to_le_bytes();
 	let p_native = p_bytes.to_native();
@@ -31,7 +31,6 @@ fn cmp_points(p: RistrettoPoint, q: DalekRistrettoPoint) -> bool {
 
 fn bytestring_to_array(b: ByteString) -> [u8;64] {
 
-
     let dalek_seq = b.to_be_bytes();
 
     let mut res: [u8;64] = [0;64];
@@ -40,18 +39,57 @@ fn bytestring_to_array(b: ByteString) -> [u8;64] {
         res[i] = dalek_seq[i].declassify();
     }
     res
-
 }
 
 fn hac_and_dalek_points(mut vec: Vec<u8>) -> (RistrettoPoint, DalekRistrettoPoint) {
+
     vec.truncate(64);
     let b = ByteString::from_public_slice(vec.as_slice());
+
     let hac_b = one_way_map(b);
     let dal_b = DalekRistrettoPoint::from_uniform_bytes(&bytestring_to_array(b));
+
     (hac_b,dal_b)
 }
 
-// === Tests ===
+// === Tests === //
+
+#[test]
+fn test_encode_decode() {
+    fn helper(v: Vec<u8>) -> TestResult {
+        if v.len() < 64 {
+            return TestResult::discard();
+        }
+
+        let (hac_pnt,_) = hac_and_dalek_points(v);
+
+        let hac_enc = encode(hac_pnt);
+
+        let hac_dec = decode(hac_enc).unwrap();
+
+        let hac_renc = encode(hac_dec);
+
+        let same_decoding = equals(hac_pnt,hac_dec);
+        let same_encoding = hac_enc.to_le_bytes() == hac_renc.to_le_bytes();
+
+        TestResult::from_bool(same_encoding && same_decoding)
+    }
+    quickcheck(100, helper as fn(Vec<u8>) -> TestResult)
+}
+
+#[test]
+fn test_dalek_one_way_map() {
+	fn helper(v: Vec<u8>) -> TestResult {
+		if v.len() < 64 {
+			return TestResult::discard();
+		}
+
+        let (hac_map,dal_map) = hac_and_dalek_points(v);
+
+		TestResult::from_bool(cmp_points(hac_map, dal_map))
+	}
+	quickcheck(100, helper as fn(Vec<u8>) -> TestResult)
+}
 
 #[test]
 fn test_dalek_decode_encode() {
@@ -124,20 +162,6 @@ fn test_dalek_point_negation() {
 		let dal_neg = dal_pnt.neg();
 
 		TestResult::from_bool(cmp_points(hac_neg, dal_neg))
-	}
-	quickcheck(100, helper as fn(Vec<u8>) -> TestResult)
-}
-
-#[test]
-fn test_dalek_one_way_map() {
-	fn helper(v: Vec<u8>) -> TestResult {
-		if v.len() < 64 {
-			return TestResult::discard();
-		}
-
-        let (hac_map,dal_map) = hac_and_dalek_points(v);
-
-		TestResult::from_bool(cmp_points(hac_map, dal_map))
 	}
 	quickcheck(100, helper as fn(Vec<u8>) -> TestResult)
 }
