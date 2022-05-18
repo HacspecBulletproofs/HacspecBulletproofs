@@ -21,6 +21,7 @@ members = [
     "examples/linalg-field",
     "examples/pedersen",
     "examples/inner-product-proof/",
+    "examples/merlin/",
     "examples/sha256",
     "examples/sha3",
     "examples/ntru-prime",
