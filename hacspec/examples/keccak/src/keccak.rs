@@ -90,7 +90,7 @@ fn iota(mut state: State, i: usize) -> State {
 	state
 }
 
-pub fn keccakf1600(mut state: State) -> State {
+pub fn f1600(mut state: State) -> State {
 	let rounds = 24;
 
 	for i in 0..rounds {
