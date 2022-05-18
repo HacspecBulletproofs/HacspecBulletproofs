@@ -11,9 +11,12 @@ path = "src/linalg.rs"
 hacspec-lib = { path = "../../lib" }
 hacspec-ristretto = { path = "../ristretto25519/" }
 hacspec-linalg-field = { path = "../linalg-field/" }
+hacspec-merlin = { path = "../merlin" }
 
 [dev-dependencies]
 hacspec-dev = { path = "../../utils/dev" }
 bulletproofs = { path = "../../../bulletproofs" }
+keccak = { version = "0.1.0", default-features = false }
+curve25519-dalek-ng = "4"
+merlin = "3"
 quickcheck = "1"
-rand = "0.8"
