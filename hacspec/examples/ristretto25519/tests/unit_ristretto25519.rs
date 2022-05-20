@@ -6,7 +6,7 @@ use hacspec_lib::*;
 #[test]
 fn unit_test_scalar_mul_one() {
     let point = BASE_POINT();
-    let one = FieldElement::from_literal(1);
+    let one = Scalar::from_literal(1);
     let res = mul(one,point);
     assert!(equals(point,res))
 }

@@ -42,7 +42,7 @@ public_nat_mod!(
     type_name: Scalar,
     type_of_canvas: ScalarCanvas,
     bit_size_of_field: 256,
-    modulo_value: "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    modulo_value: "1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed"
 );
 
 // Bytestrings are used as the input of the one-way-map
@@ -133,11 +133,11 @@ fn fe(x: u128) -> FieldElement {
 }
 
 // Computes the leading zeroes of the given field element.
-fn leading_zeros(k: FieldElement) -> usize {
+fn leading_zeros(k: Scalar) -> usize {
     let mut acc = 256usize;
     let mut done = false;
     for i in 0..256 {
-        if !done && k.get_bit(256-i-1) == fe(1u128) {
+        if !done && k.get_bit(256-i-1) == Scalar::from_literal(1u128) {
             done = true;
             acc = i-1;
         }
@@ -151,7 +151,7 @@ fn is_negative(e: FieldElement) -> bool {
 }
 
 // Checks if two given field elements are equal.
-fn CT_EQ(u: FieldElement, v: FieldElement) -> bool {
+fn ct_eq(u: FieldElement, v: FieldElement) -> bool {
     u == v
 }
 
@@ -186,9 +186,9 @@ fn sqrt_ratio_m1(u: FieldElement, v: FieldElement) -> (bool, FieldElement) {
     let mut r = (u * v3) * (u * v7).pow_felem((P() - fe(5u128)) / fe(8u128));
     let check = v * r.pow(2u128);
 
-    let correct_sign_sqrt = CT_EQ(check, u);
-    let flipped_sign_sqrt = CT_EQ(check, neg_fe(u));
-    let flipped_sign_sqrt_i = CT_EQ(check, neg_fe(u) * SQRT_M1());
+    let correct_sign_sqrt = ct_eq(check, u);
+    let flipped_sign_sqrt = ct_eq(check, neg_fe(u));
+    let flipped_sign_sqrt_i = ct_eq(check, neg_fe(u) * SQRT_M1());
 
     let r_prime = SQRT_M1() * r;
     r = ct_select(r_prime, flipped_sign_sqrt || flipped_sign_sqrt_i, r);
@@ -199,6 +199,25 @@ fn sqrt_ratio_m1(u: FieldElement, v: FieldElement) -> (bool, FieldElement) {
     let was_square = correct_sign_sqrt || flipped_sign_sqrt;
 
     (was_square, r)
+}
+
+fn geq_p(x: Seq<U8>) -> bool {
+    let p_seq = byte_seq!(
+        0xedu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8,
+        0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8,
+        0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0x7fu8
+    );
+    let mut res = true;
+    println!("P new: {:?}", p_seq);
+    
+    for index in 0..p_seq.len() {
+        let x_index = x[index].declassify();
+        let p_index = p_seq[index].declassify();
+        if x_index != p_index {
+            res = x_index > p_index;
+        }
+    }
+    res
 }
 
 // A helper function for the one-way-map function.
@@ -252,15 +271,10 @@ pub fn one_way_map(b: ByteString) -> RistrettoPoint {
 // These are all checked for, once more in accordance with the IETF standards.
 pub fn decode(u: RistrettoPointEncoded) -> Result<RistrettoPoint, ()> {
     let mut ret = Result::<RistrettoPoint, ()>::Err(());
-    let temp_s = Scalar::from_byte_seq_le(u);
-    let p_as_s = Scalar::from_byte_seq_be(&byte_seq!(
-        0x7fu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8,
-        0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8,
-        0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xedu8
-    ));
+
     let s = FieldElement::from_byte_seq_le(u);
 
-    if temp_s < p_as_s && !is_negative(s) {
+    if !geq_p(u.to_le_bytes()) && !is_negative(s) {
         let one = fe(1u128);
         let ss = s.pow(2u128);
         let u1 = one - ss;
@@ -377,11 +391,11 @@ pub fn sub(u: RistrettoPoint, v: RistrettoPoint) -> RistrettoPoint {
 }
 
 // Performs scalar multiplication.
-pub fn mul(k: FieldElement, p: RistrettoPoint) -> RistrettoPoint {
+pub fn mul(k: Scalar, p: RistrettoPoint) -> RistrettoPoint {
     let mut acc = IDENTITY_POINT();
     let mut q = p;
     for i in 0..256 - leading_zeros(k) {
-        if k.get_bit(i) == fe(1u128) {
+        if k.get_bit(i) == Scalar::from_literal(1u128) {
             acc = add(acc, q)
         }
         q = double(q)

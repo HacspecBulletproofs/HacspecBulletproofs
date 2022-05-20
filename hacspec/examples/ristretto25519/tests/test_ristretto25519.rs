@@ -41,6 +41,27 @@ fn bytestring_to_array(b: ByteString) -> [u8;64] {
     res
 }
 
+fn vec_to_dalek_scalar(b: Vec<u8>) -> curve25519_dalek::scalar::Scalar {
+
+    let mut res: [u8;32] = [0;32];
+
+    for i in 0..32usize {
+        res[i] = b[i];
+    }
+
+    curve25519_dalek::scalar::Scalar::from_bytes_mod_order(res)
+}
+
+fn to_seq(xs: Vec<u8>) -> Seq<U8> {
+    let mut ret = Seq::<U8>::new(xs.len());
+    for i in 0..xs.len() {
+        ret[i] = U8::classify(xs[i]);
+    }
+
+    ret
+    
+}
+
 fn hac_and_dalek_points(mut vec: Vec<u8>) -> (RistrettoPoint, DalekRistrettoPoint) {
 
     vec.truncate(64);
@@ -53,6 +74,20 @@ fn hac_and_dalek_points(mut vec: Vec<u8>) -> (RistrettoPoint, DalekRistrettoPoin
 }
 
 // === Tests === //
+
+#[test]
+fn test_dalek_one_way_map() {
+    fn helper(v: Vec<u8>) -> TestResult {
+        if v.len() < 64 {
+            return TestResult::discard();
+        }
+
+        let (hac_map,dal_map) = hac_and_dalek_points(v);
+
+        TestResult::from_bool(cmp_points(hac_map, dal_map))
+    }
+    quickcheck(100, helper as fn(Vec<u8>) -> TestResult)
+}
 
 #[test]
 fn test_encode_decode() {
@@ -75,20 +110,6 @@ fn test_encode_decode() {
         TestResult::from_bool(same_encoding && same_decoding)
     }
     quickcheck(100, helper as fn(Vec<u8>) -> TestResult)
-}
-
-#[test]
-fn test_dalek_one_way_map() {
-	fn helper(v: Vec<u8>) -> TestResult {
-		if v.len() < 64 {
-			return TestResult::discard();
-		}
-
-        let (hac_map,dal_map) = hac_and_dalek_points(v);
-
-		TestResult::from_bool(cmp_points(hac_map, dal_map))
-	}
-	quickcheck(100, helper as fn(Vec<u8>) -> TestResult)
 }
 
 #[test]
@@ -134,19 +155,22 @@ fn test_dalek_point_addition() {
 
 #[test]
 fn test_dalek_scalar_multiplication() {
-	fn helper(v: Vec<u8>, x: u128) -> TestResult {
-		if v.len() < 64 {
+	fn helper(v: Vec<u8>, mut x: Vec<u8>) -> TestResult {
+		if (v.len() < 64) || (x.len() < 32) {
 			return TestResult::discard();
 		}
+        x.truncate(32);
+        let y = x.clone();
 
         let (hac_pnt,dal_pnt) = hac_and_dalek_points(v);
 
-		let hac_scal = mul(FieldElement::from_literal(x), hac_pnt);
-		let dal_scal = curve25519_dalek::scalar::Scalar::from(x) * dal_pnt;
+		let hac_scal = mul(Scalar::from_byte_seq_le(to_seq(x)), hac_pnt);
+
+		let dal_scal = vec_to_dalek_scalar(y) * dal_pnt;
 
 		TestResult::from_bool(cmp_points(hac_scal, dal_scal))
 	}
-	quickcheck(100, helper as fn(Vec<u8>, u128) -> TestResult)
+	quickcheck(100, helper as fn(Vec<u8>, Vec<u8>) -> TestResult)
 }
 
 #[test]
