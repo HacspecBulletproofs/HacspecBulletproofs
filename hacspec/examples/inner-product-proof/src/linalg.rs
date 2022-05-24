@@ -11,10 +11,40 @@ use crate::transcript::*;
 use hacspec_ristretto as ristretto;
 use hacspec_linalg_field as linalg;
 
-pub type InnerProductProof = (FieldElement, FieldElement, Seq::<RistrettoPoint>, Seq::<RistrettoPoint>);
+pub type InnerProductProof = (Scalar, Scalar, Seq::<RistrettoPoint>, Seq::<RistrettoPoint>);
 
-fn inner_product(u: Seq::<FieldElement>, v: Seq::<FieldElement>) -> FieldElement {
-	let mut ret = FieldElement::ZERO();
+fn print_point(label: &str, P: RistrettoPoint) {
+	print!("{}: [", label);
+	let bytes = encode(P).to_le_bytes();
+	for i in 0..bytes.len() {
+		print!("{}, ", bytes[i].declassify());
+	}
+	print!("]\n");
+	println!("");
+}
+
+fn print_fe(label: &str, f: Scalar) {
+	print!("{}: [", label);
+	let bytes = f.to_byte_seq_le();
+	for i in 0..bytes.len() {
+		print!("{}, ", bytes[i]);
+	}
+	print!("]\n");
+	println!("");
+}
+
+fn print_state(label: &str, f: hacspec_merlin::strobe::StateU8) {
+	print!("{}: [", label);
+	let bytes = f;
+	for i in 0..bytes.len() {
+		print!("{}, ", bytes[i]);
+	}
+	print!("]\n");
+	println!("");
+}
+
+fn inner_product(u: Seq::<Scalar>, v: Seq::<Scalar>) -> Scalar {
+	let mut ret = Scalar::ZERO();
 	if u.len() != v.len() {
 		panic!("{},{}", u.len(), v.len());
 	}
@@ -24,7 +54,7 @@ fn inner_product(u: Seq::<FieldElement>, v: Seq::<FieldElement>) -> FieldElement
 	ret
 }
 
-fn point_dot(v: Seq::<FieldElement>, p: Seq::<RistrettoPoint>) -> RistrettoPoint {
+fn point_dot(v: Seq::<Scalar>, p: Seq::<RistrettoPoint>) -> RistrettoPoint {
 	let mut acc = IDENTITY_POINT();
 	for i in 0..v.len() {
 		acc = ristretto::add(acc, ristretto::mul(v[i], p[i]));
@@ -35,12 +65,12 @@ fn point_dot(v: Seq::<FieldElement>, p: Seq::<RistrettoPoint>) -> RistrettoPoint
 pub fn create(
 	mut transcript: Transcript,
 	Q: RistrettoPoint,
-	G_factors: Seq<FieldElement>,
-	H_factors: Seq<FieldElement>,
+	G_factors: Seq<Scalar>,
+	H_factors: Seq<Scalar>,
 	G: Seq<RistrettoPoint>,
 	H: Seq<RistrettoPoint>,
-	a: Seq<FieldElement>,
-	b: Seq<FieldElement>,
+	a: Seq<Scalar>,
+	b: Seq<Scalar>,
 ) -> Result::<InnerProductProof, ()> {
 	let mut ret = Result::<InnerProductProof, ()>::Err(());
 
@@ -59,13 +89,16 @@ pub fn create(
 		&& n == H_factors.len()
 		&& n.is_power_of_two()
 	{
+		print_state("t0", transcript.0);
 		transcript = innerproduct_domain_sep(transcript, U64::classify(n as u64));
+		print_state("t1", transcript.0);
 
 		let lg_n = n.log2() as usize;
 		let mut L_vec = Seq::<RistrettoPoint>::new(lg_n);
 		let mut R_vec = Seq::<RistrettoPoint>::new(lg_n);
 
 		while n != 1 {
+			println!("n: {}", n);
 			n = n / 2;
 			let (a_L, a_R) = a.clone().split_off(n);
 			let (b_L, b_R) = b.clone().split_off(n);
@@ -74,6 +107,9 @@ pub fn create(
 
 			let c_L = inner_product(a_L.clone(), b_R.clone());
 			let c_R = inner_product(a_R.clone(), b_L.clone());
+
+			print_fe("c_L", c_L);
+			print_fe("c_R", c_R);
 
 			let La = point_dot(a_L.clone(), G_R.clone());
 			let Lb = point_dot(b_R.clone(), H_L.clone());
@@ -86,14 +122,22 @@ pub fn create(
 			let L = ristretto::add(ristretto::add(La, Lb), Lc);
 			let R = ristretto::add(ristretto::add(Ra, Rb), Rc);
 
+			print_point("L:", L);
+			print_point("R:", R);
+
 			L_vec.push(&L);
 			R_vec.push(&R);
 
 			transcript = append_point(transcript, byte_seq!(76u8), ristretto::encode(L));
+			print_state("state L", transcript.0);
 			transcript = append_point(transcript, byte_seq!(82u8), ristretto::encode(R));
+			print_state("state R", transcript.0);
+
 			let (trs, u) = challenge_scalar(transcript, byte_seq!(117u8));
 			transcript = trs;
 			let u_inv = u.inv();
+
+			print_fe("u", u);
 
 			let mut a_ = a_L.clone();
 			let mut b_ = b_L.clone();
@@ -111,6 +155,8 @@ pub fn create(
 			b = b_L;
 			G = G_L;
 			H = H_L;
+
+			println!("");
 		}
 
 		ret = Result::<InnerProductProof, ()>::Ok((a[0], b[0], G, H));

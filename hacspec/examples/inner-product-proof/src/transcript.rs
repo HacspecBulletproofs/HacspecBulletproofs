@@ -9,20 +9,19 @@ use hacspec_lib::*;
 use hacspec_ristretto::*;
 use hacspec_merlin::*;
 
-public_nat_mod!(
-    type_name: LocalFieldElement,
-    type_of_canvas: FieldCanvas,
+nat_mod!(
+    type_name: LocalScalar,
+    type_of_canvas: ScalarCanvas,
     bit_size_of_field: 512,
-    modulo_value: "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed"
+    modulo_value: "1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed"
 );
 
 pub fn innerproduct_domain_sep(mut transcript: Transcript, n: U64) -> Transcript {
-	let place_holder = Seq::<U8>::new(0);
-	//"dom_sep"
+	//b"dom-sep"
 	let dom_sep = byte_seq!(100, 111, 109, 45, 115, 101, 112);
-	//"ipp v1"
+	//b"ipp v1"
 	let ipp_v1 = byte_seq!(105, 112, 112, 32, 118, 49);
-	//"n"
+	//b"n"
 	let n_ = byte_seq!(110);
 
 	transcript = append_message(transcript, dom_sep, ipp_v1);
@@ -31,12 +30,12 @@ pub fn innerproduct_domain_sep(mut transcript: Transcript, n: U64) -> Transcript
 	transcript
 }
 
-pub fn challenge_scalar(transcript: Transcript, label: Seq<U8>) -> (Transcript, FieldElement) {
+pub fn challenge_scalar(transcript: Transcript, label: Seq<U8>) -> (Transcript, Scalar) {
 	let buf = Seq::<U8>::new(64);
 	let (new_transcript, data) = challenge_bytes(transcript, label, buf);
-	println!("{}", data.len());
-	let fe = LocalFieldElement::from_byte_seq_le(data);
-	let fe_ = FieldElement::from_byte_seq_le(fe.to_byte_seq_le().slice(0, 32));
+
+	let fe = LocalScalar::from_byte_seq_le(data.clone());
+	let fe_ = Scalar::from_byte_seq_le(fe.to_byte_seq_le().slice(0, 32));
 	(new_transcript, fe_)
 }
 

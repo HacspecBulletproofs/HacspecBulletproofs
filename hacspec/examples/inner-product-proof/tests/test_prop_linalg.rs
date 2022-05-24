@@ -37,7 +37,23 @@ fn cmp_points(p: RistrettoPoint, q: dalek_ristretto::CompressedRistretto) -> boo
 	q_slice == p_slice
 }
 
-#[test]
+// Rename this
+fn f(xs: Vec<u8>) -> Seq<U8> {
+	let mut ret = Seq::<U8>::new(xs.len());
+	for i in 0..xs.len() {
+		ret[i] = U8::classify(xs[i])
+	}
+	ret
+}
+
+public_nat_mod!(
+    type_name: LocalFieldElement,
+    type_of_canvas: FieldCanvas,
+    bit_size_of_field: 512,
+    modulo_value: "1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed"
+);
+
+//#[test]
 fn test() {
 	let transcript = hacspec_merlin::new(Seq::<U8>::new(0));
 	let n = 16;
@@ -94,5 +110,23 @@ fn test() {
 
 #[test]
 fn test2() {
-	assert!(true)
+	//let t1 = hacspec_merlin::new(Seq::<U8>::new(0));
+	//let mut t2 = merlin::Transcript::new(b"");
+
+	////t1 = inner_product_domain_sep(t1, 123)
+	////t2.inner_product_domain_sep(123)
+	//let mut arr: [u8; 64] = [0; 64];
+	//arr[32] = 12;
+	//arr.to_vec();
+	//let x = curve25519_dalek_ng::scalar::Scalar::from_bytes_mod_order_wide(&arr);
+	////let y = LocalScalar::from_byte_seq_le(f(arr.to_vec()));
+
+	//let x_ = curve25519_dalek_ng::scalar::Scalar::zero() - curve25519_dalek_ng::scalar::Scalar::one();
+	//let y_ = FieldElement::ZERO() - FieldElement::ONE();
+	//println!("{:?}", x);
+	////println!("{:?}", x_);
+	////println!("{:?}", y.to_byte_seq_le().iter());
+	////println!("{:?}", y_.to_byte_seq_le().iter());
+
+	//assert!(false)
 }

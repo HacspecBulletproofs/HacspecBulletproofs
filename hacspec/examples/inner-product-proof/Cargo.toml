@@ -18,5 +18,5 @@ hacspec-dev = { path = "../../utils/dev" }
 bulletproofs = { path = "../../../bulletproofs" }
 keccak = { version = "0.1.0", default-features = false }
 curve25519-dalek-ng = "4"
-merlin = "3"
+merlin = { path = "../../../merlin" }
 quickcheck = "1"
