@@ -26,9 +26,17 @@
 
 use hacspec_lib::*;
 
+// Ristretto points are represented here by Extended Twisted Edwards Coordinates:
+// https://eprint.iacr.org/2008/522.pdf
 pub type RistrettoPoint = (FieldElement, FieldElement, FieldElement, FieldElement);
 
+type DecodeResult = Result::<RistrettoPoint, u8>;
+
+// Ristretto points in their encoded form.
 bytes!(RistrettoPointEncoded, 32);
+
+// Bytestrings are used as the input of the one-way-map function.
+bytes!(ByteString, 64);
 
 public_nat_mod!(
     type_name: FieldElement,
@@ -37,7 +45,7 @@ public_nat_mod!(
     modulo_value: "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed"
 );
 
-// Scalar is used only in decode to ensure the decoding is valid.
+// The Scalar type is used for scaling Ristretto Points.
 public_nat_mod!(
     type_name: Scalar,
     type_of_canvas: ScalarCanvas,
@@ -45,10 +53,9 @@ public_nat_mod!(
     modulo_value: "1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed"
 );
 
-// Bytestrings are used as the input of the one-way-map
-bytes!(ByteString, 64);
-
 // === Constants === //
+
+const DECODING_ERROR: u8 = 10;
 
 fn P() -> FieldElement {
     FieldElement::from_byte_seq_be(&byte_seq!(
@@ -106,8 +113,8 @@ fn D_MINUS_ONE_SQ() -> FieldElement {
     ))
 }
 
-
 // === Special points === //
+
 pub fn BASE_POINT_ENCODED() -> RistrettoPointEncoded {
     RistrettoPointEncoded::from_seq(&byte_seq!(
         0xe2u8,0xf2u8,0xaeu8,0x0au8,0x6au8,0xbcu8,0x4eu8,0x71u8,
@@ -145,6 +152,27 @@ fn leading_zeros(k: Scalar) -> usize {
     acc
 }
 
+// Checks if a secret byte_seq is greater than or equal to p.
+fn geq_p(x: Seq<U8>) -> bool {
+    let p_seq = byte_seq!(
+        0xedu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8,
+        0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8,
+        0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0x7fu8
+    );
+    let mut res = true;
+
+    for index in 0..p_seq.len() {
+        let x_index = x[index].declassify();
+        let p_index = p_seq[index].declassify();
+        if x_index != p_index {
+            res = x_index > p_index;
+        }
+    }
+    res
+}
+
+// === Private Functions === //
+
 // Checks if a given field element is negative. A negative field element is defined as an odd number.
 fn is_negative(e: FieldElement) -> bool {
     e % fe(2u128) == fe(1u128)
@@ -175,7 +203,7 @@ fn ct_abs(u: FieldElement) -> FieldElement {
 }
 
 // Computes if the division of the two given field elements is square and returns said square.
-// This function has four different cases it can return with.
+// This function has four different cases, for which it returns different values:
 // 1: if u, the numerator is 0 it returns (true,0).
 // 2: if v, the denominator is 0 it returns (false, 0) as you cannot divide by 0.
 // 3: if both are non-zero and u/v is square it returns (true, square).
@@ -201,28 +229,8 @@ fn sqrt_ratio_m1(u: FieldElement, v: FieldElement) -> (bool, FieldElement) {
     (was_square, r)
 }
 
-fn geq_p(x: Seq<U8>) -> bool {
-    let p_seq = byte_seq!(
-        0xedu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8,
-        0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8,
-        0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0x7fu8
-    );
-    let mut res = true;
-    println!("P new: {:?}", p_seq);
-    
-    for index in 0..p_seq.len() {
-        let x_index = x[index].declassify();
-        let p_index = p_seq[index].declassify();
-        if x_index != p_index {
-            res = x_index > p_index;
-        }
-    }
-    res
-}
-
 // A helper function for the one-way-map function.
-// Placed here as it is only used here and is used immedietely before returning.
-// computes a ristretto point using the IETF standard on the given field element.
+// Computes a Ristretto point using the given field element.
 fn map(t: FieldElement) -> RistrettoPoint {
     let one = fe(1u128);
     let minus_one = neg_fe(one);
@@ -244,33 +252,39 @@ fn map(t: FieldElement) -> RistrettoPoint {
     (w0*w3,w2*w1,w1*w3,w0*w2)
 }
 
-// Takes a uniformly distributed Bytestring of length 64.
-// Returns a pseudo-randomly generated Ristretto point using the defined IETF standard.
-// While this function is not used for any computations later on it is useful for generating points.
+// === Public Functions === //
+
+/// Takes a uniformly distributed Bytestring of length 64.
+/// Returns a pseudo-randomly generated Ristretto point following the defined IETF standard.
+/// While this function is not used for any point computations, it is useful for generating points.
 pub fn one_way_map(b: ByteString) -> RistrettoPoint {
-    let P1_bytes = b.slice(0,32);
-    let P2_bytes = b.slice(32,32);
+    let r0_bytes = b.slice(0,32);
+    let r1_bytes = b.slice(32,32);
 
-    let mut P1_bytes = P1_bytes.declassify();
-    let mut P2_bytes = P2_bytes.declassify();
+    let mut r0_bytes = r0_bytes.declassify();
+    let mut r1_bytes = r1_bytes.declassify();
 
-    P1_bytes[31] = P1_bytes[31] % 128u8;
-    P2_bytes[31] = P2_bytes[31] % 128u8;
+    // The specification states:
+    // Set r0 to the low 255 bits of b[ 0..32], taken mod p
+    // Set r1 to the low 255 bits of b[32..64], taken mod p
+    // Note the low 255 bits. NOT 256 bits! This is why we mod the most significant byte
+    r0_bytes[31] = r0_bytes[31] % 128u8;
+    r1_bytes[31] = r1_bytes[31] % 128u8;
 
-    let P1_field = FieldElement::from_public_byte_seq_le(P1_bytes);
-    let P2_field = FieldElement::from_public_byte_seq_le(P2_bytes);
+    let r0 = FieldElement::from_public_byte_seq_le(r0_bytes);
+    let r1 = FieldElement::from_public_byte_seq_le(r1_bytes);
 
-    let P1 = map(P1_field);
-    let P2 = map(P2_field);
+    let P1 = map(r0);
+    let P2 = map(r1);
 
     add(P1,P2)
 }
 
-// Decodes the given point in accordance with the IETF standard.
-// Note: There are many byte-strings resulting in incorrect decodings.
-// These are all checked for, once more in accordance with the IETF standards.
-pub fn decode(u: RistrettoPointEncoded) -> Result<RistrettoPoint, ()> {
-    let mut ret = Result::<RistrettoPoint, ()>::Err(());
+/// Decodes the given point in accordance with the IETF standard.
+/// Note: There are many byte-strings resulting in incorrect decodings.
+/// These all checked for, in accordance with the IETF standards.
+pub fn decode(u: RistrettoPointEncoded) -> DecodeResult {
+    let mut ret = DecodeResult::Err(DECODING_ERROR);
 
     let s = FieldElement::from_byte_seq_le(u);
 
@@ -293,13 +307,13 @@ pub fn decode(u: RistrettoPointEncoded) -> Result<RistrettoPoint, ()> {
         let t = x * y;
 
         if !(!was_square || is_negative(t) || y == fe(0u128)) {
-            ret = Result::<RistrettoPoint, ()>::Ok((x, y, one, t));
+            ret = DecodeResult::Ok((x, y, one, t));
         }
     }
     ret
 }
 
-// Encodes the given point to its encoded equivalent in accordance with the IETF standard.
+/// Encodes the given point
 pub fn encode(u: RistrettoPoint) -> RistrettoPointEncoded {
     let (x0, y0, z0, t0) = u;
 
@@ -331,14 +345,14 @@ pub fn encode(u: RistrettoPoint) -> RistrettoPointEncoded {
     RistrettoPointEncoded::new().update_start(&s.to_byte_seq_le())
 }
 
-// Checks that two points are equivalent, in accordance with the definition given by the IETF standard.
+/// Checks that two points are equivalent.
 pub fn equals(u: RistrettoPoint, v: RistrettoPoint) -> bool {
     let (x1, y1, _, _) = u;
     let (x2, y2, _, _) = v;
     x1 * y2 == x2 * y1 || y1 * y2 == x1 * x2
 }
 
-// Adds two points together.
+/// Adds two points together.
 pub fn add(u: RistrettoPoint, v: RistrettoPoint) -> RistrettoPoint {
     let d = D();
     let (X1, Y1, Z1, T1) = u;
@@ -360,7 +374,8 @@ pub fn add(u: RistrettoPoint, v: RistrettoPoint) -> RistrettoPoint {
     (X3, Y3, Z3, T3)
 }
 
-// Doubles the given point.
+/// Doubles the given point. Note, this is faster than
+/// adding a point to itself.
 pub fn double(u: RistrettoPoint) -> RistrettoPoint {
     let (X1, Y1, Z1, _) = u;
 
@@ -379,18 +394,18 @@ pub fn double(u: RistrettoPoint) -> RistrettoPoint {
     (X2, Y2, Z2, T2)
 }
 
-// Computes the negation of the given point.
+/// Computes the negation of the given point.
 pub fn neg(u: RistrettoPoint) -> RistrettoPoint {
     let (X1, Y1, Z1, T1) = u;
     (neg_fe(X1), Y1, neg_fe(Z1), T1)
 }
 
-// Subtracts v from u, using negation on v and adding them.
+/// Subtracts v from u, using negation on v and then adding.
 pub fn sub(u: RistrettoPoint, v: RistrettoPoint) -> RistrettoPoint {
     add(u, neg(v))
 }
 
-// Performs scalar multiplication.
+/// Performs scalar multiplication on a point.
 pub fn mul(k: Scalar, p: RistrettoPoint) -> RistrettoPoint {
     let mut acc = IDENTITY_POINT();
     let mut q = p;
@@ -402,4 +417,3 @@ pub fn mul(k: Scalar, p: RistrettoPoint) -> RistrettoPoint {
     }
     acc
 }
-
