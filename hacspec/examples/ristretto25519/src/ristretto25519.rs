@@ -171,7 +171,7 @@ fn geq_p(x: Seq<U8>) -> bool {
     res
 }
 
-// === Private Functions === //
+// === Internal Utility Functions === //
 
 // Checks if a given field element is negative. A negative field element is defined as an odd number.
 fn is_negative(e: FieldElement) -> bool {
@@ -252,7 +252,7 @@ fn map(t: FieldElement) -> RistrettoPoint {
     (w0*w3,w2*w1,w1*w3,w0*w2)
 }
 
-// === Public Functions === //
+// === External Functions === //
 
 /// Takes a uniformly distributed Bytestring of length 64.
 /// Returns a pseudo-randomly generated Ristretto point following the defined IETF standard.
