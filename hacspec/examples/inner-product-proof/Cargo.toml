@@ -1,22 +1,22 @@
 [package]
-name = "hacspec-inner-product-proof"
+name = "hacspec-ipp"
 version = "0.1.0"
 authors = ["Rasmus Kirk <mail@rasmuskirk.com>"]
 edition = "2018"
 
 [lib]
-path = "src/linalg.rs"
+path = "src/ipp.rs"
 
 [dependencies]
 hacspec-lib = { path = "../../lib" }
-hacspec-ristretto = { path = "../ristretto25519/" }
-hacspec-linalg-field = { path = "../linalg-field/" }
+hacspec-ristretto = { path = "../ristretto25519" }
+hacspec-linalg-field = { path = "../linalg-field" }
 hacspec-merlin = { path = "../merlin" }
 
 [dev-dependencies]
 hacspec-dev = { path = "../../utils/dev" }
-bulletproofs = { path = "../../../bulletproofs" }
-keccak = { version = "0.1.0", default-features = false }
 curve25519-dalek-ng = "4"
-merlin = { path = "../../../merlin" }
+merlin = "3"
+bulletproofs = { path = "../../../bulletproofs" }
 quickcheck = "1"
+rand = "0.6.5"
