@@ -10,12 +10,12 @@
 * hacspec target languages, and allows hacspec implementations to use
 * the defined ristretto operations.
 *
-* Each internal representation of a point is kept in its Twisted Edwards 
+* Each internal representation of a point is kept in its Twisted Edwards
 * representation, while each encoded point is a byte-string of length 32.
 *
 * Each public function in the library is based on the IETF-standard for Ristretto
-* while all helper functions are private. It is also important to note that 
-* the internal representation of each point is kept hidden and inaccessible 
+* while all helper functions are private. It is also important to note that
+* the internal representation of each point is kept hidden and inaccessible
 * to the outside in order to avoid giving incorrect encodings.
 *
 * For more information see the aforementioned IETF-standard here:
@@ -30,7 +30,7 @@ use hacspec_lib::*;
 // https://eprint.iacr.org/2008/522.pdf
 pub type RistrettoPoint = (FieldElement, FieldElement, FieldElement, FieldElement);
 
-type DecodeResult = Result::<RistrettoPoint, u8>;
+type DecodeResult = Result<RistrettoPoint, u8>;
 
 // Ristretto points in their encoded form.
 bytes!(RistrettoPointEncoded, 32);
@@ -117,15 +117,14 @@ fn D_MINUS_ONE_SQ() -> FieldElement {
 
 pub fn BASE_POINT_ENCODED() -> RistrettoPointEncoded {
     RistrettoPointEncoded::from_seq(&byte_seq!(
-        0xe2u8,0xf2u8,0xaeu8,0x0au8,0x6au8,0xbcu8,0x4eu8,0x71u8,
-        0xa8u8,0x84u8,0xa9u8,0x61u8,0xc5u8,0x00u8,0x51u8,0x5fu8,
-        0x58u8,0xe3u8,0x0bu8,0x6au8,0xa5u8,0x82u8,0xddu8,0x8du8,
-        0xb6u8,0xa6u8,0x59u8,0x45u8,0xe0u8,0x8du8,0x2du8,0x76u8
+        0xe2u8, 0xf2u8, 0xaeu8, 0x0au8, 0x6au8, 0xbcu8, 0x4eu8, 0x71u8, 0xa8u8, 0x84u8, 0xa9u8,
+        0x61u8, 0xc5u8, 0x00u8, 0x51u8, 0x5fu8, 0x58u8, 0xe3u8, 0x0bu8, 0x6au8, 0xa5u8, 0x82u8,
+        0xddu8, 0x8du8, 0xb6u8, 0xa6u8, 0x59u8, 0x45u8, 0xe0u8, 0x8du8, 0x2du8, 0x76u8
     ))
 }
 
 pub fn BASE_POINT() -> RistrettoPoint {
-	decode(BASE_POINT_ENCODED()).unwrap()
+    decode(BASE_POINT_ENCODED()).unwrap()
 }
 
 pub fn IDENTITY_POINT() -> RistrettoPoint {
@@ -144,9 +143,9 @@ fn leading_zeros(k: Scalar) -> usize {
     let mut acc = 256usize;
     let mut done = false;
     for i in 0..256 {
-        if !done && k.get_bit(256-i-1) == Scalar::from_literal(1u128) {
+        if !done && k.get_bit(256 - i - 1) == Scalar::from_literal(1u128) {
             done = true;
-            acc = i-1;
+            acc = i - 1;
         }
     }
     acc
@@ -236,10 +235,10 @@ fn map(t: FieldElement) -> RistrettoPoint {
     let minus_one = neg_fe(one);
     let r = SQRT_M1() * t.pow(2u128);
     let u = (r + one) * ONE_MINUS_D_SQ();
-    let v = (minus_one - r*D()) * (r + D());
+    let v = (minus_one - r * D()) * (r + D());
 
     let (was_square, mut s) = sqrt_ratio_m1(u, v);
-    let s_prime = neg_fe(ct_abs(s*t));
+    let s_prime = neg_fe(ct_abs(s * t));
     s = ct_select(s, was_square, s_prime);
     let c = ct_select(minus_one, was_square, r);
 
@@ -249,7 +248,7 @@ fn map(t: FieldElement) -> RistrettoPoint {
     let w1 = N * SQRT_AD_MINUS_ONE();
     let w2 = one - s.pow(2u128);
     let w3 = one + s.pow(2u128);
-    (w0*w3,w2*w1,w1*w3,w0*w2)
+    (w0 * w3, w2 * w1, w1 * w3, w0 * w2)
 }
 
 // === External Functions === //
@@ -258,8 +257,8 @@ fn map(t: FieldElement) -> RistrettoPoint {
 /// Returns a pseudo-randomly generated Ristretto point following the defined IETF standard.
 /// While this function is not used for any point computations, it is useful for generating points.
 pub fn one_way_map(b: ByteString) -> RistrettoPoint {
-    let r0_bytes = b.slice(0,32);
-    let r1_bytes = b.slice(32,32);
+    let r0_bytes = b.slice(0, 32);
+    let r1_bytes = b.slice(32, 32);
 
     let mut r0_bytes = r0_bytes.declassify();
     let mut r1_bytes = r1_bytes.declassify();
@@ -277,7 +276,7 @@ pub fn one_way_map(b: ByteString) -> RistrettoPoint {
     let P1 = map(r0);
     let P2 = map(r1);
 
-    add(P1,P2)
+    add(P1, P2)
 }
 
 /// Decodes the given point in accordance with the IETF standard.
