@@ -1,6 +1,7 @@
 /*
  * This is a subset of Merlin...
  */
+#![allow(non_snake_case)]
 
 pub mod strobe;
 use hacspec_lib::*;

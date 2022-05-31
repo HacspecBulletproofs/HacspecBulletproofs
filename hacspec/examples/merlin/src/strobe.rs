@@ -1,3 +1,5 @@
+#![allow(unused_assignments)]
+#![allow(non_snake_case)]
 /*
  * This is a subset of strobe needed to implement Merlin. Some functions are
  * therefore missing. See the Strobe specification for details:
