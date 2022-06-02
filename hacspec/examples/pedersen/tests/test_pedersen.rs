@@ -15,23 +15,23 @@ fn quickcheck(helper: impl Testable) {
 
 #[test]
 fn unit_test() {
-	let x = FieldElement::from_hex("00000000000000000000000090000000000000000000000000e0000000000001");
+	let x = Scalar::from_hex("00000000000000000000000090000000000000000000000000e0000000000001");
 	let H = mul(x, BASE_POINT());
 
-	let r1: FieldElement = FieldElement::from_hex("0006730000000000000000000100000000000000000000000000000000000001");
-	let r2: FieldElement = FieldElement::from_hex("00000abcd0000000000000000200000000000000000000000000000000000001");
-	let r3: FieldElement = r1 + r2;
+	let r1: Scalar = Scalar::from_hex("0006730000000000000000000100000000000000000000000000000000000001");
+	let r2: Scalar = Scalar::from_hex("00000abcd0000000000000000200000000000000000000000000000000000001");
+	let r3: Scalar = r1 + r2;
 
-	let a1: FieldElement = FieldElement::from_hex("0000000000000000000000000000400000000000000000000000000000000001");
-	let a2: FieldElement = FieldElement::from_hex("0000000000000000000000000000000000000000000000000000000000000001");
-	let a3: FieldElement = a1 + a2;
+	let a1: Scalar = Scalar::from_hex("0000000000000000000000000000400000000000000000000000000000000001");
+	let a2: Scalar = Scalar::from_hex("0000000000000000000000000000000000000000000000000000000000000001");
+	let a3: Scalar = a1 + a2;
 
-	let c1 = pederson_commit(r1,H,a1);
-	let c2 = pederson_commit(r2,H,a2);
-	let c_sum1 = pederson_commit(r3,H,a3);
+	let c1 = pedersen_commit(r1,BASE_POINT(),H,a1);
+	let c2 = pedersen_commit(r2,BASE_POINT(),H,a2);
+	let c_sum1 = pedersen_commit(r3,BASE_POINT(),H,a3);
 	let c_sum2 = add(c1, c2);
 
-	assert_eq!(to_bytes(c_sum1),to_bytes(c_sum2))
+	assert!(equals(c_sum1,c_sum2));
 }
 //#[test]
 //fn test_1() {	
