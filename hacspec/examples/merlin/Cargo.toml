@@ -12,5 +12,5 @@ hacspec-lib = { path = "../../lib" }
 hacspec-sha3 = { path = "../sha3" }
 
 [dev-dependencies]
-merlin = { path = "../../../merlin" }
+merlin = "3"
 quickcheck = "1"
