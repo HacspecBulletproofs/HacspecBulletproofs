@@ -1,7 +1,7 @@
 use hacspec_lib::*;
 
 pub type DimType = usize;
-pub type Scalar = hacspec_ristretto::FieldElement;
+pub type Scalar = hacspec_ristretto::Scalar;
 pub type Dims = (DimType, DimType);
 pub type Matrix = (Dims, Seq<Scalar>);
 
