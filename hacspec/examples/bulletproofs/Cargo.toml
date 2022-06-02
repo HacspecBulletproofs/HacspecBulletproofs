@@ -1,0 +1,23 @@
+[package]
+name = "hacspec-bulletproofs"
+version = "0.1.0"
+authors = ["Rasmus Kirk <mail@rasmuskirk.com>"]
+edition = "2018"
+
+[lib]
+path = "src/bulletproofs.rs"
+
+[dependencies]
+hacspec-lib = { path = "../../lib" }
+hacspec-merlin = { path = "../merlin" }
+hacspec-ipp = { path = "../inner-product-proof" }
+hacspec-ristretto = { path = "../ristretto25519" }
+hacspec-pedersen = { path = "../pedersen" }
+
+[dev-dependencies]
+hacspec-dev = { path = "../../utils/dev" }
+bulletproofs = { path = "../../../bulletproofs" }
+merlin = "3"
+curve25519-dalek-ng = "4"
+criterion = "0.3"
+rand = "0.8"
