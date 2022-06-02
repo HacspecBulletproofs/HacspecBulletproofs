@@ -77,7 +77,6 @@ fn cmp_encoded_points(hac: RistrettoPointEncoded, dal: DalekRistrettoPointEncode
 }
 
 fn cmp_scalars(hac: Scalar, dal: DalekScalar) -> bool {
-	// Compare results
 	let hacs = hac.to_byte_seq_le();
 	let dals = dal.to_bytes();
 
@@ -86,6 +85,13 @@ fn cmp_scalars(hac: Scalar, dal: DalekScalar) -> bool {
 
 // === Tests === //
 
+/* 
+ * The following test tests private functions of the dalek-bulletproofs library
+ * It is commented out since it requires forking the external library and changing
+ * the associated methods and structs to be made public, but the test does pass.
+ *
+ * Note that the function is also tested in the hacspec-bulletproofs crate.
+ */
 #[test]
 fn testquick() {
 	fn helper() -> TestResult {
