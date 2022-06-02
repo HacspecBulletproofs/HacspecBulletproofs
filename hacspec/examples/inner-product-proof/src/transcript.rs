@@ -26,7 +26,7 @@ pub fn innerproduct_domain_sep(mut transcript: Transcript, n: U64) -> Transcript
 	let n_ = byte_seq!(110u8);
 
 	transcript = append_message(transcript, dom_sep, ipp_v1);
-	transcript = append_u64(transcript, n_, n);
+	transcript = append_U64(transcript, n_, n);
 
 	transcript
 }
