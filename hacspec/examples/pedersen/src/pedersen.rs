@@ -13,8 +13,8 @@ fn point_dot(v: Matrix, G: RistrettoPoint) -> RistrettoPoint {
 }
 
 //r must be random
-pub fn pedersen_commit(r: Scalar, G: RistrettoPoint, H: RistrettoPoint, a: Scalar) -> RistrettoPoint {
-	let rH = mul(r,H);
+pub fn pedersen_commit(r: Scalar, H: RistrettoPoint, a: Scalar, G: RistrettoPoint) -> RistrettoPoint {
+	let rH = mul(r, H);
 	let aG = mul(a, G);
 
 	add(aG, rH)
