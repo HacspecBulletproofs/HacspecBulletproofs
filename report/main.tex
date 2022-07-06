@@ -25,6 +25,14 @@
 \newcommand{\eq}[1]{\begin{equation*}\begin{split}#1\end{split}\end{equation*}}
 \newcommand{\eqNumbered}[1]{\begin{equation}\begin{split}#1\end{split}\end{equation}}
 
+\newcommand{\V}{\mathcal{V}}
+\renewcommand{\P}{\mathcal{P}}
+\renewcommand{\O}{\mathcal{O}}
+\newcommand{\F}{\mathbb{F}}
+
+\newcommand{\verifier}{\mathcal{V}}
+\newcommand{\prover}{\mathcal{P}}
+
 % === Header === %
 
 \title{Property based testing of Rust Bulletproofs using Hacspec}
@@ -60,136 +68,244 @@ Department of Computer Science, Aarhus University\\
 \section{Introduction:} \label{Introduction}
 \section{Prerequisites:}
 
-In this section we will be going over the necessary background knowledge to understand the results of the work in this project.
+In this section we will be going over the necessary background knowledge
+to understand the results of the work in this project.
 
 \subsection{Finite Field Arithmetic:} \label{Finite Field Arithmetic}
 
-Before attempting to understand and discuss elliptic curves it is vital to understand finite fields and the operations defined within them, as the operations we will later define that work on elliptic curves are defined using these same principles.
+Before attempting to understand and discuss elliptic curves it is vital
+to understand finite fields and the operations defined within them, as
+the operations we will later define that work on elliptic curves are
+defined using these same principles.
 
 \begin{definition}[Field]
 	A field is a...
 \end{definition}
 
 \begin{definition}[Finite Field]
-	A finite field, $\mathbb{F}$, is a finite set that is closed under addition and multiplication with identities 0 and 1 respectively.\\ Both addition and multiplication must be associative and commutative, with multiplication also being distributive over addition. This means that:
-	$$\forall a,b,c \in \mathbb{F}: (a+b)\cdot c = a\cdot c + b\cdot c$$
-	A finite field must also have defined inverses both for multiplication and addition, referred to as the negation and multiplicative inverses respectively. These must be unique. The negation of an element a is the element -a which fulfills the condition: $a + (-a) = 0$. The multiplicative inverse is defined similarly as $a^{-1}$ with $a\cdot a^{-1} = 1$. The only element which does not have a multiplicative inverse is 0.
+	A finite field, $\F$, is a finite set that is closed under
+	addition and multiplication with identities 0 and 1 respectively.
+
+	Both addition and multiplication must be associative and commutative,
+	with multiplication also being distributive over addition. This means
+	that:
+
+	$$\forall a,b,c \in \F: (a+b) \cdot c = a \cdot c + b \cdot c$$
+
+	A finite field must also have defined inverses both for multiplication
+	and addition, referred to as the negation and multiplicative inverses
+	respectively. These must be unique. The negation of an element $a$ is
+	the element $-a$ which fulfills the condition: $a + (-a) = 0$. The
+	multiplicative inverse is defined similarly as $a^{-1}$ with
+	$a \cdot a^{-1} = 1$. The only element which does not have a
+	multiplicative inverse is 0.
 \end{definition}
 
-From this definition we can infer subtraction and division over the field as follows:
+From this definition we can infer subtraction and division over the field
+as follows:
 
 \eq{
 	a-b         &= a + (-b) \\
 	\frac{a}{b} &= a \cdot b^{-1}
 }
 
-For this project we only need to look at one particular type of finite field namely the Prime field:
+For this project we only need to look at one particular type of finite
+field, namely the Prime field:
 
 \begin{definition}[Prime Field]
-	A prime field $\mathbb{F}_p$ is a finite field with elements [0,p-1] where addition and multiplication are performed over whole numbers modulo p.
+	A prime field $\mathbb{F}_p$ is a finite field with elements [0,p-1]
+	where addition and multiplication are performed over integers
+	modulo $p$.
 \end{definition}
 
-Something important to note about this definition is that inverses in this kind of field are also positive whole numbers. This will come up again in section \ref{implementing-ristretto} with regards to the code.
+Something important to note about this definition is that inverses in
+this kind of field are also positive whole numbers. This will come up
+again in section \ref{implementing-ristretto} with regards to the code.
 
 \subsection{Elliptic Curve:}\label{elliptic-curves}
 
 To start our explanation of elliptic curves we add a few definitions:
 
 \begin{definition}[Elliptic Curves]
-	An elliptic curve, E, is an algebraic curve defined over a prime field, K, defined by the formula:
+	An elliptic curve, E, is an algebraic curve defined over a prime field,
+	$K$, defined by the formula:
 	$$y^2 = x^3 + ax + b$$
 \end{definition}
 
 \begin{definition}[EC Additive Identity]
-	Let $\mathcal{O}$ be the point with $y = \infty$. For every point, P, on E the following property holds: $P + \mathcal{O} = \mathcal{O} + P = P$.
+	Let $\mathcal{O}$ be the point with $y = \infty$. For every point, $P$,
+	on $E$ the following property holds:
+	$P + \mathcal{O} = \mathcal{O} + P = P$.
 \end{definition}
 
 \begin{definition}[EC Negation]
-	Let P = (x,y) be a point on E. The negation of P, called -P is defined as the mirror of P over the x-axis, or -P = (x,-y).
+	Let $P = (x,y)$ be a point on $E$. The negation of $P$, called $-P$
+	is defined as the mirror of P over the x-axis, or $-P = (x,-y)$.
 \end{definition}
 
 \begin{definition}[EC Addition]
-	Let $\ell$ be a line intersecting E at three points, P, Q and -R. the group operation: Addition defined on two points is defined as: P + Q = R.
+	Let $\ell$ be a line intersecting $E$ at three points, $P$, $Q$ and
+	$-R$. The group operation: Addition defined on two points is defined
+	as:
+	$$P + Q = R$$
 \end{definition}
 
 \begin{definition}[EC Doubling]
-	let $\ell$ be the tangent to the point P on E, which intersects points P and -R. The group operation: point doubling on P is defined as: $$2P = P + P = R$$
+	let $\ell$ be the tangent to the point $P$ on $E$, which intersects
+	points $P$ and $-R$. The group operation: point doubling on P is
+	defined as:
+	$$2P = P + P = R$$
 \end{definition}
-An important thing to note about point addition. In the case where you add points P and Q where $\ell$ is a tangent to P then -P is their addition. This is due to the fact that the ONLY case in which this can happen is when $Q = -(P + P)$ and thus you get $P + Q = P + (-(P + P)) = -P$. Another similar case is using point doubling on any point P = (x,0) on E. The tangent to these points do not intersect a second point. However note that the negation of P here is -P = (x,-0) = (x,0) = P. Thus point doubling on these points is equivalent to the equation $P + (-P) = \mathcal{O}$.
+
+An important thing to note about point addition. In the case where you
+add points P and Q where $\ell$ is a tangent to P then -P is their
+addition. This is due to the fact that the ONLY case in which this can
+happen is when $Q = -(P + P)$ and thus you get
+$P + Q = P + (-(P + P)) = -P$. Another similar case is using point
+doubling on any point P = (x,0) on E. The tangent to these points do not
+intersect a second point. However note that the negation of $P$ here is
+$-P = (x,-0) = (x,0) = P$. Thus point doubling on these points is
+equivalent to the equation $P + (-P) = \mathcal{O}$.
 
 From these definitions we can extrapolate two more definitions:
 
 \begin{definition}
-	Let P and Q be elliptic curve points. The group operation: Subtraction is defined by:
+	Let P and Q be elliptic curve points. The group operation:
+	Subtraction is defined by:
 	$$P-Q = P + (-Q)$$
 \end{definition}
 
 \begin{definition}
-	Let m be a scalar and let P be a point on E. The group operation: Scalar multiplication is defined by adding P to itself m times and denoted a $m\cdot P$.
+	Let $m$ be a scalar and let $P$ be a point on $E$. The group operation:
+	Scalar multiplication is defined by adding $P$ to itself $m$ times and
+	denoted a $m\cdot P$.
 \end{definition}
 
-Due to the absence of scalar division it is therefore impossible to multiply by anything other than integers as we cannot have something like $2.5 \cdot P = \frac{5\cdot P}{2}$. Multiplying by 0 will naturally yield the identity element $\mathcal{O}$ by definition. Additionally multiplying by a negative integer, -m, is defined as $-m\cdot P = m\cdot -P$. 
+Due to the absence of scalar division it is therefore impossible to
+multiply by anything other than integers as we cannot have something
+like $2.5 \cdot P = \frac{5\cdot P}{2}$. Multiplying by 0 will naturally
+yield the identity element $\mathcal{O}$ by definition. Additionally
+multiplying by a negative integer, -m, is defined as
+$-m\cdot P = m\cdot -P$. 
 
-The particular curve used for our implementation, as well as the implementation of the Rust bulletproofs, is a special curve from a subset of curves known as Montgomery curves. These curves are defined by the formula: $By^2 = x^3 + Ax^2 + x$. Curves of this form have a birational equivalence with a different set of curves, known as Twisted Edwards curves. Our implementation, as well as the implementation we test against utilize this aspect in their internal representations of points on the curve.
+The particular curve used for our implementation, as well as the
+implementation of the Rust bulletproofs, is a special curve from a subset
+of curves known as Montgomery curves. These curves are defined by the
+formula: $By^2 = x^3 + Ax^2 + x$. Curves of this form have a birational
+equivalence with a different set of curves, known as Twisted Edwards
+curves. Our implementation, as well as the implementation we test against
+utilize this aspect in their internal representations of points on the
+curve.
 
-For our implementation of bulletproofs, seeing as we needed to test it against an existing implementation we made use of the same elliptic curve, as well as gained an understanding of the basics of elliptic curve cryptography. The elliptic curve in question is Curve25519, which is widely used in encryption as is the case here. Curve25519, henceforth shortened to 25519, is defined by the following formula:
+For our implementation of bulletproofs, seeing as we needed to test it
+against an existing implementation we made use of the same elliptic
+curve, as well as gained an understanding of the basics of elliptic
+curve cryptography. The elliptic curve in question is Curve25519, which
+is widely used in encryption as is the case here. Curve25519, henceforth
+shortened to 25519, is defined by the following formula:
 
 $$y^2 = x^3 + 48662x^2 + x$$
 
-This curve is defined over the prime field $K = 2^{255} - 19$ and base point defined at x = 9 with the positive y value. This results in a sub-group of order $2^{252} + 2774231777737235353585$, which has a co-factor of 8. This co-factor would make 25519 vulnerable to the so-called 'Double Spending Vulnerability'. However the implementation known as Ristretto circumvents this by eliminating the co-factor. For more detail see \ref{ristretto} 
+This curve is defined over the prime field $K = 2^{255} - 19$ and base
+point defined at x = 9 with the positive y value. This results in a
+sub-group of order $2^{252} + 2774231777737235353585$, which has a
+co-factor of 8. This co-factor would make 25519 vulnerable to the
+so-called 'Double Spending Vulnerability'. However the implementation
+known as Ristretto circumvents this by eliminating the co-factor.
+For more detail see \ref{ristretto} 
 
 \subsection{Bulletproofs:}\label{Bulletproofs}
 
-The ultimate goal of this project has been to implement bulletproofs in Hacspec, using property-based testing to ensure it is equivalent to the implementation done in Rust, using 25519. A bulletproof is a non-interactive aggregation of rangeproofs using Pedersen commitments. The following section will describe each of these terms in greater detail on a theoretic level.
+The ultimate goal of this project has been to implement bulletproofs in
+Hacspec, using property-based testing to ensure it is equivalent to the
+implementation done in Rust, using 25519. A bulletproof is a
+non-interactive aggregation of rangeproofs using Pedersen commitments.
+The following section will describe each of these terms in greater detail
+on a theoretic level.
 
 \subsubsection{Pedersen Commitment:}
 
-A Pedersen commitment is a commitment scheme defined by a certain property we will go into a little later. For our purposes we redefine the scheme to work with commitments to elliptic curve points rather than a value. First a single point $G$ on the chosen elliptic curve, in this case 25519. This point will be our generator. for 25519 we use the point we previously defined as the base point. 
+A Pedersen commitment is a commitment scheme defined by a certain
+property we will go into a little later. For our purposes we redefine
+the scheme to work with commitments to elliptic curve points rather than
+a value. First a single point $G$ on the chosen elliptic curve, in this
+case 25519. This point will be our generator. for 25519 we use the point
+we previously defined as the base point. 
 
-Our adaptation of the Pedersen commitment scheme will involve point addition on the elliptic curve, rather than multiplication. This will have the desired effect of perfect hiding for Pedersen commitments. The points that we will add together to hide our commitment works using some amount of randomness which ensures the hiding property while also allowing for some decent binding. Not perfect, as this is impossible alongside perfect hiding. 
+Our adaptation of the Pedersen commitment scheme will involve point
+addition on the elliptic curve, rather than multiplication. This will
+have the desired effect of perfect hiding for Pedersen commitments. The
+points that we will add together to hide our commitment works using some
+amount of randomness which ensures the hiding property while also
+allowing for some decent binding. Not perfect, as this is impossible
+alongside perfect hiding. 
 
 \begin{definition}[Pedersen Commit]
-	A Pedersen commitment, to some message, $a$, with a randomly chosen integer, $r$, is defined as:
+	A Pedersen commitment, to some message, $a$, with a randomly chosen
+	integer, $r$, is defined as:
+
 	$$rH + aG$$
-	where $G$ is a canonical generator for the curve and $H$ is a public key where no one knows $q$ such that $H = qG$.
+
+	where $G$ is a canonical generator for the curve and $H$ is a public
+	key where no one knows $q$ such that $H = qG$.
 \end{definition}
 
-Here r serves as our perfect hiding, G is our generator for the curve and H is another curve point where no one knows $q$ such that $H = qG$. This ensures perfect hiding as there is a nearly infinite amount of possible combinations of two points that can add to any given point. However while that is true, it does not provide perfect binding by definition of binding and hiding. From here on we will refer to a commitment to a message, a, with random value, r, as C(a,r).
+Here $r$ serves as our perfect hiding, $G$ is our generator for the
+curve and $H$ is another curve point where no one knows $q$ such that
+$H = qG$. This ensures perfect hiding as there is a nearly infinite
+amount of possible combinations of two points that can add to any given
+point. However while that is true, it does not provide perfect binding by
+definition of binding and hiding. From here on we will refer to a
+commitment to a message, $a$, with random value, $r$, as $C(a,r)$.
 
-The most important property of Pedersen commitments however is the following property. 
+The most important property of Pedersen commitments however is the
+following property. 
 
 \begin{definition}[Commitment Homomorphism]
 For any two Pedersen commitments $C(a_1,r_1), C(a_2,r_2)$ we have:
 $$ C(a_1,r_1) + C(a_2,r_2) = C(a_1 + a_2, r_1 + r_2)$$
 \end{definition}
 
-This is simple to show by simply applying the definition of Pedersen commitments: 
+This is simple to show by simply applying the definition of Pedersen
+commitments: 
 
-$$C(a_1,r_1) + C(a_2,r_2) = r_1H + a_1G + r_2H + a_2G = (r_1 + r_2)H + (a_1 + a_2)G = C(a_1+a_2,r_1+r_2)$$
+\eq{
+	C(a_1,r_1) + C(a_2,r_2) &= r_1H + a_1G  + r_2H + a_2G \\
+	                        &= (r_1 + r_2)H + (a_1 + a_2)G \\
+	                        &= C(a_1+a_2,r_1+r_2)
+}
 
-Which ensures a homomorphism between the sum of commitments and the commitment to the sum. This property will become vital when proving zero knowledgeness later. 
+Which ensures a homomorphism between the sum of commitments and the
+commitment to the sum. This property will become vital when proving zero
+knowledgeness later. 
 
 \subsubsection{Inner Product Proof:}
 
-The inner product proof is a zero knowledge proof where the prover, $\mathcal{P}$, shows knowledge of two vectors $x$ and $y$, as well as their inner product, $z$, to the verifier, $\mathcal{V}$. 
+The inner product proof is a zero knowledge proof where the prover,
+$\mathcal{P}$, shows knowledge of two vectors $x$ and $y$, as well as
+their inner product, $z$, to the verifier, $\mathcal{V}$. 
 
 In order to do this the Sigma Protocol is used. The Sigma Protocol creates the following transcript: 
 
 \begin{enumerate}
-	\item $\mathcal{P} \rightarrow \mathcal{V}: \text{Commitment}$
-	\item $\mathcal{V} \rightarrow \mathcal{P}: \text{Challenge}$
-	\item $\mathcal{P} \rightarrow \mathcal{V}: \text{Response}$
+	\item $\prover   \rightarrow \verifier: \text{Commitment}$
+	\item $\verifier \rightarrow \prover:   \text{Challenge}$
+	\item $\prover   \rightarrow \verifier: \text{Response}$
 \end{enumerate}
 
 $$C_a = rH + \mathbf{xG} = rH + aG_1 + bG_2 + cG_3$$
 
-We will now go through each step in order with the inner product proof in mind. The inner product, z, is the inner product of vectors x and y. We assume that Pedersen commitments to these values are know:
+We will now go through each step in order with the inner product proof in
+mind. The inner product, $z$, is the inner product of vectors $x$ and
+$y$. We assume that Pedersen commitments to these values are know:
 
-$$C_z = r_1H + zG$$
-$$C_x = r_2H + \mathbf{xG}$$
-$$C_y = r_3H + \mathbf{yG}$$
+\eq{
+	C_z &= r_1H + zG \\
+	C_x &= r_2H + \mathbf{xG} \\
+	C_y &= r_3H + \mathbf{yG} \\
+}
 
-The first step is the Commitment step. In this step the prover P sends V a set of commitments which bind P into EXACTLY these values. This becomes important later in order to avoid the possibility of falsifying transcripts. 
+The first step is the Commitment step. In this step the prover $\prover$ sends V a set of commitments which bind P into EXACTLY these values. This becomes important later in order to avoid the possibility of falsifying transcripts. 
 
 \subsubsection{Range Proofs:}
 
