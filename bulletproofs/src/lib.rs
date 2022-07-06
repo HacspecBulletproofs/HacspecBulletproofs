@@ -12,7 +12,7 @@ extern crate alloc;
 #[macro_use]
 extern crate serde_derive;
 
-mod util;
+pub mod util;
 
 #[cfg_attr(feature = "docs", doc(include = "../docs/notes-intro.md"))]
 mod notes {
@@ -25,7 +25,7 @@ mod notes {
 }
 
 mod errors;
-mod generators;
+pub mod generators;
 pub mod inner_product_proof;
 mod range_proof;
 mod transcript;

@@ -204,7 +204,7 @@ impl BulletproofGens {
     }
 
     /// Return an iterator over the aggregation of the parties' G generators with given size `n`.
-    pub(crate) fn G(&self, n: usize, m: usize) -> impl Iterator<Item = &RistrettoPoint> {
+    pub fn G(&self, n: usize, m: usize) -> impl Iterator<Item = &RistrettoPoint> {
         AggregatedGensIter {
             n,
             m,
@@ -215,7 +215,7 @@ impl BulletproofGens {
     }
 
     /// Return an iterator over the aggregation of the parties' H generators with given size `n`.
-    pub(crate) fn H(&self, n: usize, m: usize) -> impl Iterator<Item = &RistrettoPoint> {
+    pub fn H(&self, n: usize, m: usize) -> impl Iterator<Item = &RistrettoPoint> {
         AggregatedGensIter {
             n,
             m,
@@ -276,12 +276,12 @@ pub struct BulletproofGensShare<'a> {
 
 impl<'a> BulletproofGensShare<'a> {
     /// Return an iterator over this party's G generators with given size `n`.
-    pub(crate) fn G(&self, n: usize) -> impl Iterator<Item = &'a RistrettoPoint> {
+    pub fn G(&self, n: usize) -> impl Iterator<Item = &'a RistrettoPoint> {
         self.gens.G_vec[self.share].iter().take(n)
     }
 
     /// Return an iterator over this party's H generators with given size `n`.
-    pub(crate) fn H(&self, n: usize) -> impl Iterator<Item = &'a RistrettoPoint> {
+    pub fn H(&self, n: usize) -> impl Iterator<Item = &'a RistrettoPoint> {
         self.gens.H_vec[self.share].iter().take(n)
     }
 }

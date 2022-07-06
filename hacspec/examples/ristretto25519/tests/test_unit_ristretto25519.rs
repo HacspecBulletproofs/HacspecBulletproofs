@@ -162,4 +162,3 @@ fn test_unit_neg_decode() {
     hexs.iter()
         .for_each(|x| assert!(decode(RistrettoPointEncoded::from_hex(x)).is_err()));
 }
-

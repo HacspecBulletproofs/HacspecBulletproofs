@@ -15,8 +15,10 @@ hacspec-merlin = { path = "../merlin" }
 
 [dev-dependencies]
 hacspec-dev = { path = "../../utils/dev" }
+rand_core = { version = "0.6", default-features = false, features = ["alloc"] }
 curve25519-dalek-ng = "4"
+sha3 = "0.9.1"
 merlin = "3"
 bulletproofs = { path = "../../../bulletproofs" }
 quickcheck = "1"
-rand = "0.6.5"
+rand = "0.8"

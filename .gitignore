@@ -1,0 +1,9 @@
+report/main.aux
+report/main.bcf
+report/main.log
+report/main.out
+report/main.run.xml
+report/main.toc
+bulletproofs-old
+bulletproofs/target
+curve25519-dalek
