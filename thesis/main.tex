@@ -1,5 +1,9 @@
 \documentclass{article}
 
+% set window autowrap_column 74
+% autowrap-enable
+% add-highlighter global/ column 74 default,red
+
 % === Dependencies === %
 
 \usepackage[utf8]{inputenc}
@@ -113,7 +117,7 @@ For this project we only need to look at one particular type of finite
 field, namely the Prime field:
 
 \begin{definition}[Prime Field]
-	A prime field $\mathbb{F}_p$ is a finite field with elements [0,p-1]
+	A prime field $\F_p$ is a finite field with elements $[0,p-1]$
 	where addition and multiplication are performed over integers
 	modulo $p$.
 \end{definition}
@@ -133,9 +137,9 @@ To start our explanation of elliptic curves we add a few definitions:
 \end{definition}
 
 \begin{definition}[EC Additive Identity]
-	Let $\mathcal{O}$ be the point with $y = \infty$. For every point, $P$,
+	Let $\O$ be the point with $y = \infty$. For every point, $P$,
 	on $E$ the following property holds:
-	$P + \mathcal{O} = \mathcal{O} + P = P$.
+	$P + \O = \O + P = P$.
 \end{definition}
 
 \begin{definition}[EC Negation]
@@ -158,14 +162,14 @@ To start our explanation of elliptic curves we add a few definitions:
 \end{definition}
 
 An important thing to note about point addition. In the case where you
-add points P and Q where $\ell$ is a tangent to P then -P is their
-addition. This is due to the fact that the ONLY case in which this can
-happen is when $Q = -(P + P)$ and thus you get
+add points $P$ and $Q$ where $\ell$ is a tangent to $P$ then $-P$ is
+their addition. This is due to the fact that the ONLY case in which this
+can happen is when $Q = -(P + P)$ and thus you get
 $P + Q = P + (-(P + P)) = -P$. Another similar case is using point
-doubling on any point P = (x,0) on E. The tangent to these points do not
-intersect a second point. However note that the negation of $P$ here is
-$-P = (x,-0) = (x,0) = P$. Thus point doubling on these points is
-equivalent to the equation $P + (-P) = \mathcal{O}$.
+doubling on any point $P = (x,0)$ on $E$. The tangent to these points do
+not intersect a second point. However note that the negation of $P$ here
+is $-P = (x,-0) = (x,0) = P$. Thus point doubling on these points is
+equivalent to the equation $P + (-P) = \O$.
 
 From these definitions we can extrapolate two more definitions:
 
@@ -183,9 +187,9 @@ From these definitions we can extrapolate two more definitions:
 
 Due to the absence of scalar division it is therefore impossible to
 multiply by anything other than integers as we cannot have something
-like $2.5 \cdot P = \frac{5\cdot P}{2}$. Multiplying by 0 will naturally
-yield the identity element $\mathcal{O}$ by definition. Additionally
-multiplying by a negative integer, -m, is defined as
+like $2.5 \cdot P = \frac{5\cdot P}{2}$. Multiplying by $0$ will
+naturally yield the identity element $\mathcal{O}$ by definition.
+Additionally multiplying by a negative integer, -m, is defined as
 $-m\cdot P = m\cdot -P$. 
 
 The particular curve used for our implementation, as well as the
@@ -207,12 +211,12 @@ shortened to 25519, is defined by the following formula:
 $$y^2 = x^3 + 48662x^2 + x$$
 
 This curve is defined over the prime field $K = 2^{255} - 19$ and base
-point defined at x = 9 with the positive y value. This results in a
+point defined at $x = 9$ with the positive $y$ value. This results in a
 sub-group of order $2^{252} + 2774231777737235353585$, which has a
-co-factor of 8. This co-factor would make 25519 vulnerable to the
-so-called 'Double Spending Vulnerability'. However the implementation
-known as Ristretto circumvents this by eliminating the co-factor.
-For more detail see \ref{ristretto} 
+co-factor of $8$. This co-factor would make cryptocurrencies that use
+Curve25519 elliptic curves vulnerable to the so-called 'Double Spending
+Vulnerability'. However the implementation known as Ristretto circumvents
+this by eliminating the co-factor. For more detail see \ref{ristretto}
 
 \subsection{Bulletproofs:}\label{Bulletproofs}
 
@@ -285,12 +289,13 @@ The inner product proof is a zero knowledge proof where the prover,
 $\mathcal{P}$, shows knowledge of two vectors $x$ and $y$, as well as
 their inner product, $z$, to the verifier, $\mathcal{V}$. 
 
-In order to do this the Sigma Protocol is used. The Sigma Protocol creates the following transcript: 
+In order to do this the Sigma Protocol is used. The Sigma Protocol
+creates the following transcript: 
 
 \begin{enumerate}
-	\item $\prover   \rightarrow \verifier: \text{Commitment}$
-	\item $\verifier \rightarrow \prover:   \text{Challenge}$
-	\item $\prover   \rightarrow \verifier: \text{Response}$
+	\item $\P \rightarrow \V: \text{Commitment}$
+	\item $\V \rightarrow \P: \text{Challenge}$
+	\item $\P \rightarrow \V: \text{Response}$
 \end{enumerate}
 
 $$C_a = rH + \mathbf{xG} = rH + aG_1 + bG_2 + cG_3$$
@@ -305,7 +310,10 @@ $y$. We assume that Pedersen commitments to these values are know:
 	C_y &= r_3H + \mathbf{yG} \\
 }
 
-The first step is the Commitment step. In this step the prover $\prover$ sends V a set of commitments which bind P into EXACTLY these values. This becomes important later in order to avoid the possibility of falsifying transcripts. 
+The first step is the Commitment step. In this step the prover $\P$
+sends $\V$ a set of commitments which bind $\P$ into EXACTLY these
+values. This becomes important later in order to avoid the possibility
+of falsifying transcripts. 
 
 \subsubsection{Range Proofs:}
 
@@ -315,19 +323,71 @@ The first step is the Commitment step. In this step the prover $\prover$ sends V
 
 \subsection{Hacspec:} \label{Hacspec}
 
-Hacspec is a subset of the programming language of Rust, designed in a way that makes it easy to compile into theorem solvers such as Coq or F*. The cost for having this property is a reduction in certain conventions available in Rust not being present in Hacspec. This is a double edged sword, both making the language simple, but also making it harder to express certain abstract ideas. The language however is still in development, balancing and adding features to the language.
+Hacspec is a subset of the programming language of Rust, designed in a
+way that makes it easy to compile into theorem solvers such as Coq or F*.
+The cost for having this property is a reduction in certain conventions
+available in Rust not being present in Hacspec. This is a double edged
+sword, both making the language simple, but also making it harder to
+express certain abstract ideas. The language however is still in
+development, balancing and adding features to the language.
 
-All code written for this project was written to be Hacspec compliant. Our implementation is a specification meant to be simply understood compared to a more obfuscated, but highly optimized implementation. We will use property based testing with QuickCheck\footnote{\url{https://github.com/BurntSushi/quickcheck}} to check our Bulletproofs implementation against the Dalek-Cryptography Bulletproofs\footnote{\url{https://github.com/dalek-cryptography/bulletproofs}}. We have also created a minimal linear algebra library, in hacspec, since it was needed for the bulletproofs implementation. Property based testing using QuickCheck is also used for this library, testing it against the nalgebra\footnote{\url{https://nalgebra.org/}}.
+All code written for this project was written to be Hacspec
+compliant.  Our implementation is a specification meant to
+be simply understood compared to a more obfuscated, but highly
+optimized implementation. We will use property based testing with
+QuickCheck\footnote{\url{https://github.com/BurntSushi/quickcheck}}
+to check our Bulletproofs implementation against the Dalek-Cryptography
+Bulletproofs\footnote{\url{https://github.com/dalek-cryptography/bulletproofs}}.
+We have also created a minimal linear algebra library, in hacspec,
+since it was needed for the bulletproofs implementation. Property
+based testing using QuickCheck is also used for this library, testing
+it against the nalgebra\footnote{\url{https://nalgebra.org/}}.
 
-At a later time our implementation could to be compiled to Coq or F* and proof-checked, leading to better guarantees about our implementation. This is however not in the scope of this paper and is left to future work. % mere her
+At a later time our implementation could to be compiled to Coq or F* and
+proof-checked, leading to better guarantees about our implementation.
+This is however not in the scope of this paper and is left to future
+work. % mere her
 
 \subsection{Ristretto:} \label{ristretto}
 
-Ristretto is a specification of elliptic curve cryptography, created for the specific purpose of eliminating unwanted co-factors. This was done in order to circumvent the double-spending vulnerability. This is done using a so-called quotient group. Also appropriately called a Factor Group, a Quotient Group is a type of group, which takes elements from a larger group and, using an equivalence relation, maps elements that are 'similar' to the same element in the quotient group, while preserving most of the group structure. The remaining elements are factored out, leaving a group with the same operations, but fewer elements. What this means for Ristretto is that it takes points on an elliptic curve and eliminates the co-factor by simply mapping them down to their 'equivalent' elements. This is the reason for Ristretto's somewhat unorthodox method of doing operations, as it must ensure that each element is computed to the proper element in the quotient group. This is also done, in part, to allow the user to use points that are NOT in the quotient group without worry as any computation done with these points is automatically mapped to their proper element, thus eliminating the rather computationally expensive operation of checking if a point is on the proper curve. 
+Ristretto is a specification of elliptic curve cryptography, created for
+the specific purpose of eliminating unwanted co-factors. This was done
+in order to circumvent the double-spending vulnerability. This is done
+using a so-called quotient group. Also appropriately called a Factor
+Group, a Quotient Group is a type of group, which takes elements from a
+larger group and, using an equivalence relation, maps elements that are
+'similar' to the same element in the quotient group, while preserving
+most of the group structure. The remaining elements are factored out,
+leaving a group with the same operations, but fewer elements. What
+this means for Ristretto is that it takes points on an elliptic curve
+and eliminates the co-factor by simply mapping them down to their
+'equivalent' elements. This is the reason for Ristretto's somewhat
+unorthodox method of doing operations, as it must ensure that each
+element is computed to the proper element in the quotient group. This is
+also done, in part, to allow the user to use points that are NOT in the
+quotient group without worry as any computation done with these points
+is automatically mapped to their proper element, thus eliminating the
+rather computationally expensive operation of checking if a point is
+on the proper curve.
 
-Additionally the internal representation of the Montgomery curve we wish to eliminate the co-factor for, is its equivalent Twisted Edwards Curve, which is done to more easily factor points from the original curve into the quotient group. Additionally Ristretto's equality method ensures that equivalent representations of points on the curve are equal, even if they are not factored into the quotient group yet. Additionally from its encoding and decoding methods, equivalent points are encoded to the same bitstring, and are therefore decoded into their refactored quotient group element.
+Additionally the internal representation of the Montgomery curve we wish
+to eliminate the co-factor for, is its equivalent Twisted Edwards Curve,
+which is done to more easily factor points from the original curve into
+the quotient group. Additionally Ristretto's equality method ensures
+that equivalent representations of points on the curve are equal, even
+if they are not factored into the quotient group yet. Additionally
+from its encoding and decoding methods, equivalent points are encoded
+to the same bitstring, and are therefore decoded into their refactored
+quotient group element.
 
-The exposed functions that were implemented are the encoding and decoding functions, the equality function to compare points, the addition function over points, point negation, and the derived functions from these, namely point doubling, point subtraction and scalar multiplication. And the final function is the One Way Map function. This function is not entirely necessary for our purposes, but having it allows outside users to more easily generate points from simple byte sequences, additionally makes generating random points for testing much easier. 
+The exposed functions that were implemented are the encoding and decoding
+functions, the equality function to compare points, the addition function
+over points, point negation, and the derived functions from these,
+namely point doubling, point subtraction and scalar multiplication. And
+the final function is the One Way Map function. This function is not
+entirely necessary for our purposes, but having it allows outside users
+to more easily generate points from simple byte sequences, additionally
+makes generating random points for testing much easier.
 
 \section{Contributions:}
 
@@ -340,7 +400,12 @@ The exposed functions that were implemented are the encoding and decoding functi
 	\item Double indexing
 	\item QuickCheck
 \end{itemize} 
-It was decided that the specification should of course consist of what we need, but also of some general linear algebra functions that could be used for others who might want to use it. The following functions was decided to be part of the specification:
+
+It was decided that the specification should of course consist of what we
+need, but also of some general linear algebra functions that could be
+used for others who might want to use it. The following functions was
+decided to be part of the specification:
+
 \begin{itemize}
 	\item Instantiate matrix
 	\item Instantiate zero filled matrix
@@ -359,21 +424,77 @@ No generalized standard for Linear Algebra Specification.
 
 \subsection{Implementing Ristretto:} \label{implementing-ristretto}
 
-For our Ristretto implementation on 25519 there exists an IETF-standard specification of exactly this, which was used as a guide for our implementation. \footnote{\url{https://www.ietf.org/archive/id/draft-irtf-cfrg-ristretto255-00.html}} This specification was very helpful and after inspecting the code we are testing against closely, it is clear that they used this standard as well. 
+For our Ristretto implementation on 25519 there
+exists an IETF-standard specification of exactly
+this, which was used as a guide for our implementation.
+\footnote{\url{https://www.ietf.org/archive/id/draft-irtf-cfrg-ristretto255-00.html}}
+This specification was very helpful and after inspecting the code we
+are testing against closely, it is clear that they used this standard
+as well.
 
-The most important things to note about this standard, outside the explicit formulas used for its various methods are which functions and internal representations we are allowed to expose to the outside. Namely that the only functions we may expose were encoding of points, decoding of encoded points, the map which is used for creating points, point addition, point negation, point subtraction, scalar multiplication. The last two were allowed purely from being derivable from repeated application of point addition and/or negation. Some things that were not allowed to be exposed under any circumstances, are the internal representations of either points or its field elements or any functions that are not the ones mentioned above, which is as expected for something that is meant to be a thin layer of abstraction beneath an implementation of 25519.
+The most important things to note about this standard, outside the
+explicit formulas used for its various methods are which functions and
+internal representations we are allowed to expose to the outside. Namely
+that the only functions we may expose were encoding of points, decoding
+of encoded points, the map which is used for creating points, point
+addition, point negation, point subtraction, scalar multiplication. The
+last two were allowed purely from being derivable from repeated
+application of point addition and/or negation. Some things that were not
+allowed to be exposed under any circumstances, are the internal
+representations of either points or its field elements or any functions
+that are not the ones mentioned above, which is as expected for something
+that is meant to be a thin layer of abstraction beneath an implementation
+of 25519.
 
-Each internal point representation is composed of four field elements (X : Y : Z : T). Field-elements, as defined by the standard are values modulo p, with p being the prime field for 25519, $2^{255} - 19$. This was achieved using the public\_nat\_mod! function which defines fields over certain values which just so happen to accept hex values as modulo values, which was very convenient. With this we are now able to create field elements using various functions and properties that are native to the type created by public\_nat\_mod!(). Most of the standard integer operators like +, - and * are implemented for these field elements for example. An important thing to note is that the internal calculations for division is done using integer arithmetic rather than finite field arithmetic, however the few times where division is used directly it is ensured that the result in finite field arithmetic is equal to the integer arithmetic solution. 
+Each internal point representation is composed of four field elements
+$(X : Y : Z :T)$. Field-elements, as defined by the standard are values
+modulo p, with p being the prime field for 25519, $2^{255} - 19$. This
+was achieved using the \texttt{public\_nat\_mod!} macro which defines
+fields over certain values which just so happen to accept hex values as
+modulo values, which was very convenient. With this we are now able to
+create field elements using various functions and properties that are
+native to the type created by \texttt{public\_nat\_mod!}. Most of the
+standard integer operators like addition, subtraction and multiplication
+are implemented for these field elements for example. An important thing
+to note is that the internal calculations for division is done using
+integer arithmetic rather than finite field arithmetic, however the few
+times where division is used directly it is ensured that the result in
+finite field arithmetic is equal to the integer arithmetic solution.
 
-Additionally the standard, specified a series of constants. These constants were too large to be implemented as integers. Additionally hacspec did not allow for us to simply use the 'from\_hex()' method. As such, after converting each of these constants into their corresponding hex-values, we built them as byte sequences for which we had an equivalent 'from\_byte\_seq\_be' which created the correct field elements we wanted. 
+Additionally the standard, specified a series of constants. These
+constants were too large to be implemented as integers. Additionally
+hacspec did not allow for us to simply use the \texttt{from\_hex()}
+method. As such, after converting each of these constants into their
+corresponding hex-values, we built them as byte sequences for which
+we had an equivalent \texttt{from\_byte\_seq\_be} which created the
+correct field elements we wanted.
 
-While it is impossible for a legal point to be encoded and then have the decoding on its encoding fail, the decoding method has several checks that ensure that the input given is legal. The primary reason for this is that decoding is a method available to the client and as such there is no guarantee that the byte-strings they want to decode are necessarily legal points that they first encoded properly, but could be artificially constructed byte-strings. We want to avoid this and thus the standard has a list of properties the byte-string input and attempted decoding must fulfill in order to be canonical. 
+While it is impossible for a legal point to be encoded and then have the
+decoding on its encoding fail, the decoding method has several checks
+that ensure that the input given is legal. The primary reason for this
+is that decoding is a method available to the client and as such there is
+no guarantee that the byte-strings they want to decode are necessarily
+legal points that they first encoded properly, but could be artificially
+constructed byte-strings. We want to avoid this and thus the standard has
+a list of properties the byte-string input and attempted decoding must
+fulfill in order to be canonical. 
 
 \subsection{Implementing Bulletproofs:}
 
-Our bulletproofs implementation was implemented on the foundation of our implementations of Linear Algebra and Ristretto. The first and simplest step was implementing Pedersen commitments to single values as well as to vectors. From our implementation of Ristretto we can easily add points to each other and multiply points by a scalar. This is essentially the only thing a Pedersen commitment is. Additionally we needed it to support vector commitments. From our implementation of Linear Algebra we could easily adapt this into the code. This implementation was nearly trivial given the base we built it upon.
+Our bulletproofs implementation was implemented on the foundation of our
+implementations of Linear Algebra and Ristretto. The first and simplest
+step was implementing Pedersen commitments to single values as well as to
+vectors. From our implementation of Ristretto we can easily add points to
+each other and multiply points by a scalar. This is essentially the only
+thing a Pedersen commitment is. Additionally we needed it to support
+vector commitments. From our implementation of Linear Algebra we could
+easily adapt this into the code. This implementation was nearly trivial
+given the base we built it upon.
 
-The next step in the process towards implementing Bulletproofs is the inner product proof. The implementation of which does not lean itself against our Ristretto implementation as our implementation of Pedersen commitments did, however it does utilize said Pedersen commitments. 
+The next step in the process towards implementing Bulletproofs is the
+inner product proof. The implementation of which does not lean itself
+against our Ristretto implementation as our implementation of Pedersen
+commitments did, however it does utilize said Pedersen commitments. 
 
 \subsection{Analysis of coding stuff:}
 
