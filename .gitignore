@@ -4,6 +4,8 @@ report/main.log
 report/main.out
 report/main.run.xml
 report/main.toc
+report/texput.log
+report/x.log
 bulletproofs-old
 bulletproofs/target
 curve25519-dalek
