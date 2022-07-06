@@ -1,6 +1,7 @@
 // The #-commented lines are hidden in Rustdoc but not in raw
 // markdown rendering, and contain boilerplate code so that the
 // code in the README.md is actually run as part of the test suite.
+use hacspec_lib::*;
 
 extern crate rand;
 use rand::thread_rng;
@@ -52,4 +53,11 @@ fn main() {
             .verify_single(&bp_gens, &pc_gens, &mut verifier_transcript, &committed_value, 32)
             .is_ok()
     );
+}
+
+#[test]
+fn test_stuff() {
+    let seq = Seq::<Scalar>::new(2);
+    println!("{:?}", seq);
+    assert!(true)
 }

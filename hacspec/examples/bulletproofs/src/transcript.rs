@@ -30,9 +30,7 @@ pub fn rangeproof_domain_sep(mut transcript: Transcript, n: U64, m: U64) -> Tran
 
 	transcript = append_message(transcript,dom_sep,rangeproof_v1);
 	transcript = append_U64(transcript, n_, n);
-	transcript = append_U64(transcript, m_, m);
-
-	transcript
+	append_U64(transcript, m_, m)
 }
 
 pub fn challenge_scalar(transcript: Transcript, label: Seq<U8>) -> (Transcript, Scalar) {
@@ -46,6 +44,10 @@ pub fn challenge_scalar(transcript: Transcript, label: Seq<U8>) -> (Transcript, 
 
 pub fn append_point(transcript: Transcript, label: Seq<U8>, point: RistrettoPointEncoded) -> Transcript {
 	append_message(transcript, label, point.to_le_bytes())
+}
+
+pub fn append_scalar(transcript: Transcript, label: Seq<U8>, scalar: Scalar) -> Transcript {
+	append_message(transcript, label, scalar.to_byte_seq_le()) /* Might need to be BE-bytes instead of LE */
 }
 
 pub fn validate_and_append_point(transcript: Transcript, label: Seq<U8>, point: RistrettoPointEncoded) -> Result<Transcript,u8> {

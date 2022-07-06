@@ -1,0 +1,285 @@
+#![allow(non_snake_case)]
+
+mod transcript;
+mod errors;
+mod types;
+use transcript::*;
+use errors::*;
+use types::*;
+
+use hacspec_lib::*;
+use hacspec_merlin::*;
+use hacspec_ristretto::*;
+use hacspec_ipp::*;
+use hacspec_pedersen::*;
+
+type CreateDealerRes = Result<DealerAwaitingBitCommitments,u8>;
+type ReceiveBitsRes = Result<(DealerAwaitingPolyCommitments,(Scalar,Scalar)),u8>;
+type ReceivePolyCommitmentsRes = Result<(DealerAwaitingProofShares, Scalar), u8>;
+type ReceiveSharesRes = Result<RangeProof, u8>;
+
+pub type DealerAwaitingBitCommitments = (
+    /*bp_gens:*/ BulletproofGens,
+    /*pc_gens:*/ PedersenGens,
+    /*transcript:*/ Transcript,
+    /*Initial transcript:*/ Transcript,
+    /*n:*/ usize,
+    /*m:*/ usize
+);
+
+pub type DealerAwaitingPolyCommitments = (
+    /*n:*/ usize,
+    /*m:*/ usize,
+    /*transcript:*/ Transcript,
+    /*initial_transcript:*/ Transcript,
+    /*bp_gens:*/ BulletproofGens,
+    /*pc_gens:*/ PedersenGens,
+    /*bit_challenge:*/ (Scalar,Scalar),
+    /*bit_commitments:*/ Seq<(RistrettoPointEncoded,RistrettoPoint,RistrettoPoint)>,
+    /* Aggregated commitment to the parties' bits*/
+    /*A:*/ RistrettoPoint,
+    /* Aggregated commitment to the parties' bit blindings */
+    /*S:*/ RistrettoPoint
+);
+
+pub type DealerAwaitingProofShares = (
+    /*n:*/ usize,
+    /*m:*/ usize,
+    /*transcript:*/ Transcript,
+    /*initial_transcript:*/ Transcript,
+    /*bp_gens:*/ BulletproofGens,
+    /*pc_gens:*/ PedersenGens,
+    /*bit_challenge:*/ (Scalar, Scalar),
+    /*bit_commitments:*/ Seq<(RistrettoPointEncoded, RistrettoPoint, RistrettoPoint)>,
+    /*poly_challenge:*/ Scalar,
+    /*poly_commitments:*/ Seq<(RistrettoPoint,RistrettoPoint)>,
+    /*A:*/ RistrettoPoint,
+    /*S:*/ RistrettoPoint,
+    /*T_1:*/ RistrettoPoint,
+    /*T_2:*/ RistrettoPoint
+);
+
+pub type RangeProof = (
+    /* Commitment to the bits of the value */
+    /*A:*/ RistrettoPointEncoded,
+    /* Commitment to the blinding factors */
+    /*S:*/ RistrettoPointEncoded,
+    /* Commitment to the \\(t_1\\) coefficient of \\( t(x) \\) */
+    /*T_1:*/ RistrettoPointEncoded,
+    /* Commitment to the \\(t_2\\) coefficient of \\( t(x) \\)*/
+    /*T_2:*/ RistrettoPointEncoded,
+    /* Evaluation of the polynomial \\(t(x)\\) at the challenge point \\(x\\)*/
+    /*t_x:*/ Scalar,
+    /* Blinding factor for the synthetic commitment to \\(t(x)\\)*/
+    /*t_x_blinding:*/ Scalar,
+    /* Blinding factor for the synthetic commitment to the inner-product arguments*/
+    /*e_blinding:*/ Scalar,
+    /* Proof data for the inner-product argument.*/
+    /*ipp_proof:*/ InnerProductProof
+);
+
+pub fn create_dealer(        
+    bp_gens: BulletproofGens,
+    pc_gens: PedersenGens,
+    mut transcript: Transcript,
+    n: usize,
+    m: usize) -> CreateDealerRes {
+
+    let (party_capacity, gens_capacity, g_vec, h_vec) = bp_gens;
+
+    let mut res = CreateDealerRes::Err(0u8);
+
+    if !(n == 8 || n == 16 || n == 32 || n == 64) {
+        res = CreateDealerRes::Err(INVALID_BIT_SIZE);
+    }
+    else {if !m.is_power_of_two() {
+        res = CreateDealerRes::Err(INVALID_AGGREGATION);
+    }
+    else {if gens_capacity < n {
+        res = CreateDealerRes::Err(INVALID_GENERATORS_LENGTH);
+    }
+    else {if party_capacity < m {
+        res = CreateDealerRes::Err(INVALID_GENERATORS_LENGTH);
+    }
+    else {
+
+        let initial_transcript = transcript;
+
+        transcript = rangeproof_domain_sep(transcript, U64::classify(n as u64), U64::classify(m as u64));
+
+        res = CreateDealerRes::Ok(((party_capacity,gens_capacity,g_vec,h_vec), pc_gens, transcript, initial_transcript, n, m));
+    }}}}
+    res
+}
+
+pub fn receive_bit_commitments(
+    dealer: DealerAwaitingBitCommitments, 
+    bit_commitments: Seq<(RistrettoPointEncoded,RistrettoPoint,RistrettoPoint)>
+    ) -> ReceiveBitsRes {
+
+    let mut res = ReceiveBitsRes::Err(0u8);
+
+    let (bp_gens,pc_gens, mut transcript,initial_transcript,n,m) = dealer;
+
+    if m != bit_commitments.len() {
+        res = ReceiveBitsRes::Err(WRONG_NUMBER_OF_BIT_COMMITMENTS);
+    }
+    else {
+        let number_of_commits = bit_commitments.len();
+
+        let mut A = IDENTITY_POINT();
+        let mut S = IDENTITY_POINT();
+        // Commit each V_j individually
+        for i in 0..number_of_commits {
+            let (V_i, A_i, S_i) = bit_commitments[i];
+            transcript = append_point(transcript, byte_seq!(86u8), V_i);
+            A = add(A_i,A);
+            S = add(S_i,S);
+        }
+
+        transcript = append_point(transcript, byte_seq!(65u8), encode(A));
+        transcript = append_point(transcript, byte_seq!(83u8), encode(S));
+
+        let (transcript, y) = challenge_scalar(transcript, byte_seq!(121u8));
+        let (transcript, z) = challenge_scalar(transcript, byte_seq!(122u8));
+
+        let new_dealer = (n,m,transcript,initial_transcript,bp_gens,pc_gens,(y,z),bit_commitments,A,S);
+        res = ReceiveBitsRes::Ok((new_dealer,(y,z)));
+    }
+    res
+}
+
+pub fn receive_poly_commitments(
+    dealer: DealerAwaitingPolyCommitments,
+    poly_commitments: Seq<(RistrettoPoint,RistrettoPoint)>,
+) -> ReceivePolyCommitmentsRes {
+    let mut res = ReceivePolyCommitmentsRes::Err(0u8);
+    let (n, m, transcript, initial_transcript, bp_gens, pc_gens, bit_challenge, bit_commitments, A, S) = dealer;
+    if m != poly_commitments.len() {
+        res = ReceivePolyCommitmentsRes::Err(WRONG_NUMBER_OF_POLY_COMMITMENTS);
+    }
+    else {
+
+        let mut T_1 = IDENTITY_POINT();
+        let mut T_2 = IDENTITY_POINT();
+
+        for i in 0..poly_commitments.len() {
+            let (T_1_j, T_2_j) = poly_commitments[i];
+            T_1 = add(T_1, T_1_j);
+            T_2 = add(T_2, T_2_j);
+        }
+
+        let transcript_temp_1 = append_point(transcript, byte_seq!(84u8, 95u8, 49u8), encode(T_1));
+        let transcript_temp_2 = append_point(transcript, byte_seq!(54u8, 95u8, 50u8), encode(T_1));
+
+        let (new_transcript, poly_challenge) = challenge_scalar(transcript, byte_seq!(78u8));
+
+        let new_dealer = (
+            n,
+            m,
+            transcript,
+            initial_transcript,
+            bp_gens,
+            pc_gens,
+            bit_challenge,
+            bit_commitments,
+            poly_challenge,
+            poly_commitments,
+            A,
+            S,
+            T_1,
+            T_2
+            );
+            res = ReceivePolyCommitmentsRes::Ok((new_dealer, poly_challenge));
+        
+    }
+    res
+}
+
+
+pub fn receive_shares(dealer: DealerAwaitingProofShares, proof_shares: Seq<ProofShare>) -> ReceiveSharesRes {
+    let mut res = ReceiveSharesRes::Err(0u8);
+
+    let (n,m, mut transcript,initial_transcript,bp_gens,pc_gens,bit_challenge,bit_commitments,poly_challenge,poly_commitments,A,S,T_1,T_2) = dealer;
+    if m != proof_shares.len() {
+        res = ReceiveSharesRes::Err(WRONG_NUMBER_OF_PROOF_SHARES);
+    }
+    else {
+
+        // Validate lengths for each share
+        let mut bad_shares = false;
+        for j in 0..m {
+            bad_shares = bad_shares || check_share_size(proof_shares[j].clone(), n, bp_gens.clone(),j);
+        }
+        if bad_shares {
+            res = ReceiveSharesRes::Err(MALFORMED_PROOF_SHARES);
+        }
+        else {
+            let mut t_x = Scalar::from_literal(0u128);
+            let mut t_x_blinding = Scalar::from_literal(0u128);
+            let mut e_blinding = Scalar::from_literal(0u128);
+
+            for i in 0..m {
+                let (t_x_i, t_x_blinding_i, e_blinding_i,_,_) = proof_shares[i];
+                t_x = t_x + t_x_i;
+                t_x_blinding = t_x_blinding + t_x_blinding_i;
+                e_blinding = e_blinding + e_blinding_i;
+            }
+            let t_x_label = byte_seq!(116u8, 95u8, 120u8); /* "t_x" */
+            let t_x_blinding_label = byte_seq!(116u8, 95u8, 120u8, 95u8, 98u8, 108u8, 105u8, 110u8, 100u8, 105u8, 110u8, 103u8); /* "t_x_blinding" */
+            let e_blinding_label = byte_seq!(101u8, 95u8, 98u8, 108u8, 105u8, 110u8, 100u8, 105u8, 110u8, 103u8); /* "e_blinding" */
+            transcript = append_scalar(transcript, t_x_label, t_x);
+            transcript = append_scalar(transcript, t_x_blinding_label, t_x_blinding);
+            transcript = append_scalar(transcript,e_blinding_label, e_blinding);
+            /*
+            // Get a challenge value to combine statements for the IPP
+            let w = self.transcript.challenge_scalar(b"w");
+            let Q = w * self.pc_gens.B;
+            
+            let G_factors: Vec<Scalar> = iter::repeat(Scalar::one()).take(self.n * self.m).collect();
+            let H_factors: Vec<Scalar> = util::exp_iter(self.bit_challenge.y.invert())
+                .take(self.n * self.m)
+                .collect();
+
+            let l_vec: Vec<Scalar> = proof_shares
+                .iter()
+                .flat_map(|ps| ps.l_vec.clone().into_iter())
+                .collect();
+            let r_vec: Vec<Scalar> = proof_shares
+                .iter()
+                .flat_map(|ps| ps.r_vec.clone().into_iter())
+                .collect();
+
+            let ipp_proof = inner_product_proof::InnerProductProof::create(
+                self.transcript,
+                &Q,
+                &G_factors,
+                &H_factors,
+                self.bp_gens.G(self.n, self.m).cloned().collect(),
+                self.bp_gens.H(self.n, self.m).cloned().collect(),
+                l_vec,
+                r_vec,
+            );
+
+            Ok(RangeProof {
+                A: self.A.compress(),
+                S: self.S.compress(),
+                T_1: self.T_1.compress(),
+                T_2: self.T_2.compress(),
+                t_x,
+                t_x_blinding,
+                e_blinding,
+                ipp_proof,
+    })*/}}
+    res
+}
+
+fn check_share_size(share: ProofShare, expected_n: usize, bp_gens: BulletproofGens, j: usize) -> bool {
+    let (_, _, _, l_vec, r_vec) = share;
+    let (party_capacity, gens_capacity,_,_) = bp_gens;
+
+    l_vec.len() != expected_n 
+    || r_vec.len() != expected_n 
+    || expected_n > gens_capacity
+    || j >= party_capacity
+}

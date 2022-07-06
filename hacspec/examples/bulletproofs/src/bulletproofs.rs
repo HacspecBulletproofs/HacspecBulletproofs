@@ -1,28 +1,22 @@
+#![allow(non_snake_case)]
 mod transcript;
+mod dealer;
+mod party;
+mod errors;
+mod types;
+use transcript::*;
+use dealer::*;
+use party::*;
+use errors::*;
+use types::*;
+
 use hacspec_lib::*;
 use hacspec_merlin::*;
 use hacspec_ristretto::*;
 use hacspec_ipp::*;
-use transcript::*;
 use hacspec_pedersen::*;
 
-const INVALID_BIT_SIZE: u8 = 50u8;
-
 type RangeProofRes = Result<(RangeProof, Vec<RistrettoPointEncoded>), u8>;
-
-type PedersenGens = ( 
-    /*Base point:*/ RistrettoPoint, 
-    /*Blinding point:*/ RistrettoPoint
-);
-
-type BulletproofGens = (
-    /*Gens capacity*/ usize,
-    /* Party capacity: */ usize, 
-    /*Precomputed G-generators for each party:*/ 
-    /* g_vec: */Vec<Vec<RistrettoPoint>>, 
-    /*Precomputed H-generators for each party:*/ 
-    /* h_vec: */Vec<Vec<RistrettoPoint>>
-);
 
 type RangeProof = (
     /* Commitment to the bits of the value*/
@@ -49,35 +43,97 @@ pub fn prove(
     bp_gens: BulletproofGens,
     pc_gens: PedersenGens,
     mut transcript: Transcript,
-    value: u64,
-    blinding: Scalar,
-    n: usize)
-    /*-> RangeProofRes*/ {
-        let mut res = RangeProofRes::Err(0);
-
-        let (base_point, blinding_point) = pc_gens;
-        let (gens_capacity, party_capacity, g_vec, h_vec) = bp_gens;
-
-        if !(n == 8 || n == 16 || n == 32 || n == 64) {
+    values: Seq<u64>,
+    blindings: Seq<Scalar>,
+    n: usize,
+    a_blinding: Seq<Scalar>,
+    s_blinding: Seq<Scalar>,
+    s_L: Seq<Seq<Scalar>>,
+    s_R: Seq<Seq<Scalar>>,
+    t1_blinding: Seq<Scalar>,
+    t2_blinding: Seq<Scalar>)
+    -> RangeProofRes {
+        let mut res = RangeProofRes::Err(0u8);
+        if values.len() != blindings.len() {
+            res = RangeProofRes::Err(WRONG_NUMBER_OF_BLINDINGS);
+        }
+        else{ if !(n == 8 || n == 16 || n == 32 || n == 64) {
             res = RangeProofRes::Err(INVALID_BIT_SIZE);
         }
         else{
-            /* Create 'dealer' */
-            let initial_transcript = transcript.clone();
+            let (base_point, blinding_point) = pc_gens;
+            let (party_capacity, gens_capacity, g_vec, h_vec) = bp_gens;
+            let number_of_parties = values.len();
+            /* Create dealer */
 
-            transcript = rangeproof_domain_sep(transcript, U64::classify(n as u64), U64::classify(1u64));
+            let dealer_awaiting_bit_commitment = create_dealer((party_capacity, gens_capacity, g_vec.clone(), h_vec.clone()),pc_gens,transcript,n, number_of_parties)?;
+            
+            /* Create parties */
 
-            /* Create single 'party' */
+            let mut parties_waiting_for_position = Seq::<PartyAwaitingPosition>::new(number_of_parties);
+            for i in 0..number_of_parties {
+                parties_waiting_for_position[i] = create_party((party_capacity, gens_capacity, g_vec.clone(), h_vec.clone()),pc_gens, values[i],blindings[i],n)?;
+            }
+            
+            /* Create a bitcommitment */
+
+            let mut parties_waiting_for_bits = Seq::<PartyAwaitingBitChallenge>::new(number_of_parties);
+            let mut bit_commitments = Seq::<(RistrettoPointEncoded,RistrettoPoint,RistrettoPoint)>::new(number_of_parties);
+            for i in 0..number_of_parties {
+                let (party, bit_commitment) = create_bit_commitment(parties_waiting_for_position[i].clone(),i, a_blinding[i], s_blinding[i],s_L[i].clone(),s_R[i].clone())?;
+                parties_waiting_for_bits[i] = party;
+                bit_commitments[i] = bit_commitment;
+            }
+
+            /* Create Bit Challenge */
+
+            let mut value_commitments = Seq::<RistrettoPointEncoded>::new(number_of_parties);
+
+            for i in 0..number_of_parties {
+                let (v,_,_) = bit_commitments[i];
+                value_commitments[i] = v;
+            }
+
+            let (dealer_awaiting_poly_commitments, bit_challenge) = receive_bit_commitments(dealer_awaiting_bit_commitment, bit_commitments)?;
+
+            let mut parties_waiting_for_poly_challenge = Seq::<PartyAwaitingPolyChallenge>::new(number_of_parties);
+            let mut poly_commitments = Seq::<(RistrettoPoint,RistrettoPoint)>::new(number_of_parties);
+
+            for i in 0..number_of_parties{
+                let (party_awaiting_poly_challenge, poly_commitment) = create_poly_commitment(parties_waiting_for_bits[i].clone(),bit_challenge,t1_blinding[i],t2_blinding[i])?;
+                parties_waiting_for_poly_challenge[i] = party_awaiting_poly_challenge;
+                poly_commitments[i] = poly_commitment;
+            }
+
+            let (dealer_awaiting_proof_shares, poly_challenge) = receive_poly_commitments(dealer_awaiting_poly_commitments, poly_commitments)?;
+
+            let mut proofshares = Seq::<ProofShare>::new(number_of_parties);
+
+            for i in 0..number_of_parties{
+                proofshares[i] = create_proofshare(parties_waiting_for_poly_challenge[i].clone(), poly_challenge)?;
+            }
+
+
 
             
+            /*
+            let mut l0 = Seq::<Scalar>::new(n);
+            let mut l1 = Seq::<Scalar>::new(n);
+            let mut r0 = Seq::<Scalar>::new(n);
+            let mut r1 = Seq::<Scalar>::new(n);
+            */
 
-        }
+            /* J starts at 0 */
+
+
+        }}
+        res
+    }
+    
 
         
 
         /*
-
-        let (party_awaiting_bit_challenge, bitcommitment) = new_party(bp_gens, pc_gens, value, blinding, n);
 
         let (dealer_awaiting_polycommitment, bit_challenge) = create_bit_challenge(dealer_awaiting_bit_commitment, bit_commitment);
 
@@ -88,6 +144,3 @@ pub fn prove(
         let proofshare = create_proofshare(party_awaiting_poly_challenge,poly_challenge);
 
         let range_proof = create_range_proof(dealer_awaiting_proofshare, proofshare);*/
-
-
-    }
