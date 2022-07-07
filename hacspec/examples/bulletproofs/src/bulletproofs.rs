@@ -16,7 +16,7 @@ use hacspec_ristretto::*;
 use hacspec_ipp::*;
 use hacspec_pedersen::*;
 
-type RangeProofRes = Result<(RangeProof, Vec<RistrettoPointEncoded>), u8>;
+type RangeProofRes = Result<(RangeProof, Seq<RistrettoPointEncoded>), u8>;
 
 type RangeProof = (
     /* Commitment to the bits of the value*/
@@ -113,19 +113,10 @@ pub fn prove(
                 proofshares[i] = create_proofshare(parties_waiting_for_poly_challenge[i].clone(), poly_challenge)?;
             }
 
+            let proof = receive_shares(dealer_awaiting_proof_shares, proofshares)?;
 
-
+            res = RangeProofRes::Ok((proof,value_commitments));
             
-            /*
-            let mut l0 = Seq::<Scalar>::new(n);
-            let mut l1 = Seq::<Scalar>::new(n);
-            let mut r0 = Seq::<Scalar>::new(n);
-            let mut r1 = Seq::<Scalar>::new(n);
-            */
-
-            /* J starts at 0 */
-
-
         }}
         res
     }

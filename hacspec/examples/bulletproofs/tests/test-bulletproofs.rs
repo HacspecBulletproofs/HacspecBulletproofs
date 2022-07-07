@@ -15,7 +15,7 @@ use merlin::Transcript;
 extern crate bulletproofs;
 use bulletproofs::{BulletproofGens, PedersenGens, RangeProof};
 
-#[test]
+/*#[test]
 fn main() {
     // Generators for Pedersen commitments.  These can be selected
     // independently of the Bulletproofs generators.
@@ -53,11 +53,4 @@ fn main() {
             .verify_single(&bp_gens, &pc_gens, &mut verifier_transcript, &committed_value, 32)
             .is_ok()
     );
-}
-
-#[test]
-fn test_stuff() {
-    let seq = Seq::<Scalar>::new(2);
-    println!("{:?}", seq);
-    assert!(true)
-}
+}*/

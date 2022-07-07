@@ -211,6 +211,7 @@ pub fn receive_shares(dealer: DealerAwaitingProofShares, proof_shares: Seq<Proof
         for j in 0..m {
             bad_shares = bad_shares || check_share_size(proof_shares[j].clone(), n, bp_gens.clone(),j);
         }
+
         if bad_shares {
             res = ReceiveSharesRes::Err(MALFORMED_PROOF_SHARES);
         }
@@ -231,46 +232,56 @@ pub fn receive_shares(dealer: DealerAwaitingProofShares, proof_shares: Seq<Proof
             transcript = append_scalar(transcript, t_x_label, t_x);
             transcript = append_scalar(transcript, t_x_blinding_label, t_x_blinding);
             transcript = append_scalar(transcript,e_blinding_label, e_blinding);
-            /*
-            // Get a challenge value to combine statements for the IPP
-            let w = self.transcript.challenge_scalar(b"w");
-            let Q = w * self.pc_gens.B;
             
-            let G_factors: Vec<Scalar> = iter::repeat(Scalar::one()).take(self.n * self.m).collect();
-            let H_factors: Vec<Scalar> = util::exp_iter(self.bit_challenge.y.invert())
-                .take(self.n * self.m)
-                .collect();
+            // Get a challenge value to combine statements for the IPP
+            let (new_transcript, w) = challenge_scalar(transcript, byte_seq!(119u8));
+            let (base_point, blinding_point) = pc_gens;
+            let Q = mul(w, base_point);
+            
+            let mut G_factors = Seq::<Scalar>::new(n*m);
+            let mut H_factors = Seq::<Scalar>::new(n*m);
+            let (bit_challenge_x, bit_challenge_y) = bit_challenge;
+            let one = Scalar::from_literal(1u128);
+            let y_inv = bit_challenge_y.inv();
 
-            let l_vec: Vec<Scalar> = proof_shares
-                .iter()
-                .flat_map(|ps| ps.l_vec.clone().into_iter())
-                .collect();
-            let r_vec: Vec<Scalar> = proof_shares
-                .iter()
-                .flat_map(|ps| ps.r_vec.clone().into_iter())
-                .collect();
+            for i in 0..n*m {
+                G_factors[i] = one;
+                H_factors[i] = y_inv^(Scalar::from_literal(i as u128));
+            }
 
-            let ipp_proof = inner_product_proof::InnerProductProof::create(
-                self.transcript,
-                &Q,
-                &G_factors,
-                &H_factors,
-                self.bp_gens.G(self.n, self.m).cloned().collect(),
-                self.bp_gens.H(self.n, self.m).cloned().collect(),
-                l_vec,
-                r_vec,
-            );
+            let mut l_vec = Seq::<Scalar>::new(n * proof_shares.len());
+            let mut r_vec = Seq::<Scalar>::new(n * proof_shares.len());
 
-            Ok(RangeProof {
-                A: self.A.compress(),
-                S: self.S.compress(),
-                T_1: self.T_1.compress(),
-                T_2: self.T_2.compress(),
-                t_x,
-                t_x_blinding,
-                e_blinding,
-                ipp_proof,
-    })*/}}
+            for i in 0..proof_shares.len() {
+                let (_,_,_,l_vec_i, r_vec_i) = proof_shares[i].clone();
+                for j in 0..l_vec_i.len() {
+                    l_vec[i*proof_shares.len() + j] = l_vec_i[j];
+                    r_vec[i*proof_shares.len() + j] = r_vec_i[j];
+                }
+            }
+
+            let (party_capacity, gens_capacity, g_vec, h_vec) = bp_gens;
+
+            let mut G = Seq::<RistrettoPoint>::new(n*m);
+            let mut H = Seq::<RistrettoPoint>::new(n*m);
+
+            for i in 0..m {
+                let g_vec_i = g_vec[i].clone();
+                let h_vec_i = h_vec[i].clone();
+                for j in 0..n {
+                    G[m*i + j] = g_vec_i[j];
+                    H[m*i + j] = h_vec_i[j];
+
+                }
+            }
+
+            let (new_transcript, ipp) = hacspec_ipp::create(transcript,Q,G_factors,H_factors,G,H, l_vec,r_vec)?;
+
+            let rangeproof = (encode(A),encode(S),encode(T_1),encode(T_2),t_x,t_x_blinding,e_blinding,ipp);
+
+            res = ReceiveSharesRes::Ok(rangeproof);
+
+    }}
     res
 }
 
