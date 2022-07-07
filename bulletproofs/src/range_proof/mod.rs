@@ -132,7 +132,7 @@ impl RangeProof {
     /// );
     /// # }
     /// ```
-    pub fn prove_single_with_rng<T: RngCore + CryptoRng>(
+    /*pub fn prove_single_with_rng<T: RngCore + CryptoRng>(
         bp_gens: &BulletproofGens,
         pc_gens: &PedersenGens,
         transcript: &mut Transcript,
@@ -151,13 +151,13 @@ impl RangeProof {
             rng,
         )?;
         Ok((p, Vs[0]))
-    }
+    }*/
 
     /// Create a rangeproof for a given pair of value `v` and
     /// blinding scalar `v_blinding`.
     /// This is a convenience wrapper around [`RangeProof::prove_single_with_rng`],
     /// passing in a threadsafe RNG.
-    #[cfg(feature = "std")]
+    /*#[cfg(feature = "std")]
     pub fn prove_single(
         bp_gens: &BulletproofGens,
         pc_gens: &PedersenGens,
@@ -175,7 +175,7 @@ impl RangeProof {
             n,
             &mut thread_rng(),
         )
-    }
+    }*/
 
     /// Create a rangeproof for a set of values.
     ///
@@ -231,14 +231,19 @@ impl RangeProof {
     /// );
     /// # }
     /// ```
-    pub fn prove_multiple_with_rng<T: RngCore + CryptoRng>(
+    pub fn prove_multiple_with_rng(
         bp_gens: &BulletproofGens,
         pc_gens: &PedersenGens,
         transcript: &mut Transcript,
         values: &[u64],
         blindings: &[Scalar],
         n: usize,
-        rng: &mut T,
+        a_blindings: Vec<Scalar>, /* Length: number of parties */
+        s_blindings: Vec<Scalar>, /* length: number of parties */
+        s_L_vec: Vec<Vec<Scalar>>, /* length: Outer: number of parties, inner: n */
+        s_R_vec: Vec<Vec<Scalar>>,  /* length: Outer: number of parties, inner: n */
+        t_1_blindings: Vec<Scalar>, /* length: number of parties */
+        t_2_blindings: Vec<Scalar>, /* length: number of parties */
     ) -> Result<(RangeProof, Vec<CompressedRistretto>), ProofError> {
         use self::dealer::*;
         use self::party::*;
@@ -260,7 +265,7 @@ impl RangeProof {
             .into_iter()
             .enumerate()
             .map(|(j, p)| {
-                p.assign_position_with_rng(j, rng)
+                p.assign_position_with_rng(j, a_blindings[j], s_blindings[j], s_L_vec[j].clone(),s_R_vec[j].clone())
                     .expect("We already checked the parameters, so this should never happen")
             })
             .unzip();
@@ -271,7 +276,8 @@ impl RangeProof {
 
         let (parties, poly_commitments): (Vec<_>, Vec<_>) = parties
             .into_iter()
-            .map(|p| p.apply_challenge_with_rng(&bit_challenge, rng))
+            .enumerate()
+            .map(|(j, p)| p.apply_challenge_with_rng(&bit_challenge, t_1_blindings[j],t_2_blindings[j]))
             .unzip();
 
         let (dealer, poly_challenge) = dealer.receive_poly_commitments(poly_commitments)?;
@@ -290,7 +296,7 @@ impl RangeProof {
     /// Create a rangeproof for a set of values.
     /// This is a convenience wrapper around [`RangeProof::prove_multiple_with_rng`],
     /// passing in a threadsafe RNG.
-    #[cfg(feature = "std")]
+    /*#[cfg(feature = "std")]
     pub fn prove_multiple(
         bp_gens: &BulletproofGens,
         pc_gens: &PedersenGens,
@@ -308,7 +314,7 @@ impl RangeProof {
             n,
             &mut thread_rng(),
         )
-    }
+    }*/
 
     /// Verifies a rangeproof for a given value commitment \\(V\\).
     ///
