@@ -1,5 +1,5 @@
-PR:
-- Add motivation to THIS commit (nalgbebra)
-- TLDR
-- Generics
-- Matrix of Constants
+- Bulletproofs
+- Thesis writing
+- Merlin comments
+- Merlin PR
+- Bulletproofs PR

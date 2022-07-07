@@ -1,9 +1,11 @@
-report/main.aux
-report/main.bcf
-report/main.log
-report/main.out
-report/main.run.xml
-report/main.toc
+thesis/main.aux
+thesis/main.bcf
+thesis/main.log
+thesis/main.out
+thesis/main.run.xml
+thesis/main.toc
+thesis/texput.log
+thesis/x.log
 bulletproofs-old
 bulletproofs/target
 curve25519-dalek
