@@ -6,19 +6,18 @@
 
 % === Dependencies === %
 
-\usepackage[utf8]{inputenc}
-\usepackage{hyperref}
-\usepackage{graphicx}
-\usepackage{amsthm}
-\usepackage{amsmath}
-\usepackage[margin=1in]{geometry}
 \usepackage{amsfonts}
-\usepackage{parskip}
-\usepackage[style=iso]{datetime2} % ISO style dates
+\usepackage{amsmath}
+\usepackage{amsthm}
 \usepackage[backend=biber]{biblatex} % Imports biblatex package
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip} % Make space between paragraphs instead of indent
+\usepackage[style=iso]{datetime2} % ISO style dates
+\usepackage[utf8]{inputenc}
 
 \addbibresource{sample.bib} % Import the bibliography file
-% \setlength{\parindent}{0pt} % Disable auto-indent
 
 % === Theorem Styles === %
 
@@ -29,13 +28,12 @@
 \newcommand{\eq}[1]{\begin{equation*}\begin{split}#1\end{split}\end{equation*}}
 \newcommand{\eqNumbered}[1]{\begin{equation}\begin{split}#1\end{split}\end{equation}}
 
+\renewcommand{\vec}[1]{\textit{\textbf{#1}}}
+
 \newcommand{\V}{\mathcal{V}}
 \renewcommand{\P}{\mathcal{P}}
 \renewcommand{\O}{\mathcal{O}}
 \newcommand{\F}{\mathbb{F}}
-
-\newcommand{\verifier}{\mathcal{V}}
-\newcommand{\prover}{\mathcal{P}}
 
 % === Header === %
 
@@ -70,6 +68,13 @@ Department of Computer Science, Aarhus University\\
 % === Body === %
 
 \section{Introduction:} \label{Introduction}
+\section{Notation:} \label{notation}
+
+We denote scalar in lowercase ($x$), vectors in bold lowercase
+($\vec{v}$), sets are capitalized ($S$), as are Elliptic Curve
+Points ($P$). We also have the sum of scalar-point products, with a vector of scalars $\vec{v}$ and a vector of curve points $\vec{P}$, written as:
+$$\vec{vP} = v_1 P_1 + v_2 P_2 + \cdots + v_n P_n$$
+
 \section{Prerequisites:}
 
 In this section we will be going over the necessary background knowledge
@@ -77,49 +82,51 @@ to understand the results of the work in this project.
 
 \subsection{Finite Field Arithmetic:} \label{Finite Field Arithmetic}
 
-Before attempting to understand and discuss elliptic curves it is vital
-to understand finite fields and the operations defined within them, as
-the operations we will later define that work on elliptic curves are
-defined using these same principles.
+We start with \textit{fields} and the operations defined within
+them, as the operations we will later define that work on elliptic
+curves are built on fields.
 
 \begin{definition}[Field]
-	A field is a...
+	A field is a set $\F$, along with the \textit{addition} and
+	\textit{multiplication} operations. These two operations must
+	uphold the so called \textit{field axioms}:
+
+	\begin{itemize}
+		\item Associativity of addition and multiplication:
+		$\forall a,b,c \in \F : a + (b + c) = (a + b) + c \land a \cdot (b \cdot c) = (a \cdot b) \cdot c$
+		\item Commutativity of addition and multiplication:
+		$\forall a,b \in \F : a+b=b+a \land a \cdot b = b \cdot a$
+		\item Additive and multiplicative identity:
+		$\exists 0,1 \in \F : a + 0 = a \land a \cdot 1 = a$
+		\item Additive inverses:
+		$\forall a \in \F,\ \exists {-a} \in \F : a + ({-a}) = 0$
+		\item Multiplicative inverses:
+		$\forall a \neq 0 \in \F,\  \exists a^{-1} \in \F : a \cdot a^{-1} = 1$
+		\item Distributivity over addition:
+		$\forall a,b,c \in \F : a \cdot (b + c) = (a \cdot b) + (a \cdot c)$
+	\end{itemize}
 \end{definition}
 
-\begin{definition}[Finite Field]
-	A finite field, $\F$, is a finite set that is closed under
-	addition and multiplication with identities 0 and 1 respectively.
-
-	Both addition and multiplication must be associative and commutative,
-	with multiplication also being distributive over addition. This means
-	that:
-
-	$$\forall a,b,c \in \F: (a+b) \cdot c = a \cdot c + b \cdot c$$
-
-	A finite field must also have defined inverses both for multiplication
-	and addition, referred to as the negation and multiplicative inverses
-	respectively. These must be unique. The negation of an element $a$ is
-	the element $-a$ which fulfills the condition: $a + (-a) = 0$. The
-	multiplicative inverse is defined similarly as $a^{-1}$ with
-	$a \cdot a^{-1} = 1$. The only element which does not have a
-	multiplicative inverse is 0.
-\end{definition}
-
-From this definition we can infer subtraction and division over the field
-as follows:
+Note that this also means that subtraction and division is defined,
+due to the existance of the additive and multiplicative inverses
+respectively:
 
 \eq{
 	a-b         &= a + (-b) \\
 	\frac{a}{b} &= a \cdot b^{-1}
 }
 
-For this project we only need to look at one particular type of finite
-field, namely the Prime field:
+Corrolarily, this leads us to \textit{finite fields}:
+
+\begin{definition}[Finite Field]
+	A finite field, is a field that contains a finite number of elements.
+\end{definition}
+
+The most common types of finite fields, and those used throughout this report are \textit{Prime Fields:} 
 
 \begin{definition}[Prime Field]
 	A prime field $\F_p$ is a finite field with elements $[0,p-1]$
-	where addition and multiplication are performed over integers
-	modulo $p$.
+	where each operation is performed over integers modulo $p$.
 \end{definition}
 
 Something important to note about this definition is that inverses in
@@ -131,13 +138,12 @@ again in section \ref{implementing-ristretto} with regards to the code.
 To start our explanation of elliptic curves we add a few definitions:
 
 \begin{definition}[Elliptic Curves]
-	An elliptic curve, E, is an algebraic curve defined over a prime field,
-	$K$, defined by the formula:
+	An elliptic curve, $E$, is an algebraic curve defined over a prime field, $\F_p$, defined by the formula:
 	$$y^2 = x^3 + ax + b$$
 \end{definition}
 
 \begin{definition}[EC Additive Identity]
-	Let $\O$ be the point with $y = \infty$. For every point, $P$,
+	Let $\O$ be the point where $y = \infty$. For every point, $P$,
 	on $E$ the following property holds:
 	$P + \O = \O + P = P$.
 \end{definition}
@@ -151,7 +157,7 @@ To start our explanation of elliptic curves we add a few definitions:
 	Let $\ell$ be a line intersecting $E$ at three points, $P$, $Q$ and
 	$-R$. The group operation: Addition defined on two points is defined
 	as:
-	$$P + Q = R$$
+	$$P + Q = {-R}$$
 \end{definition}
 
 \begin{definition}[EC Doubling]
@@ -161,25 +167,25 @@ To start our explanation of elliptic curves we add a few definitions:
 	$$2P = P + P = R$$
 \end{definition}
 
-An important thing to note about point addition. In the case where you
-add points $P$ and $Q$ where $\ell$ is a tangent to $P$ then $-P$ is
-their addition. This is due to the fact that the ONLY case in which this
-can happen is when $Q = -(P + P)$ and thus you get
-$P + Q = P + (-(P + P)) = -P$. Another similar case is using point
-doubling on any point $P = (x,0)$ on $E$. The tangent to these points do
-not intersect a second point. However note that the negation of $P$ here
-is $-P = (x,-0) = (x,0) = P$. Thus point doubling on these points is
-equivalent to the equation $P + (-P) = \O$.
+An important thing to note about point addition. In the case where
+you add points $P$ and $Q$ where $\ell$ is a tangent to $P$ then $P +
+Q = -P$. This is due to the fact that the \textit{only} case in which
+this can happen is when $Q = -(P + P)$ and thus you get $P + Q = P +
+(-(P + P)) = -P$. Another similar case is using point doubling on any
+point $P = (x,0)$ on $E$. The tangent of $P$ do not intersect
+a second point. However note that the negation of $P$ here is $-P =
+(x,-0) = (x,0) = P$. Thus point doubling on these points is equivalent
+to the equation $P + (-P) = \O$.
 
 From these definitions we can extrapolate two more definitions:
 
-\begin{definition}
-	Let P and Q be elliptic curve points. The group operation:
+\begin{definition}[EC Subtraction]
+	Let $P$ and $Q$ be elliptic curve points. The group operation:
 	Subtraction is defined by:
 	$$P-Q = P + (-Q)$$
 \end{definition}
 
-\begin{definition}
+\begin{definition}[EC Subtraction]
 	Let $m$ be a scalar and let $P$ be a point on $E$. The group operation:
 	Scalar multiplication is defined by adding $P$ to itself $m$ times and
 	denoted a $m\cdot P$.
@@ -189,8 +195,8 @@ Due to the absence of scalar division it is therefore impossible to
 multiply by anything other than integers as we cannot have something
 like $2.5 \cdot P = \frac{5\cdot P}{2}$. Multiplying by $0$ will
 naturally yield the identity element $\mathcal{O}$ by definition.
-Additionally multiplying by a negative integer, -m, is defined as
-$-m\cdot P = m\cdot -P$. 
+Additionally multiplying by a negative integer, ${-m}$, is defined as
+$-m\cdot P = m\cdot ({-P})$. 
 
 The particular curve used for our implementation, as well as the
 implementation of the Rust bulletproofs, is a special curve from a subset
@@ -244,7 +250,7 @@ amount of randomness which ensures the hiding property while also
 allowing for some decent binding. Not perfect, as this is impossible
 alongside perfect hiding. 
 
-\begin{definition}[Pedersen Commit]
+\begin{definition}[Pedersen Commitment]
 	A Pedersen commitment, to some message, $a$, with a randomly chosen
 	integer, $r$, is defined as:
 
@@ -262,12 +268,13 @@ point. However while that is true, it does not provide perfect binding by
 definition of binding and hiding. From here on we will refer to a
 commitment to a message, $a$, with random value, $r$, as $C(a,r)$.
 
-The most important property of Pedersen commitments however is the
-following property. 
+The most important property of Pedersen commitments however is
+that pedersen commitments have the property of \textit{Additive
+Homomorphism}:
 
-\begin{definition}[Commitment Homomorphism]
-For any two Pedersen commitments $C(a_1,r_1), C(a_2,r_2)$ we have:
-$$ C(a_1,r_1) + C(a_2,r_2) = C(a_1 + a_2, r_1 + r_2)$$
+\begin{definition}[Additive Homomorphism]
+	For any two Pedersen commitments $C(a_1,r_1), C(a_2,r_2)$ we have:
+	$$ C(a_1,r_1) + C(a_2,r_2) = C(a_1 + a_2, r_1 + r_2)$$
 \end{definition}
 
 This is simple to show by simply applying the definition of Pedersen
@@ -283,11 +290,23 @@ Which ensures a homomorphism between the sum of commitments and the
 commitment to the sum. This property will become vital when proving zero
 knowledgeness later. 
 
+Expanding on the \textit{Vector Pederson Commitment}:
+\begin{definition}[Vector Pederson Commitment]
+	A Vector Pedersen Commitment, to some vector of messages,
+	$\textbf{v}$, with a randomly chosen integer, $r$,
+	is defined as:
+
+	$$rH + \textbf{vG}$$
+
+	where $\textbf{G}$ is a vector of canonical generators for
+	the curve and $H$ is still a private key.
+\end{definition}
+
 \subsubsection{Inner Product Proof:}
 
 The inner product proof is a zero knowledge proof where the prover,
-$\mathcal{P}$, shows knowledge of two vectors $x$ and $y$, as well as
-their inner product, $z$, to the verifier, $\mathcal{V}$. 
+$\mathcal{P}$, shows knowledge of two vectors $\vec{x}$ and $\vec{y}$,
+as well as their inner product, $z$, to the verifier, $\mathcal{V}$.
 
 In order to do this the Sigma Protocol is used. The Sigma Protocol
 creates the following transcript: 
@@ -301,8 +320,8 @@ creates the following transcript:
 $$C_a = rH + \mathbf{xG} = rH + aG_1 + bG_2 + cG_3$$
 
 We will now go through each step in order with the inner product proof in
-mind. The inner product, $z$, is the inner product of vectors $x$ and
-$y$. We assume that Pedersen commitments to these values are know:
+mind. The inner product, $z$, is the inner product of vectors $\textbf{x}$ and
+$\textbf{\textit{y}}$. We assume that Pedersen commitments to these values are know:
 
 \eq{
 	C_z &= r_1H + zG \\
@@ -457,9 +476,9 @@ native to the type created by \texttt{public\_nat\_mod!}. Most of the
 standard integer operators like addition, subtraction and multiplication
 are implemented for these field elements for example. An important thing
 to note is that the internal calculations for division is done using
-integer arithmetic rather than finite field arithmetic, however the few
-times where division is used directly it is ensured that the result in
-finite field arithmetic is equal to the integer arithmetic solution.
+integer arithmetic rather than finite field arithmetic, however the
+few times where division is used directly it is ensured that the result
+in finite field arithmetic is equal to the integer arithmetic solution.
 
 Additionally the standard, specified a series of constants. These
 constants were too large to be implemented as integers. Additionally
