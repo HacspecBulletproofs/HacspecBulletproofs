@@ -96,9 +96,12 @@ pub fn create(
         let mut L_vec = Seq::<RistrettoPointEncoded>::with_capacity(lg_n);
         let mut R_vec = Seq::<RistrettoPointEncoded>::with_capacity(lg_n);
 
-        H = point_dot(H * H_factors);
-        G = point_dot(G * G_factors);
-
+        if n != 1 {
+            for i in 0..H_factors.len() {
+                H[i] = mul(H_factors[i], H[i]);
+                G[i] = mul(G_factors[i], G[i]);
+            }
+        } 
         /*
         if n != 1 {
             n = n / 2;
