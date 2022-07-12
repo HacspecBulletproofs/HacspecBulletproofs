@@ -96,6 +96,10 @@ pub fn create(
         let mut L_vec = Seq::<RistrettoPointEncoded>::with_capacity(lg_n);
         let mut R_vec = Seq::<RistrettoPointEncoded>::with_capacity(lg_n);
 
+        H = point_dot(H * H_factors);
+        G = point_dot(G * G_factors);
+
+        /*
         if n != 1 {
             n = n / 2;
             let (mut a_L, mut a_R) = vector_split(vector_new(a.clone()), n)?;
@@ -156,6 +160,7 @@ pub fn create(
             G = G_L;
             H = H_L;
         }
+        */
 
         // while n != 1
         for _ in 1..lg_n {
