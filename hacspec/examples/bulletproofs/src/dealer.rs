@@ -11,7 +11,7 @@ use hacspec_lib::*;
 use hacspec_merlin::*;
 use hacspec_ristretto::*;
 use hacspec_ipp::*;
-use hacspec_pedersen::*;
+//use hacspec_pedersen::*;
 
 type CreateDealerRes = Result<DealerAwaitingBitCommitments,u8>;
 type ReceiveBitsRes = Result<(DealerAwaitingPolyCommitments,(Scalar,Scalar)),u8>;
@@ -87,7 +87,7 @@ pub fn create_dealer(
 
     let (party_capacity, gens_capacity, g_vec, h_vec) = bp_gens;
 
-    let mut res = CreateDealerRes::Err(0u8);
+    let res: CreateDealerRes;
 
     if !(n == 8 || n == 16 || n == 32 || n == 64) {
         res = CreateDealerRes::Err(INVALID_BIT_SIZE);
@@ -117,7 +117,7 @@ pub fn receive_bit_commitments(
     bit_commitments: Seq<(RistrettoPointEncoded,RistrettoPoint,RistrettoPoint)>
     ) -> ReceiveBitsRes {
 
-    let mut res = ReceiveBitsRes::Err(0u8);
+    let res: ReceiveBitsRes;
 
     let (bp_gens,pc_gens, mut transcript,initial_transcript,n,m) = dealer;
 
@@ -129,7 +129,7 @@ pub fn receive_bit_commitments(
 
         let mut A = IDENTITY_POINT();
         let mut S = IDENTITY_POINT();
-        // Commit each V_j individually
+        // Commit each V_i individually
         for i in 0..number_of_commits {
             let (V_i, A_i, S_i) = bit_commitments[i];
             transcript = append_point(transcript, byte_seq!(86u8), V_i);
@@ -140,10 +140,10 @@ pub fn receive_bit_commitments(
         transcript = append_point(transcript, byte_seq!(65u8), encode(A));
         transcript = append_point(transcript, byte_seq!(83u8), encode(S));
 
-        let (transcript, y) = challenge_scalar(transcript, byte_seq!(121u8));
-        let (transcript, z) = challenge_scalar(transcript, byte_seq!(122u8));
+        let (temp_transcript, y) = challenge_scalar(transcript, byte_seq!(121u8));
+        let (new_transcript, z) = challenge_scalar(temp_transcript, byte_seq!(122u8));
 
-        let new_dealer = (n,m,transcript,initial_transcript,bp_gens,pc_gens,(y,z),bit_commitments,A,S);
+        let new_dealer = (n,m,new_transcript,initial_transcript,bp_gens,pc_gens,(y,z),bit_commitments,A,S);
         res = ReceiveBitsRes::Ok((new_dealer,(y,z)));
     }
     res
@@ -153,7 +153,7 @@ pub fn receive_poly_commitments(
     dealer: DealerAwaitingPolyCommitments,
     poly_commitments: Seq<(RistrettoPoint,RistrettoPoint)>,
 ) -> ReceivePolyCommitmentsRes {
-    let mut res = ReceivePolyCommitmentsRes::Err(0u8);
+    let res: ReceivePolyCommitmentsRes;
     let (n, m, transcript, initial_transcript, bp_gens, pc_gens, bit_challenge, bit_commitments, A, S) = dealer;
     if m != poly_commitments.len() {
         res = ReceivePolyCommitmentsRes::Err(WRONG_NUMBER_OF_POLY_COMMITMENTS);
@@ -170,14 +170,14 @@ pub fn receive_poly_commitments(
         }
 
         let transcript_temp_1 = append_point(transcript, byte_seq!(84u8, 95u8, 49u8), encode(T_1));
-        let transcript_temp_2 = append_point(transcript, byte_seq!(54u8, 95u8, 50u8), encode(T_1));
+        let transcript_temp_2 = append_point(transcript_temp_1, byte_seq!(84u8, 95u8, 50u8), encode(T_2));
 
-        let (new_transcript, poly_challenge) = challenge_scalar(transcript, byte_seq!(78u8));
+        let (new_transcript, poly_challenge) = challenge_scalar(transcript_temp_2, byte_seq!(120u8));
 
         let new_dealer = (
             n,
             m,
-            transcript,
+            new_transcript,
             initial_transcript,
             bp_gens,
             pc_gens,
@@ -198,9 +198,9 @@ pub fn receive_poly_commitments(
 
 
 pub fn receive_shares(dealer: DealerAwaitingProofShares, proof_shares: Seq<ProofShare>) -> ReceiveSharesRes {
-    let mut res = ReceiveSharesRes::Err(0u8);
+    let res: ReceiveSharesRes;
 
-    let (n,m, mut transcript,initial_transcript,bp_gens,pc_gens,bit_challenge,bit_commitments,poly_challenge,poly_commitments,A,S,T_1,T_2) = dealer;
+    let (n,m, mut transcript,_,bp_gens,pc_gens,bit_challenge,_,_,_,A,S,T_1,T_2) = dealer;
     if m != proof_shares.len() {
         res = ReceiveSharesRes::Err(WRONG_NUMBER_OF_PROOF_SHARES);
     }
@@ -235,12 +235,12 @@ pub fn receive_shares(dealer: DealerAwaitingProofShares, proof_shares: Seq<Proof
             
             // Get a challenge value to combine statements for the IPP
             let (new_transcript, w) = challenge_scalar(transcript, byte_seq!(119u8));
-            let (base_point, blinding_point) = pc_gens;
+            let (base_point, _) = pc_gens;
             let Q = mul(w, base_point);
             
             let mut G_factors = Seq::<Scalar>::new(n*m);
             let mut H_factors = Seq::<Scalar>::new(n*m);
-            let (bit_challenge_x, bit_challenge_y) = bit_challenge;
+            let (_, bit_challenge_y) = bit_challenge;
             let one = Scalar::from_literal(1u128);
             let y_inv = bit_challenge_y.inv();
 
@@ -260,7 +260,7 @@ pub fn receive_shares(dealer: DealerAwaitingProofShares, proof_shares: Seq<Proof
                 }
             }
 
-            let (party_capacity, gens_capacity, g_vec, h_vec) = bp_gens;
+            let (_, _, g_vec, h_vec) = bp_gens;
 
             let mut G = Seq::<RistrettoPoint>::new(n*m);
             let mut H = Seq::<RistrettoPoint>::new(n*m);
@@ -275,7 +275,7 @@ pub fn receive_shares(dealer: DealerAwaitingProofShares, proof_shares: Seq<Proof
                 }
             }
 
-            let (new_transcript, ipp) = hacspec_ipp::create(transcript,Q,G_factors,H_factors,G,H, l_vec,r_vec)?;
+            let (_, ipp) = hacspec_ipp::create(new_transcript,Q,G_factors,H_factors,G,H, l_vec,r_vec)?;
 
             let rangeproof = (encode(A),encode(S),encode(T_1),encode(T_2),t_x,t_x_blinding,e_blinding,ipp);
 

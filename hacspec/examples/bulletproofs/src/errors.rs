@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 pub const WRONG_NUMBER_OF_BLINDINGS: u8 = 40u8;
 pub const INVALID_BIT_SIZE: u8 = 41u8;
 pub const INVALID_AGGREGATION: u8 = 42u8;

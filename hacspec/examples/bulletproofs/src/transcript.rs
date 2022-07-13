@@ -3,6 +3,7 @@
 //#![allow(non_snake_case)]
 //#![allow(unused_atranscriptignments)]
 //#![allow(unused_variables)]
+#![allow(dead_code)]
 
 use hacspec_lib::*;
 use hacspec_ristretto::*;
@@ -25,7 +26,7 @@ pub fn rangeproof_domain_sep(mut transcript: Transcript, n: U64, m: U64) -> Tran
 	//b"n"
 	let n_ =byte_seq!(110u8);
 	//b"m"
-	let m_ = byte_seq!(110u8);
+	let m_ = byte_seq!(109u8);
 
 
 	transcript = append_message(transcript,dom_sep,rangeproof_v1);

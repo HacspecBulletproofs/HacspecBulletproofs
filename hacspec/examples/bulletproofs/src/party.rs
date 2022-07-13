@@ -2,14 +2,14 @@
 mod transcript;
 mod errors;
 mod types;
-use transcript::*;
+//use transcript::*;
 use errors::*;
 use types::*;
 
 use hacspec_lib::*;
-use hacspec_merlin::*;
+//use hacspec_merlin::*;
 use hacspec_ristretto::*;
-use hacspec_ipp::*;
+//use hacspec_ipp::*;
 use hacspec_pedersen::*;
 
 type CreatePartyRes = Result<PartyAwaitingPosition,u8>;
@@ -52,6 +52,37 @@ pub type PartyAwaitingPolyChallenge = (
 /*t_2_blinding:*/ Scalar
 );
 
+/* HELPER METHODS */
+
+fn inner_product(left: Seq<Scalar>, right: Seq<Scalar>) -> Scalar {
+    let mut res = Scalar::from_literal(0u128);
+
+    for i in 0..left.len() {
+        res = res + (left[i] * right[i]);
+    }
+    res
+}
+
+fn scalar_exp(x: Scalar, exp: Scalar) -> Scalar{
+    let mut result = Scalar::from_literal(1u128);
+    let mut aux = x; // x, x^2, x^4, x^8, ...
+    let mut n = exp;
+    let one = Scalar::from_literal(1u128);
+    while n > Scalar::from_literal(0u128) {
+        let bit = n & one;
+        if bit == one {
+            result = result * aux;
+            n = n >> 1;
+            aux = aux * aux;
+        }
+        else {
+        n = n >> 1;
+        aux = aux * aux; // FIXME: one unnecessary mult at the last step here!
+        }
+    }
+    result
+}
+
 pub fn create_party(
     bp_gens: BulletproofGens,
     pc_gens: PedersenGens,
@@ -59,7 +90,7 @@ pub fn create_party(
     v_blinding: Scalar,
     n: usize) 
     -> CreatePartyRes {
-        let mut res = CreatePartyRes::Err(0u8);
+        let res: CreatePartyRes;
 
         let (party_capacity,gens_capacity,g_vec,h_vec) = bp_gens;
 
@@ -87,42 +118,48 @@ pub fn create_bit_commitment(
     s_L: Seq<Scalar>, 
     s_R: Seq<Scalar>) -> AssignPositionRes {
 
-    let mut res = AssignPositionRes::Err(0u8);
+    let res: AssignPositionRes;
     let (bp_gens,pc_gens,n,value,v_blinding,V) = party;
-    let (party_capacity, gens_capacity,g_vec,h_vec) = bp_gens;
-    let (base_point, blinding_point) = pc_gens;
+    let (party_capacity, _,g_vec,h_vec) = bp_gens;
+    let (_, blinding_point) = pc_gens;
     if party_capacity <= j {
         res = AssignPositionRes::Err(INVALID_GENERATORS_LENGTH);
     }
     else {
 
-        let v_j = ((value >> j) & 1u64) != 0u64;
+        let mut A = mul(a_blinding, blinding_point);
 
-        let mut G_j = Seq::<RistrettoPoint>::new(n);
-        let mut H_j = Seq::<RistrettoPoint>::new(n);
+
+        let mut G_i = Seq::<RistrettoPoint>::new(n);
+        let mut H_i = Seq::<RistrettoPoint>::new(n);
+        
 
         let g_vec_j = g_vec[j].clone();
         let h_vec_j = h_vec[j].clone();
     
 
         for i in 0..n {
-            G_j[i] = g_vec_j[i];
-            H_j[i] = h_vec_j[i];
+            G_i[i] = g_vec_j[i];
+            H_i[i] = h_vec_j[i];
         }
-        let mut A = IDENTITY_POINT();
 
-        if v_j {
-            for i in 0..n { A = add(A,G_j[i]); }
+        for i in 0..n {
+            let v_i = ((value >> i) & 1u64) != 0u64;
+            if v_i {
+                A = add(A,G_i[i]);
+            }
+            else {
+                A = add(A,neg(H_i[i])); 
+            }
         }
-        else {
-            for i in 0..n { A = add(A,neg(H_j[i])); }
-        }
+
 
         let mut S = mul(s_blinding, blinding_point);
 
+
         for i in 0..n {
-            S = add(S,mul(s_L[i],G_j[i]));
-            S = add(S,mul(s_R[i],H_j[i]));
+            S = add(S,mul(s_L[i],G_i[i]));
+            S = add(S,mul(s_R[i],H_i[i]));
         }
         let new_party = (n,value,v_blinding,j,pc_gens,a_blinding,s_blinding,s_L,s_R);
 
@@ -133,15 +170,14 @@ pub fn create_bit_commitment(
 
 pub fn create_poly_commitment(party: PartyAwaitingBitChallenge, bit_challenge: (Scalar,Scalar), t1_blinding: Scalar, t2_blinding: Scalar) -> CreatePolyCommitmentRes {
 
-    let mut res = CreatePolyCommitmentRes::Err(0u8);
+    let res: CreatePolyCommitmentRes;
 
     let (n, v, v_blinding, j, pc_gens, a_blinding, s_blinding, s_L, s_R) = party;
     let (base_point, blinding_point) = pc_gens;
     let (y, z) = bit_challenge;
 
-
-    let offset_y = y^(Scalar::from_literal((j*n) as u128));
-    let offset_z = z^Scalar::from_literal(j as u128);
+    let offset_y = scalar_exp(y,Scalar::from_literal((j*n) as u128));
+    let offset_z = scalar_exp(z, Scalar::from_literal(j as u128));
 
     // Calculate t by calculating vectors l0, l1, r0, r1 and multiplying
     let mut l_poly0 = Seq::<Scalar>::new(n);
@@ -149,7 +185,7 @@ pub fn create_poly_commitment(party: PartyAwaitingBitChallenge, bit_challenge: (
     let mut r_poly0 = Seq::<Scalar>::new(n);
     let mut r_poly1 = Seq::<Scalar>::new(n);
 
-    let offset_zz = z^Scalar::from_literal(2u128) * offset_z;
+    let offset_zz = z * z * offset_z;
     let mut exp_y = offset_y; // start at y^j
     let mut exp_2 = Scalar::from_literal(1u128); // start at 2^0 = 1
     
@@ -157,31 +193,28 @@ pub fn create_poly_commitment(party: PartyAwaitingBitChallenge, bit_challenge: (
         let a_L_i = Scalar::from_literal(((v >> i) & 1u64) as u128);
         let a_R_i = a_L_i - Scalar::from_literal(1u128);
 
-        l_poly0[i] = a_L_i - z;
+        l_poly0[i] = a_L_i - z; //Error here!
         l_poly1[i] = s_L[i];
+
         r_poly0[i] = exp_y * (a_R_i + z) + offset_zz * exp_2;
         r_poly1[i] = exp_y * s_R[i];
-
+        
         exp_y = exp_y * y; // y^i -> y^(i+1)
         exp_2 = exp_2 + exp_2; // 2^i -> 2^(i+1)
     }
     
-    /* Start of innerproduct method: */
-    let mut t0 = Scalar::from_literal(0u128);
-    let mut t2 = Scalar::from_literal(0u128);
+    let t0 = inner_product(l_poly0.clone(),r_poly0.clone());
+
+    let t2 = inner_product(l_poly1.clone(),r_poly1.clone());
     let mut l0_plus_l1 = Seq::<Scalar>::new(n);
     let mut r0_plus_r1 = Seq::<Scalar>::new(n);
-    let mut t1_temp = Scalar::from_literal(0u128);
 
     for i in 0..n {
-        t0 = t0 + l_poly0[i] * r_poly0[i];
-        t2 = t2 + l_poly1[i] * r_poly1[i];
         l0_plus_l1[i] = l_poly0[i] + l_poly1[i];
         r0_plus_r1[i] = r_poly0[i] + r_poly1[i];
-        t1_temp = t1_temp + l0_plus_l1[i] * r0_plus_r1[i];
     }
     
-    let t1 = t1_temp - t0 - t2;
+    let t1 = inner_product(l0_plus_l1,r0_plus_r1) - t0 - t2;
 
     let t_poly = (t0,t1,t2);
     /* End of Inner Product method */
@@ -211,7 +244,7 @@ pub fn create_poly_commitment(party: PartyAwaitingBitChallenge, bit_challenge: (
 }
 
 pub fn create_proofshare(party: PartyAwaitingPolyChallenge, challenge: Scalar) -> CreateProofShareRes {
-    let mut res = CreateProofShareRes::Err(0u8);
+    let res: CreateProofShareRes;
     if challenge == Scalar::from_literal(0u128) {
         res = CreateProofShareRes::Err(MALICIOUS_DEALER);
     }
@@ -220,25 +253,27 @@ pub fn create_proofshare(party: PartyAwaitingPolyChallenge, challenge: Scalar) -
 
         let (t_poly0, t_poly1, t_poly2) = t_poly;
 
-        let t_x = t_poly0 + challenge * (t_poly1 + challenge * t_poly2);
+        let t_x = t_poly0 + (challenge * (t_poly1 + (challenge * t_poly2)));
 
+        
         let t_x_blinding = (offset_zz * v_blinding) + challenge * (t_1_blinding + challenge * t_2_blinding);
         
         let e_blinding = a_blinding + s_blinding * challenge;
-
+        
         let (l_poly0, l_poly1) = l_poly;
         let (r_poly0, r_poly1) = r_poly;
-
+        
         let n = l_poly0.len(); /* l_poly and r_poly are all the same length */
-
+        
         let mut l_vec = Seq::<Scalar>::new(n);
         let mut r_vec = Seq::<Scalar>::new(n);
-
+        
         for i in 0..n {
             l_vec[i] = l_poly0[i] + l_poly1[i] * challenge;
             r_vec[i] = r_poly0[i] + r_poly1[i] * challenge;
         }
-        let proof_share = (t_x_blinding,t_x, e_blinding, l_vec, r_vec);
+
+        let proof_share = (t_x,t_x_blinding, e_blinding, l_vec, r_vec);
 
         res = CreateProofShareRes::Ok(proof_share);
     }

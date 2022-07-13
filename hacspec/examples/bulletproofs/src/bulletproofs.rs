@@ -4,7 +4,7 @@ mod dealer;
 mod party;
 mod errors;
 mod types;
-use transcript::*;
+//use transcript::*;
 use dealer::*;
 use party::*;
 use errors::*;
@@ -14,11 +14,11 @@ use hacspec_lib::*;
 use hacspec_merlin::*;
 use hacspec_ristretto::*;
 use hacspec_ipp::*;
-use hacspec_pedersen::*;
+//use hacspec_pedersen::*;
 
 type RangeProofRes = Result<(RangeProof, Seq<RistrettoPointEncoded>), u8>;
 
-type RangeProof = (
+pub type RangeProof = (
     /* Commitment to the bits of the value*/
     /*A:*/ RistrettoPointEncoded,
     /*Commitment to the blinding factors*/
@@ -42,7 +42,7 @@ type RangeProof = (
 pub fn prove(
     bp_gens: BulletproofGens,
     pc_gens: PedersenGens,
-    mut transcript: Transcript,
+    transcript: Transcript,
     values: Seq<u64>,
     blindings: Seq<Scalar>,
     n: usize,
@@ -53,7 +53,7 @@ pub fn prove(
     t1_blinding: Seq<Scalar>,
     t2_blinding: Seq<Scalar>)
     -> RangeProofRes {
-        let mut res = RangeProofRes::Err(0u8);
+        let res: RangeProofRes;
         if values.len() != blindings.len() {
             res = RangeProofRes::Err(WRONG_NUMBER_OF_BLINDINGS);
         }
@@ -61,7 +61,7 @@ pub fn prove(
             res = RangeProofRes::Err(INVALID_BIT_SIZE);
         }
         else{
-            let (base_point, blinding_point) = pc_gens;
+            
             let (party_capacity, gens_capacity, g_vec, h_vec) = bp_gens;
             let number_of_parties = values.len();
             /* Create dealer */
