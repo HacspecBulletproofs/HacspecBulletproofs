@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use hacspec_lib::*;
 use hacspec_ristretto::*;
 

@@ -13,7 +13,7 @@ use hacspec_ristretto::*;
 use hacspec_pedersen::*;
 
 type CreatePartyRes = Result<PartyAwaitingPosition,u8>;
-type AssignPositionRes = Result<(PartyAwaitingBitChallenge,(RistrettoPointEncoded,RistrettoPoint,RistrettoPoint)),u8>;
+type CreateBitCommitmentRes = Result<(RistrettoPointEncoded,RistrettoPoint,RistrettoPoint),u8>;
 type CreatePolyCommitmentRes = Result<(PartyAwaitingPolyChallenge,(RistrettoPoint,RistrettoPoint)), u8>;
 type CreateProofShareRes = Result<ProofShare,u8>;
 
@@ -22,22 +22,34 @@ type CreateProofShareRes = Result<ProofShare,u8>;
 pub type PartyAwaitingPosition = (
     /*bp_gens:*/ BulletproofGens,
     /*pc_gens:*/ PedersenGens,
-    /*n:*/ usize,
-    /*v:*/ u64,
-    /*v_blinding:*/ Scalar,
+    /*n: usize,*/
+    /*v: u64,*/
+    /*v_blinding: Scalar,*/
     /*V:*/ RistrettoPointEncoded
 );
 
-pub type PartyAwaitingBitChallenge = (
-        /*n:*/ usize, /* bitsize of the range*/
-        /*v:*/ u64,
-        /*v_blinding:*/ Scalar,
-        /*j:*/ usize,
-        /*pc_gens:*/ PedersenGens,
-        /*a_blinding:*/ Scalar,
-        /*s_blinding:*/ Scalar,
-        /*s_L:*/ Seq<Scalar>,
-        /*s_R:*/ Seq<Scalar>
+/*pub type PartyAwaitingBitChallenge = (
+        /*n: usize,*/ /*bitsize of the range*/
+        /*v: u64,*/
+        /*v_blinding: Scalar,*/
+        /*j: usize,*/
+        /*pc_gens: PedersenGens,*/
+        /*a_blinding: Scalar,*/
+        /*s_blinding: Scalar,*/
+        /*s_L: Seq<Scalar>,*/
+        /*s_R: Seq<Scalar>*/
+);*/ //this is the type used by the rust implementation, but every value in here either unused or too trivial to store
+
+pub type BitChallengeInput = (
+    /*j:*/ usize, 
+    /*value:*/ u64, 
+    /*n:*/ usize, 
+    /*bit_challenge:*/ (Scalar,Scalar), 
+    /*pc_gens:*/ PedersenGens, 
+    /*t1_blinding:*/ Scalar, 
+    /*t2_blinding:*/ Scalar, 
+    /*s_L:*/ Seq<Scalar>, 
+    /*s_R:*/ Seq<Scalar>
 );
 
 pub type PartyAwaitingPolyChallenge = (
@@ -45,11 +57,11 @@ pub type PartyAwaitingPolyChallenge = (
 /*l_poly:*/ (Seq<Scalar>, Seq<Scalar>),
 /*r_poly:*/ (Seq<Scalar>, Seq<Scalar>),
 /*t_poly:*/ (Scalar, Scalar, Scalar),
-/*v_blinding:*/ Scalar,
-/*a_blinding:*/ Scalar,
-/*s_blinding:*/ Scalar,
-/*t_1_blinding:*/ Scalar,
-/*t_2_blinding:*/ Scalar
+/*v_blinding: Scalar,*/
+/*a_blinding: Scalar,*/
+/*s_blinding: Scalar,*/
+/*t_1_blinding: Scalar,*/
+/*t_2_blinding: Scalar*/
 );
 
 /* HELPER METHODS */
@@ -63,12 +75,13 @@ fn inner_product(left: Seq<Scalar>, right: Seq<Scalar>) -> Scalar {
     res
 }
 
-fn scalar_exp(x: Scalar, exp: Scalar) -> Scalar{
-    let mut result = Scalar::from_literal(1u128);
+fn scalar_exp(mut result: Scalar, x: Scalar, exp: Scalar) -> Scalar{
+    let mut ret = result;
     let mut aux = x; // x, x^2, x^4, x^8, ...
     let mut n = exp;
     let one = Scalar::from_literal(1u128);
-    while n > Scalar::from_literal(0u128) {
+
+    if n > Scalar::from_literal(0u128) {
         let bit = n & one;
         if bit == one {
             result = result * aux;
@@ -79,8 +92,10 @@ fn scalar_exp(x: Scalar, exp: Scalar) -> Scalar{
         n = n >> 1;
         aux = aux * aux; // FIXME: one unnecessary mult at the last step here!
         }
+        ret = scalar_exp(result, aux, n);
+        
     }
-    result
+    ret
 }
 
 pub fn create_party(
@@ -90,7 +105,9 @@ pub fn create_party(
     v_blinding: Scalar,
     n: usize) 
     -> CreatePartyRes {
-        let res: CreatePartyRes;
+
+        #[allow(unused)]
+        let mut res = CreatePartyRes::Err(0u8);
 
         let (party_capacity,gens_capacity,g_vec,h_vec) = bp_gens;
 
@@ -105,25 +122,32 @@ pub fn create_party(
             let (base_point,blinding_point) = pc_gens;
             let pedersen_commitment = pedersen_commit(v_blinding, blinding_point, Scalar::from_literal(v as u128), base_point);
             let V = encode(pedersen_commitment);
-            res = CreatePartyRes::Ok(((party_capacity,gens_capacity,g_vec,h_vec),pc_gens,n,v,v_blinding,V));
+            res = CreatePartyRes::Ok(((party_capacity,gens_capacity,g_vec,h_vec),pc_gens,V));
         }}
         res
 }
 
 pub fn create_bit_commitment(
     party: PartyAwaitingPosition, 
+    value: u64,
+    n: usize,
     j: usize, 
     a_blinding: Scalar, 
     s_blinding: Scalar, 
     s_L: Seq<Scalar>, 
-    s_R: Seq<Scalar>) -> AssignPositionRes {
+    s_R: Seq<Scalar>) -> CreateBitCommitmentRes {
 
-    let res: AssignPositionRes;
-    let (bp_gens,pc_gens,n,value,v_blinding,V) = party;
+    #[allow(unused)]
+    let mut res = CreateBitCommitmentRes::Err(0u8);
+
+    let (bp_gens,pc_gens,V) = party;
+
     let (party_capacity, _,g_vec,h_vec) = bp_gens;
+
     let (_, blinding_point) = pc_gens;
+
     if party_capacity <= j {
-        res = AssignPositionRes::Err(INVALID_GENERATORS_LENGTH);
+        res = CreateBitCommitmentRes::Err(INVALID_GENERATORS_LENGTH);
     }
     else {
 
@@ -161,23 +185,24 @@ pub fn create_bit_commitment(
             S = add(S,mul(s_L[i],G_i[i]));
             S = add(S,mul(s_R[i],H_i[i]));
         }
-        let new_party = (n,value,v_blinding,j,pc_gens,a_blinding,s_blinding,s_L,s_R);
 
-        res = AssignPositionRes::Ok((new_party,(V,A,S)));
+        res = CreateBitCommitmentRes::Ok((V,A,S));
     }
     res
 }
 
-pub fn create_poly_commitment(party: PartyAwaitingBitChallenge, bit_challenge: (Scalar,Scalar), t1_blinding: Scalar, t2_blinding: Scalar) -> CreatePolyCommitmentRes {
+pub fn create_poly_commitment(party: BitChallengeInput) -> CreatePolyCommitmentRes {
 
-    let res: CreatePolyCommitmentRes;
+    #[allow(unused)]
+    let mut res = CreatePolyCommitmentRes::Err(0u8);
 
-    let (n, v, v_blinding, j, pc_gens, a_blinding, s_blinding, s_L, s_R) = party;
+    let (j, value, n, bit_challenge, pc_gens, t1_blinding, t2_blinding, s_L, s_R) = party;
+
     let (base_point, blinding_point) = pc_gens;
     let (y, z) = bit_challenge;
 
-    let offset_y = scalar_exp(y,Scalar::from_literal((j*n) as u128));
-    let offset_z = scalar_exp(z, Scalar::from_literal(j as u128));
+    let offset_y = scalar_exp(Scalar::from_literal(1u128), y,Scalar::from_literal((j*n) as u128));
+    let offset_z = scalar_exp(Scalar::from_literal(1u128), z, Scalar::from_literal(j as u128));
 
     // Calculate t by calculating vectors l0, l1, r0, r1 and multiplying
     let mut l_poly0 = Seq::<Scalar>::new(n);
@@ -190,7 +215,7 @@ pub fn create_poly_commitment(party: PartyAwaitingBitChallenge, bit_challenge: (
     let mut exp_2 = Scalar::from_literal(1u128); // start at 2^0 = 1
     
     for i in 0..n {
-        let a_L_i = Scalar::from_literal(((v >> i) & 1u64) as u128);
+        let a_L_i = Scalar::from_literal(((value >> i) & 1u64) as u128);
         let a_R_i = a_L_i - Scalar::from_literal(1u128);
 
         l_poly0[i] = a_L_i - z; //Error here!
@@ -231,11 +256,6 @@ pub fn create_poly_commitment(party: PartyAwaitingBitChallenge, bit_challenge: (
         (l_poly0, l_poly1),
         (r_poly0, r_poly1),
         t_poly,
-        v_blinding,
-        a_blinding,
-        s_blinding,
-        t1_blinding,
-        t2_blinding
     );
 
     res = CreatePolyCommitmentRes::Ok((party_awaiting_poly_challenge, poly_commitment));
@@ -243,13 +263,24 @@ pub fn create_poly_commitment(party: PartyAwaitingBitChallenge, bit_challenge: (
     res
 }
 
-pub fn create_proofshare(party: PartyAwaitingPolyChallenge, challenge: Scalar) -> CreateProofShareRes {
-    let res: CreateProofShareRes;
+pub fn create_proofshare(party: PartyAwaitingPolyChallenge, 
+                         v_blinding: Scalar, 
+                         a_blinding: Scalar, 
+                         s_blinding: Scalar, 
+                         t_1_blinding:Scalar, 
+                         t_2_blinding: Scalar, 
+                         challenge: Scalar) 
+                         -> CreateProofShareRes {
+
+    #[allow(unused)]
+    let mut res = CreateProofShareRes::Err(0u8);
+
     if challenge == Scalar::from_literal(0u128) {
         res = CreateProofShareRes::Err(MALICIOUS_DEALER);
     }
+
     else { 
-        let (offset_zz,l_poly,r_poly,t_poly,v_blinding,a_blinding,s_blinding,t_1_blinding,t_2_blinding) = party;
+        let (offset_zz,l_poly,r_poly,t_poly) = party;
 
         let (t_poly0, t_poly1, t_poly2) = t_poly;
 

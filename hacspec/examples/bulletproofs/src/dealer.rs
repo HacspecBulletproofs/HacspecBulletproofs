@@ -86,8 +86,8 @@ pub fn create_dealer(
     m: usize) -> CreateDealerRes {
 
     let (party_capacity, gens_capacity, g_vec, h_vec) = bp_gens;
-
-    let res: CreateDealerRes;
+    #[allow(unused)]
+    let mut res = CreateDealerRes::Err(0u8);
 
     if !(n == 8 || n == 16 || n == 32 || n == 64) {
         res = CreateDealerRes::Err(INVALID_BIT_SIZE);
@@ -116,8 +116,8 @@ pub fn receive_bit_commitments(
     dealer: DealerAwaitingBitCommitments, 
     bit_commitments: Seq<(RistrettoPointEncoded,RistrettoPoint,RistrettoPoint)>
     ) -> ReceiveBitsRes {
-
-    let res: ReceiveBitsRes;
+    #[allow(unused)]
+    let mut res = ReceiveBitsRes::Err(0u8);
 
     let (bp_gens,pc_gens, mut transcript,initial_transcript,n,m) = dealer;
 
@@ -153,8 +153,12 @@ pub fn receive_poly_commitments(
     dealer: DealerAwaitingPolyCommitments,
     poly_commitments: Seq<(RistrettoPoint,RistrettoPoint)>,
 ) -> ReceivePolyCommitmentsRes {
-    let res: ReceivePolyCommitmentsRes;
+
+    #[allow(unused)]
+    let mut res = ReceivePolyCommitmentsRes::Err(0u8);
+
     let (n, m, transcript, initial_transcript, bp_gens, pc_gens, bit_challenge, bit_commitments, A, S) = dealer;
+
     if m != poly_commitments.len() {
         res = ReceivePolyCommitmentsRes::Err(WRONG_NUMBER_OF_POLY_COMMITMENTS);
     }
@@ -197,22 +201,31 @@ pub fn receive_poly_commitments(
 }
 
 
-pub fn receive_shares(dealer: DealerAwaitingProofShares, proof_shares: Seq<ProofShare>) -> ReceiveSharesRes {
-    let res: ReceiveSharesRes;
+pub fn receive_shares(dealer: DealerAwaitingProofShares, 
+                      t_xs: Seq<Scalar>, 
+                      t_x_blindings: Seq<Scalar>, 
+                      e_blindings: Seq<Scalar>, 
+                      l_vecs: Seq<Seq<Scalar>>, 
+                      r_vecs: Seq<Seq<Scalar>>) 
+                      -> ReceiveSharesRes {
 
-    let (n,m, mut transcript,_,bp_gens,pc_gens,bit_challenge,_,_,_,A,S,T_1,T_2) = dealer;
-    if m != proof_shares.len() {
+    #[allow(unused)]
+    let mut res = ReceiveSharesRes::Err(0u8);
+
+    let (n,m, mut transcript,_,(party_capacity, gens_capacity,g_vec,h_vec),pc_gens,bit_challenge,_,_,_,A,S,T_1,T_2) = dealer;
+
+    if m != t_xs.len() { //all sequence inputs are the same length
         res = ReceiveSharesRes::Err(WRONG_NUMBER_OF_PROOF_SHARES);
     }
     else {
 
         // Validate lengths for each share
-        let mut bad_shares = false;
+        let mut has_bad_shares = false;
         for j in 0..m {
-            bad_shares = bad_shares || check_share_size(proof_shares[j].clone(), n, bp_gens.clone(),j);
+            has_bad_shares = has_bad_shares || check_share_size(l_vecs[j].clone(), r_vecs[j].clone(), n, party_capacity, gens_capacity,j);
         }
 
-        if bad_shares {
+        if has_bad_shares {
             res = ReceiveSharesRes::Err(MALFORMED_PROOF_SHARES);
         }
         else {
@@ -221,7 +234,9 @@ pub fn receive_shares(dealer: DealerAwaitingProofShares, proof_shares: Seq<Proof
             let mut e_blinding = Scalar::from_literal(0u128);
 
             for i in 0..m {
-                let (t_x_i, t_x_blinding_i, e_blinding_i,_,_) = proof_shares[i];
+                let t_x_i = t_xs[i];
+                let t_x_blinding_i = t_x_blindings[i];
+                let e_blinding_i = e_blindings[i];
                 t_x = t_x + t_x_i;
                 t_x_blinding = t_x_blinding + t_x_blinding_i;
                 e_blinding = e_blinding + e_blinding_i;
@@ -249,18 +264,19 @@ pub fn receive_shares(dealer: DealerAwaitingProofShares, proof_shares: Seq<Proof
                 H_factors[i] = y_inv^(Scalar::from_literal(i as u128));
             }
 
-            let mut l_vec = Seq::<Scalar>::new(n * proof_shares.len());
-            let mut r_vec = Seq::<Scalar>::new(n * proof_shares.len());
+            let mut l_vec = Seq::<Scalar>::new(n * t_xs.len());
+            let mut r_vec = Seq::<Scalar>::new(n * t_xs.len());
 
-            for i in 0..proof_shares.len() {
-                let (_,_,_,l_vec_i, r_vec_i) = proof_shares[i].clone();
+            for i in 0..t_xs.len() {
+                let l_vec_i = l_vecs[i].clone();
+                let r_vec_i = r_vecs[i].clone();
                 for j in 0..l_vec_i.len() {
-                    l_vec[i*proof_shares.len() + j] = l_vec_i[j];
-                    r_vec[i*proof_shares.len() + j] = r_vec_i[j];
+                    l_vec[i*l_vecs.len() + j] = l_vec_i[j];
+                    r_vec[i*l_vecs.len() + j] = r_vec_i[j];
                 }
             }
 
-            let (_, _, g_vec, h_vec) = bp_gens;
+            // Here we begin using g_vec and h_vec which were unpacked from dealer
 
             let mut G = Seq::<RistrettoPoint>::new(n*m);
             let mut H = Seq::<RistrettoPoint>::new(n*m);
@@ -275,7 +291,7 @@ pub fn receive_shares(dealer: DealerAwaitingProofShares, proof_shares: Seq<Proof
                 }
             }
 
-            let (_, ipp) = hacspec_ipp::create(new_transcript,Q,G_factors,H_factors,G,H, l_vec,r_vec)?;
+            let (_, ipp) = create(new_transcript,Q,G_factors,H_factors,G,H, l_vec,r_vec)?;
 
             let rangeproof = (encode(A),encode(S),encode(T_1),encode(T_2),t_x,t_x_blinding,e_blinding,ipp);
 
@@ -285,10 +301,7 @@ pub fn receive_shares(dealer: DealerAwaitingProofShares, proof_shares: Seq<Proof
     res
 }
 
-fn check_share_size(share: ProofShare, expected_n: usize, bp_gens: BulletproofGens, j: usize) -> bool {
-    let (_, _, _, l_vec, r_vec) = share;
-    let (party_capacity, gens_capacity,_,_) = bp_gens;
-
+fn check_share_size(l_vec: Seq<Scalar>, r_vec: Seq<Scalar>, expected_n: usize, party_capacity: usize, gens_capacity: usize, j: usize) -> bool {
     l_vec.len() != expected_n 
     || r_vec.len() != expected_n 
     || expected_n > gens_capacity
