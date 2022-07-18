@@ -1,6 +1,4 @@
 #![allow(non_snake_case)]
-use hacspec_lib::*;
-use hacspec_linalg_field as linalg;
 use hacspec_linalg_field::*;
 use hacspec_ristretto::*;
 
@@ -10,7 +8,7 @@ use hacspec_ristretto::*;
 fn point_dot(v: Matrix, G: RistrettoPoint) -> RistrettoPoint {
     let mut acc = IDENTITY_POINT();
     for i in 0..v.1.len() {
-        acc = ristretto::add(acc, ristretto::mul(v.1[i], G));
+        acc = hacspec_ristretto::add(acc, hacspec_ristretto::mul(v.1[i], G));
     }
     acc
 }
