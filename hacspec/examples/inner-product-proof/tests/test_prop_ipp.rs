@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use rand::{distributions::Uniform, Rng}; // 0.6.5
 
-use rand_core::{CryptoRng, RngCore};
+//use rand_core::{CryptoRng, RngCore};
 
 use hacspec_ipp::*;
 use hacspec_lib::*;
@@ -13,23 +13,10 @@ use curve25519_dalek_ng::scalar::Scalar as DalekScalar;
 use quickcheck::*;
 
 use bulletproofs::inner_product_proof::InnerProductProof;
-use core::iter;
-use sha3::Sha3_512;
 
-use curve25519_dalek_ng::traits::VartimeMultiscalarMul;
+//use curve25519_dalek_ng::traits::VartimeMultiscalarMul;
 
 // === Helper functions === //
-
-fn inner_product_dalek(a: &[DalekScalar], b: &[DalekScalar]) -> DalekScalar {
-    let mut out = DalekScalar::zero();
-    if a.len() != b.len() {
-        panic!("inner_product(a,b): lengths of vectors do not match");
-    }
-    for i in 0..a.len() {
-        out += a[i] * b[i];
-    }
-    out
-}
 
 fn quickcheck(n: u64, helper: impl Testable) {
     QuickCheck::new()
@@ -124,7 +111,6 @@ fn testquick() {
         // Initialize input variables
         let mut G: Vec<Vec<u8>> = Vec::with_capacity(n);
         let mut H: Vec<Vec<u8>> = Vec::with_capacity(n);
-        let mut G_factors: Vec<Vec<u8>> = Vec::with_capacity(n);
         let mut H_factors: Vec<Vec<u8>> = Vec::with_capacity(n);
         let mut a: Vec<Vec<u8>> = Vec::with_capacity(n);
         let mut b: Vec<Vec<u8>> = Vec::with_capacity(n);
@@ -231,8 +217,7 @@ fn testquick() {
             a_dal,
             b_dal,
         );
-        
-        /*
+
         assert!(cmp_scalars(a_hac, ipp_dal.a));
         assert!(cmp_scalars(b_hac, ipp_dal.b));
 
@@ -242,15 +227,12 @@ fn testquick() {
             assert!(cmp_encoded_points(L_vec_hac[i], ipp_dal.L_vec[i]));
             assert!(cmp_encoded_points(R_vec_hac[i], ipp_dal.R_vec[i]));
         }
-        */
-
 
         let verScalars_hac =
             verification_scalars(ipp_hac.clone(), n, transcript_hac.clone()).unwrap();
         let verScalars_dal = ipp_dal
             .verification_scalars(n, &mut transcript_dal)
             .unwrap();
-        /*
         println!(
             "len: {}, {}",
             verScalars_hac.0.len(),
@@ -278,7 +260,6 @@ fn testquick() {
         for i in 0..verScalars_hac.2.len() {
             assert!(cmp_scalars(verScalars_hac.2[i], verScalars_dal.2[i]));
         }
-        */
 
         // Verify proofs
 
