@@ -131,7 +131,7 @@ impl InnerProductProof {
                 H_L[i] = RistrettoPoint::vartime_multiscalar_mul(
                     &[u * H_factors[i], u_inv * H_factors[n + i]],
                     &[H_L[i], H_R[i]],
-                )
+                );
             }
 
             a = a_L;
@@ -156,21 +156,23 @@ impl InnerProductProof {
             )
             .compress();
 
+            
+            
             let R = RistrettoPoint::vartime_multiscalar_mul(
                 a_R.iter().chain(b_L.iter()).chain(iter::once(&c_R)),
                 G_L.iter().chain(H_R.iter()).chain(iter::once(Q)),
             )
             .compress();
-
+            
             L_vec.push(L);
             R_vec.push(R);
-
+            
             transcript.append_point(b"L", &L);
             transcript.append_point(b"R", &R);
-
+            
             let u = transcript.challenge_scalar(b"u");
             let u_inv = u.invert();
-
+            
             for i in 0..n {
                 a_L[i] = a_L[i] * u + u_inv * a_R[i];
                 b_L[i] = b_L[i] * u_inv + u * b_R[i];

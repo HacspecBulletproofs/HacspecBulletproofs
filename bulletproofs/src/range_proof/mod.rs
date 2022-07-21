@@ -6,7 +6,6 @@ extern crate alloc;
 extern crate rand;
 
 #[cfg(feature = "std")]
-use self::rand::thread_rng;
 use alloc::vec::Vec;
 
 use core::iter;
@@ -22,7 +21,6 @@ use crate::inner_product_proof::InnerProductProof;
 use crate::transcript::TranscriptProtocol;
 use crate::util;
 
-use rand_core::{CryptoRng, RngCore};
 use serde::de::Visitor;
 use serde::{self, Deserialize, Deserializer, Serialize, Serializer};
 
@@ -58,21 +56,21 @@ pub mod party;
 #[derive(Clone, Debug)]
 pub struct RangeProof {
     /// Commitment to the bits of the value
-    A: CompressedRistretto,
+    pub A: CompressedRistretto,
     /// Commitment to the blinding factors
-    S: CompressedRistretto,
+    pub S: CompressedRistretto,
     /// Commitment to the \\(t_1\\) coefficient of \\( t(x) \\)
-    T_1: CompressedRistretto,
+    pub T_1: CompressedRistretto,
     /// Commitment to the \\(t_2\\) coefficient of \\( t(x) \\)
-    T_2: CompressedRistretto,
+    pub T_2: CompressedRistretto,
     /// Evaluation of the polynomial \\(t(x)\\) at the challenge point \\(x\\)
-    t_x: Scalar,
+    pub t_x: Scalar,
     /// Blinding factor for the synthetic commitment to \\(t(x)\\)
-    t_x_blinding: Scalar,
+    pub t_x_blinding: Scalar,
     /// Blinding factor for the synthetic commitment to the inner-product arguments
-    e_blinding: Scalar,
+    pub e_blinding: Scalar,
     /// Proof data for the inner-product argument.
-    ipp_proof: InnerProductProof,
+    pub ipp_proof: InnerProductProof,
 }
 
 impl RangeProof {
@@ -247,12 +245,14 @@ impl RangeProof {
     ) -> Result<(RangeProof, Vec<CompressedRistretto>), ProofError> {
         use self::dealer::*;
         use self::party::*;
-
+    
         if values.len() != blindings.len() {
             return Err(ProofError::WrongNumBlindingFactors);
         }
 
         let dealer = Dealer::new(bp_gens, pc_gens, transcript, n, values.len())?;
+
+        
 
         let parties: Vec<_> = values
             .iter()
@@ -319,7 +319,7 @@ impl RangeProof {
     /// Verifies a rangeproof for a given value commitment \\(V\\).
     ///
     /// This is a convenience wrapper around `verify_multiple` for the `m=1` case.
-    pub fn verify_single_with_rng<T: RngCore + CryptoRng>(
+    /*pub fn verify_single_with_rng<T: RngCore + CryptoRng>(
         &self,
         bp_gens: &BulletproofGens,
         pc_gens: &PedersenGens,
@@ -329,13 +329,13 @@ impl RangeProof {
         rng: &mut T,
     ) -> Result<(), ProofError> {
         self.verify_multiple_with_rng(bp_gens, pc_gens, transcript, &[*V], n, rng)
-    }
+    }*/
 
     /// Verifies a rangeproof for a given value commitment \\(V\\).
     ///
     /// This is a convenience wrapper around [`RangeProof::verify_single_with_rng`],
     /// passing in a threadsafe RNG.
-    #[cfg(feature = "std")]
+    /*#[cfg(feature = "std")]
     pub fn verify_single(
         &self,
         bp_gens: &BulletproofGens,
@@ -345,18 +345,19 @@ impl RangeProof {
         n: usize,
     ) -> Result<(), ProofError> {
         self.verify_single_with_rng(bp_gens, pc_gens, transcript, V, n, &mut thread_rng())
-    }
+    }*/
 
     /// Verifies an aggregated rangeproof for the given value commitments.
-    pub fn verify_multiple_with_rng<T: RngCore + CryptoRng>(
+    pub fn verify_multiple_with_rng(
         &self,
         bp_gens: &BulletproofGens,
         pc_gens: &PedersenGens,
         transcript: &mut Transcript,
         value_commitments: &[CompressedRistretto],
         n: usize,
-        rng: &mut T,
+        c: Scalar
     ) -> Result<(), ProofError> {
+
         let m = value_commitments.len();
 
         // First, replay the "interactive" protocol using the proof
@@ -386,20 +387,20 @@ impl RangeProof {
         let z = transcript.challenge_scalar(b"z");
         let zz = z * z;
         let minus_z = -z;
-
+        
         transcript.validate_and_append_point(b"T_1", &self.T_1)?;
         transcript.validate_and_append_point(b"T_2", &self.T_2)?;
-
+        
         let x = transcript.challenge_scalar(b"x");
-
+        
+        
         transcript.append_scalar(b"t_x", &self.t_x);
         transcript.append_scalar(b"t_x_blinding", &self.t_x_blinding);
         transcript.append_scalar(b"e_blinding", &self.e_blinding);
-
+        
         let w = transcript.challenge_scalar(b"w");
+        println!("Verify w: {:?}", w.as_bytes());
 
-        // Challenge value for batching statements to be verified
-        let c = Scalar::random(rng);
 
         let (x_sq, x_inv_sq, s) = self.ipp_proof.verification_scalars(n * m, transcript)?;
         let s_inv = s.iter().rev();
@@ -421,6 +422,7 @@ impl RangeProof {
             .zip(concat_z_and_2.iter())
             .map(|((s_i_inv, exp_y_inv), z_and_2)| z + exp_y_inv * (zz * z_and_2 - b * s_i_inv));
 
+        
         let value_commitment_scalars = util::exp_iter(z).take(m).map(|z_exp| c * zz * z_exp);
         let basepoint_scalar = w * (self.t_x - a * b) + c * (delta(n, m, &y, &z) - self.t_x);
 
@@ -460,7 +462,7 @@ impl RangeProof {
     /// Verifies an aggregated rangeproof for the given value commitments.
     /// This is a convenience wrapper around [`RangeProof::verify_multiple_with_rng`],
     /// passing in a threadsafe RNG.
-    #[cfg(feature = "std")]
+    /*#[cfg(feature = "std")]
     pub fn verify_multiple(
         &self,
         bp_gens: &BulletproofGens,
@@ -477,7 +479,7 @@ impl RangeProof {
             n,
             &mut thread_rng(),
         )
-    }
+    }*/
 
     /// Serializes the proof into a byte array of \\(2 \lg n + 9\\)
     /// 32-byte elements, where \\(n\\) is the number of secret bits.

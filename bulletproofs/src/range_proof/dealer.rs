@@ -20,12 +20,9 @@ use crate::inner_product_proof;
 use crate::range_proof::RangeProof;
 use crate::transcript::TranscriptProtocol;
 
-use rand_core::{CryptoRng, RngCore};
-
 use crate::util;
 
 #[cfg(feature = "std")]
-use rand::thread_rng;
 
 use super::messages::*;
 
@@ -66,7 +63,9 @@ impl Dealer {
         // verification would require duplicating the verification
         // logic.  Instead, we keep a copy of the initial transcript
         // state.
+        
         let initial_transcript = transcript.clone();
+
 
         transcript.rangeproof_domain_sep(n as u64, m as u64);
 
@@ -107,18 +106,18 @@ impl<'a, 'b> DealerAwaitingBitCommitments<'a, 'b> {
         for vc in bit_commitments.iter() {
             self.transcript.append_point(b"V", &vc.V_j);
         }
-
+        
         // Commit aggregated A_j, S_j
         let A: RistrettoPoint = bit_commitments.iter().map(|vc| vc.A_j).sum();
         self.transcript.append_point(b"A", &A.compress());
-
+        
         let S: RistrettoPoint = bit_commitments.iter().map(|vc| vc.S_j).sum();
         self.transcript.append_point(b"S", &S.compress());
-
+        
         let y = self.transcript.challenge_scalar(b"y");
         let z = self.transcript.challenge_scalar(b"z");
         let bit_challenge = BitChallenge { y, z };
-
+        
         Ok((
             DealerAwaitingPolyCommitments {
                 n: self.n,
@@ -164,15 +163,17 @@ impl<'a, 'b> DealerAwaitingPolyCommitments<'a, 'b> {
         if self.m != poly_commitments.len() {
             return Err(MPCError::WrongNumPolyCommitments);
         }
-
+        
         // Commit sums of T_1_j's and T_2_j's
         let T_1: RistrettoPoint = poly_commitments.iter().map(|pc| pc.T_1_j).sum();
         let T_2: RistrettoPoint = poly_commitments.iter().map(|pc| pc.T_2_j).sum();
-
+        
+        
         self.transcript.append_point(b"T_1", &T_1.compress());
         self.transcript.append_point(b"T_2", &T_2.compress());
-
+        
         let x = self.transcript.challenge_scalar(b"x");
+        
         let poly_challenge = PolyChallenge { x };
 
         Ok((
@@ -227,32 +228,33 @@ impl<'a, 'b> DealerAwaitingProofShares<'a, 'b> {
         if self.m != proof_shares.len() {
             return Err(MPCError::WrongNumProofShares);
         }
-
+        
         // Validate lengths for each share
         let mut bad_shares = Vec::<usize>::new(); // no allocations until we append
         for (j, share) in proof_shares.iter().enumerate() {
             share
-                .check_size(self.n, &self.bp_gens, j)
-                .unwrap_or_else(|_| {
-                    bad_shares.push(j);
-                });
+            .check_size(self.n, &self.bp_gens, j)
+            .unwrap_or_else(|_| {
+                bad_shares.push(j);
+            });
         }
-
+        
         if bad_shares.len() > 0 {
             return Err(MPCError::MalformedProofShares { bad_shares });
         }
-
+        
         let t_x: Scalar = proof_shares.iter().map(|ps| ps.t_x).sum();
         let t_x_blinding: Scalar = proof_shares.iter().map(|ps| ps.t_x_blinding).sum();
         let e_blinding: Scalar = proof_shares.iter().map(|ps| ps.e_blinding).sum();
-
+        
         self.transcript.append_scalar(b"t_x", &t_x);
         self.transcript
-            .append_scalar(b"t_x_blinding", &t_x_blinding);
+        .append_scalar(b"t_x_blinding", &t_x_blinding);
         self.transcript.append_scalar(b"e_blinding", &e_blinding);
-
+        
         // Get a challenge value to combine statements for the IPP
         let w = self.transcript.challenge_scalar(b"w");
+        println!("prove w: {:?}", w.as_bytes());
         let Q = w * self.pc_gens.B;
 
         let G_factors: Vec<Scalar> = iter::repeat(Scalar::one()).take(self.n * self.m).collect();
@@ -268,6 +270,7 @@ impl<'a, 'b> DealerAwaitingProofShares<'a, 'b> {
             .iter()
             .flat_map(|ps| ps.r_vec.clone().into_iter())
             .collect();
+        
 
         let ipp_proof = inner_product_proof::InnerProductProof::create(
             self.transcript,
@@ -298,10 +301,10 @@ impl<'a, 'b> DealerAwaitingProofShares<'a, 'b> {
     ///
     /// This is a convenience wrapper around receive_shares_with_rng
     ///
-    #[cfg(feature = "std")]
+    /*#[cfg(feature = "std")]
     pub fn receive_shares(self, proof_shares: &[ProofShare]) -> Result<RangeProof, MPCError> {
         self.receive_shares_with_rng(proof_shares, &mut thread_rng())
-    }
+    }*/
 
     /// Assemble the final aggregated [`RangeProof`] from the given
     /// `proof_shares`, then validate the proof to ensure that all
@@ -316,10 +319,10 @@ impl<'a, 'b> DealerAwaitingProofShares<'a, 'b> {
     /// performing local aggregation,
     /// [`receive_trusted_shares`](DealerAwaitingProofShares::receive_trusted_shares)
     /// saves time by skipping verification of the aggregated proof.
-    pub fn receive_shares_with_rng<T: RngCore + CryptoRng>(
+    pub fn receive_shares_with_rng(
         mut self,
         proof_shares: &[ProofShare],
-        rng: &mut T,
+        c: Scalar
     ) -> Result<RangeProof, MPCError> {
         let proof = self.assemble_shares(proof_shares)?;
 
@@ -328,7 +331,7 @@ impl<'a, 'b> DealerAwaitingProofShares<'a, 'b> {
         // See comment in `Dealer::new` for why we use `initial_transcript`
         let transcript = &mut self.initial_transcript;
         if proof
-            .verify_multiple_with_rng(self.bp_gens, self.pc_gens, transcript, &Vs, self.n, rng)
+            .verify_multiple_with_rng(self.bp_gens, self.pc_gens, transcript, &Vs, self.n, c)
             .is_ok()
         {
             Ok(proof)

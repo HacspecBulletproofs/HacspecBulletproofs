@@ -89,7 +89,6 @@ impl VecPoly1 {
 
         let t0 = inner_product(&l.0, &r.0);
         let t2 = inner_product(&l.1, &r.1);
-
         let l0_plus_l1 = add_vec(&l.0, &l.1);
         let r0_plus_r1 = add_vec(&r.0, &r.1);
 

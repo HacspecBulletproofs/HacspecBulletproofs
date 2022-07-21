@@ -136,9 +136,9 @@ pub struct BulletproofGens {
     /// Number of values or parties
     pub party_capacity: usize,
     /// Precomputed \\(\mathbf G\\) generators for each party.
-    G_vec: Vec<Vec<RistrettoPoint>>,
+    pub G_vec: Vec<Vec<RistrettoPoint>>,
     /// Precomputed \\(\mathbf H\\) generators for each party.
-    H_vec: Vec<Vec<RistrettoPoint>>,
+    pub H_vec: Vec<Vec<RistrettoPoint>>,
 }
 
 impl BulletproofGens {

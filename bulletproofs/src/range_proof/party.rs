@@ -18,14 +18,12 @@ use core::iter;
 use curve25519_dalek::ristretto::{CompressedRistretto, RistrettoPoint};
 use curve25519_dalek::scalar::Scalar;
 use curve25519_dalek::traits::MultiscalarMul;
-use rand_core::{CryptoRng, RngCore};
 
 use crate::errors::MPCError;
 use crate::generators::{BulletproofGens, PedersenGens};
 use crate::util;
 
 #[cfg(feature = "std")]
-use rand::thread_rng;
 
 use super::messages::*;
 
@@ -120,7 +118,6 @@ impl<'a> PartyAwaitingPosition<'a> {
                 .chain(bp_share.G(self.n))
                 .chain(bp_share.H(self.n)),
         );
-
         // Return next state and all commitments
         let bit_commitment = BitCommitment {
             V_j: self.V,
@@ -185,7 +182,10 @@ impl<'a> PartyAwaitingBitChallenge<'a> {
     ) -> (PartyAwaitingPolyChallenge, PolyCommitment) {
         let n = self.n;
         let offset_y = util::scalar_exp_vartime(&vc.y, (self.j * n) as u64);
-        let offset_z = util::scalar_exp_vartime(&vc.z, self.j as u64);
+
+        let offset_z = util::scalar_exp_vartime(&vc.z, self.j as u64); //THIS FUNCTION IS NOT A NORMAL EXPONENTIAL FUNCTION!!!
+
+        
 
         // Calculate t by calculating vectors l0, l1, r0, r1 and multiplying
         let mut l_poly = util::VecPoly1::zero(n);
@@ -194,6 +194,7 @@ impl<'a> PartyAwaitingBitChallenge<'a> {
         let offset_zz = vc.z * vc.z * offset_z;
         let mut exp_y = offset_y; // start at y^j
         let mut exp_2 = Scalar::one(); // start at 2^0 = 1
+
         for i in 0..n {
             let a_L_i = Scalar::from((self.v >> i) & 1);
             let a_R_i = a_L_i - Scalar::one();
@@ -212,6 +213,7 @@ impl<'a> PartyAwaitingBitChallenge<'a> {
         // Generate x by committing to T_1, T_2 (line 49-54)
         let T_1 = self.pc_gens.commit(t_poly.1, t_1_blinding);
         let T_2 = self.pc_gens.commit(t_poly.2, t_2_blinding);
+
 
         let poly_commitment = PolyCommitment {
             T_1_j: T_1,
