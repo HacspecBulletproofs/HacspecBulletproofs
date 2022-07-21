@@ -4,7 +4,7 @@ mod dealer;
 mod party;
 mod errors;
 mod types;
-//use transcript::*;
+use transcript::*;
 use dealer::*;
 use party::*;
 use errors::*;
@@ -17,6 +17,7 @@ use hacspec_ipp::*;
 //use hacspec_pedersen::*;
 
 type RangeProofRes = Result<(RangeProof, Seq<RistrettoPointEncoded>), u8>;
+type VerifyRes = Result<(),u8>;
 
 pub type RangeProof = (
     /* Commitment to the bits of the value*/
@@ -55,12 +56,12 @@ pub fn prove(
     -> RangeProofRes {
 
         #[allow(unused)]
-        let mut res =  RangeProofRes::Err(0u8);
+        let mut res = RangeProofRes::Err(0u8);
 
         if values.len() != v_blindings.len() {
             res = RangeProofRes::Err(WRONG_NUMBER_OF_BLINDINGS);
         }
-        else{ if !(n == 8 || n == 16 || n == 32 || n == 64) {
+        else { if !(n == 8 || n == 16 || n == 32 || n == 64) {
             res = RangeProofRes::Err(INVALID_BIT_SIZE);
         }
         else{
@@ -192,8 +193,168 @@ pub fn prove(
 
             let proof = receive_shares(dealer_awaiting_proof_shares, t_xs,t_x_blindings,e_blindings,l_vecs,r_vecs)?;
 
-            res = RangeProofRes::Ok((proof,value_commitments));
+            res = RangeProofRes::Ok((proof, value_commitments));
             
         }}
+        res
+    }
+
+pub fn verify(
+    proof: RangeProof, 
+    bp_gens: BulletproofGens, 
+    pc_gens: PedersenGens, 
+    mut transcript: Transcript, 
+    value_commitments: Seq<RistrettoPointEncoded>,
+    n: usize,
+    c: Scalar)
+    -> VerifyRes {
+    
+    #[allow(unused)]
+    let mut res = VerifyRes::Err(0u8);
+
+    let m = value_commitments.len();
+
+    let (party_capacity, gens_capacity, g_vec, h_vec) = bp_gens;
+
+    if !(n == 8 || n == 16 || n == 32 || n == 64) {
+        res = VerifyRes::Err(INVALID_BIT_SIZE);
+    }
+    else{ if gens_capacity < n || party_capacity < m {
+        res = VerifyRes::Err(INVALID_GENERATORS_LENGTH)
+    }
+    else {
+        transcript = rangeproof_domain_sep(transcript,U64::classify(n as u64),U64::classify(m as u64));
+
+        for i in 0..value_commitments.len() { 
+            transcript = append_point(transcript, byte_seq!(86u8), value_commitments[i]);
+        }
+
+        let (A, S, T_1, T_2, t_x, t_x_blinding, e_blinding, (a, b, L_vec, R_vec)) = proof;
+
+        transcript = validate_and_append_point(transcript, byte_seq!(65u8), A)?;
+        transcript = validate_and_append_point(transcript, byte_seq!(83u8), S)?;
+
+        let (transcript, y) = challenge_scalar(transcript, byte_seq!(121u8));
+        let (mut transcript, z) = challenge_scalar(transcript, byte_seq!(122u8));
+
+        let zz = z * z;
+        let minus_z = Scalar::from_literal(0u128) - z;
+
+        transcript = validate_and_append_point(transcript, byte_seq!(84u8, 95u8, 49u8), T_1)?;
+        transcript = validate_and_append_point(transcript, byte_seq!(84u8, 95u8, 50u8), T_2)?;
+
+        let (mut transcript, x) = challenge_scalar(transcript, byte_seq!(120u8));
+
+        transcript = append_scalar(transcript, byte_seq!(116u8, 95u8, 120u8), t_x);
+        transcript = append_scalar(transcript, byte_seq!(116u8, 95u8, 120u8, 95u8, 98u8, 108u8, 105u8, 110u8, 100u8, 105u8, 110u8, 103u8), t_x_blinding);
+        transcript = append_scalar(transcript, byte_seq!(101u8, 95u8, 98u8, 108u8, 105u8, 110u8, 100u8, 105u8, 110u8, 103u8), e_blinding);
+
+        let (transcript, w) = challenge_scalar(transcript, byte_seq!(119u8));
+
+        let (x_sq, x_inv_sq, s) = verification_scalars((a, b, L_vec.clone(), R_vec.clone()), n * m, transcript)?;
+
+        let mut s_inv = Seq::<Scalar>::new(s.len());
+
+        for i in 0..s.len() {
+            s_inv[i] = s[s.len()-1-i];
+        }
+
+        let mut powers_of_2 = Seq::<Scalar>::new(n);
+        let two = Scalar::from_literal(2u128);
+        for i in 0..n {
+            powers_of_2[i] = two^(Scalar::from_literal(i as u128));
+        }
+
+        let mut z_and_2 = Seq::<Scalar>::new(n*m);
+        for i in 0..m {
+            let exp_z = z^(Scalar::from_literal(i as u128));
+            for j in 0..n {
+                z_and_2[n*i+j] = exp_z * powers_of_2[j];
+            }
+        }
+
+        let mut g = Seq::<Scalar>::new(s.len());
+        let mut h = Seq::<Scalar>::new(s.len());
+
+        for i in 0..s.len(){
+
+            g[i] = minus_z - a * s[i];
+
+            let exp_y_inv = y.inv()^(Scalar::from_literal(i as u128));
+            h[i] = z + exp_y_inv * (zz * z_and_2[i] - b * s_inv[i]);
+        }
+
+        let mut value_commitment_scalars = Seq::<Scalar>::new(m);
+        for i in 0..m { 
+            value_commitment_scalars[i] = c * zz * z^(Scalar::from_literal(i as u128));
+        }
+
+        let sum_y = sum_of_powers(y, n*m);
+        let sum_2 = sum_of_powers(Scalar::from_literal(2u128),n);
+        let sum_z = sum_of_powers(z,m);
+        let delta = (z - z * z) * sum_y - z * z * z * sum_2 * sum_z;
+        
+        let basepoint_scalar = w * (t_x - a * b) + c * (delta - t_x);
+
+        let (base_point, blinding_point) = pc_gens;
+
+        let A_decoded = decode(A)?;
+        let S_decoded = decode(S)?;
+        let T_1_decoded = decode(T_1)?;
+        let T_2_decoded = decode(T_2)?;
+    
+
+        let mut mega_check = add(A_decoded, 
+                         add(mul(x, S_decoded),
+                         add(mul(c*x, T_1_decoded),
+                         add(mul(c*x*x, T_2_decoded),
+                         add(mul((Scalar::from_literal(0u128)-e_blinding) - c* t_x_blinding, blinding_point),
+                         mul(basepoint_scalar, base_point)
+                         ))))); //MEGA-possible there is an error here
+
+        for i in 0..L_vec.len() {
+            let L_vec_i = decode(L_vec[i])?;
+            let R_vec_i = decode(R_vec[i])?;
+            mega_check = add(mega_check, mul(x_sq[i], L_vec_i));
+            mega_check = add(mega_check, mul(x_inv_sq[i], R_vec_i));
+        }
+
+        let mut G = Seq::<RistrettoPoint>::new(n*m);
+        let mut H = Seq::<RistrettoPoint>::new(n*m);
+
+        for i in 0..m {
+            let g_vec_i = g_vec[i].clone();
+            let h_vec_i = h_vec[i].clone();
+            for j in 0..n {
+                G[m*i + j] = g_vec_i[j];
+                H[m*i + j] = h_vec_i[j];
+
+            }
+        }
+
+        for i in 0..n*m {
+            mega_check = add(mega_check, mul(g[i], G[i]));
+            mega_check = add(mega_check, mul(h[i], H[i]));
+        }
+
+        for i in 0..value_commitments.len() {
+            let value = decode(value_commitments[i])?;
+            mega_check = add(mega_check, mul(value_commitment_scalars[i], value));
+        }
+
+        if equals(mega_check,IDENTITY_POINT()) {
+            res = VerifyRes::Ok(());
+        }
+        else { 
+            res = VerifyRes::Err(VERIFICATION_ERROR);
+        }}}
+    res
+    }
+
+    fn sum_of_powers(x: Scalar, n: usize) -> Scalar {
+        let mut res = Scalar::from_literal(0u128);
+        for i in 0..n {
+            res = res + x^(Scalar::from_literal(i as u128));
+        }
         res
     }

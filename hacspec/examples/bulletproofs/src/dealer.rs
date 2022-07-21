@@ -249,19 +249,21 @@ pub fn receive_shares(dealer: DealerAwaitingProofShares,
             transcript = append_scalar(transcript,e_blinding_label, e_blinding);
             
             // Get a challenge value to combine statements for the IPP
-            let (new_transcript, w) = challenge_scalar(transcript, byte_seq!(119u8));
+            let (transcript, w) = challenge_scalar(transcript, byte_seq!(119u8));
             let (base_point, _) = pc_gens;
             let Q = mul(w, base_point);
             
             let mut G_factors = Seq::<Scalar>::new(n*m);
             let mut H_factors = Seq::<Scalar>::new(n*m);
-            let (_, bit_challenge_y) = bit_challenge;
+            let (bit_challenge_y, _) = bit_challenge;
             let one = Scalar::from_literal(1u128);
             let y_inv = bit_challenge_y.inv();
+            let mut y_inv_exp = Scalar::from_literal(1u128);
 
             for i in 0..n*m {
                 G_factors[i] = one;
-                H_factors[i] = y_inv^(Scalar::from_literal(i as u128));
+                H_factors[i] = y_inv_exp; 
+                y_inv_exp = y_inv_exp * y_inv;
             }
 
             let mut l_vec = Seq::<Scalar>::new(n * t_xs.len());
@@ -271,29 +273,29 @@ pub fn receive_shares(dealer: DealerAwaitingProofShares,
                 let l_vec_i = l_vecs[i].clone();
                 let r_vec_i = r_vecs[i].clone();
                 for j in 0..l_vec_i.len() {
-                    l_vec[i*l_vecs.len() + j] = l_vec_i[j];
-                    r_vec[i*l_vecs.len() + j] = r_vec_i[j];
+                    l_vec[i*l_vec_i.len() + j] = l_vec_i[j];
+                    r_vec[i*l_vec_i.len() + j] = r_vec_i[j];
                 }
             }
-
+            
             // Here we begin using g_vec and h_vec which were unpacked from dealer
-
+            
             let mut G = Seq::<RistrettoPoint>::new(n*m);
             let mut H = Seq::<RistrettoPoint>::new(n*m);
-
+            
             for i in 0..m {
                 let g_vec_i = g_vec[i].clone();
                 let h_vec_i = h_vec[i].clone();
                 for j in 0..n {
-                    G[m*i + j] = g_vec_i[j];
-                    H[m*i + j] = h_vec_i[j];
+                    G[n*i + j] = g_vec_i[j];
+                    H[n*i + j] = h_vec_i[j];
 
                 }
             }
+            
+            let (_, (a,b,L_vec,R_vec)) = create(transcript,Q,G_factors,H_factors,G,H, l_vec, r_vec)?;
 
-            let (_, ipp) = create(new_transcript,Q,G_factors,H_factors,G,H, l_vec,r_vec)?;
-
-            let rangeproof = (encode(A),encode(S),encode(T_1),encode(T_2),t_x,t_x_blinding,e_blinding,ipp);
+            let rangeproof = (encode(A),encode(S),encode(T_1),encode(T_2),t_x,t_x_blinding,e_blinding,(a,b,L_vec,R_vec));
 
             res = ReceiveSharesRes::Ok(rangeproof);
 
