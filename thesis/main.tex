@@ -30,6 +30,10 @@
 \renewcommand{\P}{\mathcal{P}}
 \renewcommand{\O}{\mathcal{O}}
 \newcommand{\F}{\mathbb{F}}
+\newcommand{\G}{\mathbb{G}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand\doubleplus{\mathbin{+\mkern-10mu+}} % concat-symbol
+\newcommand{\dotp}[2]{\langle #1, #2 \rangle}
 
 % === Header === %
 
@@ -386,9 +390,43 @@ $$\V \rightarrow \P: (\vec{f_x}, \vec{f_y}, r_x, r_y, r_z)$$
 }
 
 \eq{
+	\vec{a}, \vec{b} &\in \Z^n_p \\
+	\vec{G}, \vec{H} &\in \G^n \\
+	P &= \dotp{\vec{a}}{\vec{G}} + \dotp{\vec{b}}{\vec{H}} \\
+	c &= \dotp{\vec{a}}{\vec{b}} \\
+}
+
+\eq{
+	P' &= \dotp{\vec{a}}{\vec{G}} + \dotp{\vec{b}}{\vec{H}} + \dotp{\vec{a}}{\vec{b}}Q \\
+}
+
+\eq{
+	\vec{a}^{(k-1)} &= \vec{a_{L}} \cdot u_k      + u^{-1}_k \cdot \vec{a_R} \\
+	\vec{b}^{(k-1)} &= \vec{b_{L}} \cdot u^{-1}_k + u_k      \cdot \vec{b_R} \\
+	\vec{G}^{(k-1)} &= \vec{G_{L}} \cdot u^{-1}_k + u_k      \cdot \vec{G_R} \\
+	\vec{H}^{(k-1)} &= \vec{H_{L}} \cdot u_k      + u^{-1}_k \cdot \vec{H_R} \\
+}
+
+\eq{
+	P_{k-1} = \dotp{\vec{a}^{(k-1)}}{\vec{G}^{(k-1)}} + \dotp{\vec{b}^{(k-1)}}{\vec{H}^{(k-1)}} + \dotp{\vec{a}^{(k-1)}}{\vec{b}^{(k-1)}} \cdot Q
+}
+
+\eq{
 	L_a &= \vec{a_L G_R} \\
 	L_b &= \vec{b_L H_R} \\
 	L   &= \vec{L_a + L_b} \\
+}
+
+\eq{
+	\vec{l_{s}} &= \vec{a_L \doubleplus b_R \doubleplus [c_L]} \\
+	\vec{L_{p}} &= \vec{G_R \doubleplus H_L \doubleplus [Q] } \\
+	L   &= \vec{l_s L_p} \\
+}
+
+\eq{
+	\vec{r_{s}} &= \vec{a_R \doubleplus b_L \doubleplus [c_R]} \\
+	\vec{R_{p}} &= \vec{G_L \doubleplus H_R \doubleplus [Q] } \\
+	R   &= \vec{r_s R_p} \\
 }
 
 \eq{
@@ -396,8 +434,6 @@ $$\V \rightarrow \P: (\vec{f_x}, \vec{f_y}, r_x, r_y, r_z)$$
 	R_b &= \vec{b_R H_L} \\
 	R   &= \vec{R_a + R_b} \\
 }
-
-
 
 \subsubsection{Range Proofs:}
 
