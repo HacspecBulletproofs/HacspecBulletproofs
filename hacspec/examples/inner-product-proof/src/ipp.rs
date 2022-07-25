@@ -5,7 +5,6 @@
 #![allow(unused_assignments)]
 
 use hacspec_lib::*;
-//use hacspec_linalg_field::*;
 use hacspec_merlin::*;
 use hacspec_ristretto::*;
 
@@ -71,6 +70,9 @@ fn rev(xs: Seq<Scalar>) -> Seq<Scalar> {
 
 // === External Functions === //
 
+/// Create an inner product proof.
+/// Note that `G_factors`, and `H_factors` simply represent factors
+/// multiplied to the `G` and `H` Seqs respectively.
 pub fn create(
     mut transcript: Transcript,
     Q: RistrettoPoint,
@@ -84,78 +86,83 @@ pub fn create(
     let mut ret = IppRes::Err(0);
     let mut n = G.len();
 
-    // Handle errors
-    if n != H.len() || n != a.len() || n != b.len() || n != G_factors.len() || n != H_factors.len()
+    // Check inputs
+    if n == H.len()
+        && n == a.len()
+        && n == b.len()
+        && n == G_factors.len()
+        && n == H_factors.len()
+        && n.is_power_of_two()
     {
-        ret = IppRes::Err(INPUTS_NOT_LEN_N);
+        transcript = innerproduct_domain_sep(transcript, U64::classify(n as u64));
+
+        let lg_n = n.log2() as usize;
+        let mut L_vec = Seq::<RistrettoPointEncoded>::with_capacity(lg_n);
+        let mut R_vec = Seq::<RistrettoPointEncoded>::with_capacity(lg_n);
+
+        // Apply H_factors and G_factors
+        for i in 0..n {
+            H[i] = mul(H_factors[i], H[i]);
+            G[i] = mul(G_factors[i], G[i]);
+        }
+
+        // while n != 1
+        for _ in 0..lg_n {
+            n = n / 2;
+            let (mut a_L, a_R) = a.clone().split_off(n);
+            let (mut b_L, b_R) = b.clone().split_off(n);
+            let (mut G_L, G_R) = G.clone().split_off(n);
+            let (mut H_L, H_R) = H.clone().split_off(n);
+
+            let c_L = inner_product(a_L.clone(), b_R.clone());
+            let c_R = inner_product(a_R.clone(), b_L.clone());
+
+            // concat(a_L, b_R, c_L), concat(G_R, H_L, Q)
+            let L_scalars = (a_L.concat(&b_R)).push(&c_L);
+            let L_points = (G_R.concat(&H_L)).push(&Q);
+
+            // concat(a_R, b_L, c_R), concat(G_L, H_R, Q)
+            let R_scalars = (a_R.concat(&b_L)).push(&c_R);
+            let R_points = (G_L.concat(&H_R)).push(&Q);
+
+            let L = encode(point_dot(L_scalars, L_points));
+            let R = encode(point_dot(R_scalars, R_points));
+
+            L_vec = L_vec.push(&L);
+            R_vec = R_vec.push(&R);
+
+            transcript = append_point(transcript, L_U8(), L);
+            transcript = append_point(transcript, R_U8(), R);
+
+            let (trs, u) = challenge_scalar(transcript, u_U8());
+            transcript = trs;
+            let u_inv = u.inv();
+
+            for i in 0..n {
+                a_L[i] = a_L[i] * u + u_inv * a_R[i];
+                b_L[i] = b_L[i] * u_inv + u * b_R[i];
+                G_L[i] = add(mul(u_inv, G_L[i]), mul(u, G_R[i]));
+                H_L[i] = add(mul(u, H_L[i]), mul(u_inv, H_R[i]));
+            }
+
+            a = a_L;
+            b = b_L;
+            G = G_L;
+            H = H_L;
+        }
+
+        let ipp = (a[0], b[0], L_vec, R_vec);
+        ret = IppRes::Ok((transcript, ipp));
     } else {
+        // Handle errors
         if !n.is_power_of_two() {
             ret = IppRes::Err(N_IS_NOT_POWER_OF_TWO);
         } else {
-            transcript = innerproduct_domain_sep(transcript, U64::classify(n as u64));
-
-            let lg_n = n.log2() as usize;
-            let mut L_vec = Seq::<RistrettoPointEncoded>::with_capacity(lg_n);
-            let mut R_vec = Seq::<RistrettoPointEncoded>::with_capacity(lg_n);
-
-            for i in 0..n {
-                H[i] = mul(H_factors[i], H[i]);
-                G[i] = mul(G_factors[i], G[i]);
-            }
-
-            // while n != 1
-            for _ in 0..lg_n {
-                n = n / 2;
-                let (mut a_L, a_R) = a.clone().split_off(n);
-                let (mut b_L, b_R) = b.clone().split_off(n);
-                let (mut G_L, G_R) = G.clone().split_off(n);
-                let (mut H_L, H_R) = H.clone().split_off(n);
-
-                let c_L = inner_product(a_L.clone(), b_R.clone());
-                let c_R = inner_product(a_R.clone(), b_L.clone());
-
-                // concat(a_L, b_R, c_L), concat(G_R, H_L, Q)
-                let L_scalars = (a_L.concat(&b_R)).push(&c_L);
-                let L_points = (G_R.concat(&H_L)).push(&Q);
-
-                // concat(a_R, b_L, c_R), concat(G_L, H_R, Q)
-                let R_scalars = (a_R.concat(&b_L)).push(&c_R);
-                let R_points = (G_L.concat(&H_R)).push(&Q);
-
-                let L = encode(point_dot(L_scalars, L_points));
-                let R = encode(point_dot(R_scalars, R_points));
-
-                L_vec = L_vec.push(&L);
-                R_vec = R_vec.push(&R);
-
-                transcript = append_point(transcript, L_U8(), L);
-                transcript = append_point(transcript, R_U8(), R);
-
-                let (trs, u) = challenge_scalar(transcript, u_U8());
-                transcript = trs;
-                let u_inv = u.inv();
-
-                for i in 0..n {
-                    a_L[i] = a_L[i] * u + u_inv * a_R[i];
-                    b_L[i] = b_L[i] * u_inv + u * b_R[i];
-                    G_L[i] = add(mul(u_inv, G_L[i]), mul(u, G_R[i]));
-                    H_L[i] = add(mul(u, H_L[i]), mul(u_inv, H_R[i]));
-                }
-
-                a = a_L;
-                b = b_L;
-                G = G_L;
-                H = H_L;
-
-            }
-
-            let ipp = (a[0], b[0], L_vec, R_vec);
-            ret = IppRes::Ok((transcript, ipp));
+            ret = IppRes::Err(INPUTS_NOT_LEN_N);
         }
-
-}
-        ret
     }
+    ret
+}
 
 pub fn verification_scalars(
     ipp: InnerProductProof,
@@ -236,7 +243,7 @@ pub fn verify(
 
     let mut gas = Seq::<Scalar>::new(G.len());
     for i in 0..G.len() {
-        gas[i] = a * s[i] * G_factors[i]
+        gas[i] = G_factors[i] * a * s[i]
     }
 
     let inv_s = rev(s);
