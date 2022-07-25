@@ -261,32 +261,37 @@ pub fn verify(
 
         let mut powers_of_2 = Seq::<Scalar>::new(n);
         let two = Scalar::from_literal(2u128);
-        for i in 0..n {
-            powers_of_2[i] = two^(Scalar::from_literal(i as u128));
+        powers_of_2[0] = Scalar::from_literal(1u128);
+        for i in 1..n {
+            powers_of_2[i] = two * powers_of_2[i-1usize];
         }
 
         let mut z_and_2 = Seq::<Scalar>::new(n*m);
+        let mut z_exp = Scalar::from_literal(1u128);
         for i in 0..m {
-            let exp_z = z^(Scalar::from_literal(i as u128));
             for j in 0..n {
-                z_and_2[n*i+j] = exp_z * powers_of_2[j];
+                z_and_2[n*i + j] = z_exp * powers_of_2[j];
             }
+            z_exp = z_exp * z;
         }
 
         let mut g = Seq::<Scalar>::new(s.len());
         let mut h = Seq::<Scalar>::new(s.len());
+        let mut y_inv_exp = Scalar::from_literal(1u128);
 
         for i in 0..s.len(){
 
             g[i] = minus_z - a * s[i];
 
-            let exp_y_inv = y.inv()^(Scalar::from_literal(i as u128));
-            h[i] = z + exp_y_inv * (zz * z_and_2[i] - b * s_inv[i]);
+            h[i] = z + y_inv_exp * (zz * z_and_2[i] - b * s_inv[i]);
+            y_inv_exp = y.inv() * y_inv_exp;
         }
 
         let mut value_commitment_scalars = Seq::<Scalar>::new(m);
-        for i in 0..m { 
-            value_commitment_scalars[i] = c * zz * z^(Scalar::from_literal(i as u128));
+        let mut z_exp = Scalar::from_literal(1u128);
+        for i in 0..m {
+            value_commitment_scalars[i] = c * zz * z_exp;
+            z_exp = z_exp * z;
         }
 
         let sum_y = sum_of_powers(y, n*m);
@@ -298,11 +303,31 @@ pub fn verify(
 
         let (base_point, blinding_point) = pc_gens;
 
+        println!("hac x: {:?}", x.to_le_bytes());
+        println!("hac c: {:?}", c.to_le_bytes());
+        for i in 0..x_sq.len() { 
+            println!("hac x_sq: {:?}", x_sq[i].to_le_bytes());
+        }
+        for i in 0..x_inv_sq.len() { 
+            println!("hac x_inv_sq: {:?}", x_inv_sq[i].to_le_bytes());
+        }
+        println!("hac e_blinding: {:?}", e_blinding.to_le_bytes());
+        println!("hac t_x_blinding: {:?}", t_x_blinding.to_le_bytes());
+        println!("hac basepoint_scalar: {:?}", basepoint_scalar.to_le_bytes());
+        for i in 0..g.len(){
+            println!("hac g: {:?}", g[i].to_le_bytes());
+        }
+        for i in 0..h.len(){
+            println!("hac h: {:?}", h[i].to_le_bytes());
+        }
+        for i in 0..value_commitment_scalars.len(){
+            println!("hac vc_scalars: {:?}", value_commitment_scalars[i].to_le_bytes());
+        }
+
         let A_decoded = decode(A)?;
         let S_decoded = decode(S)?;
         let T_1_decoded = decode(T_1)?;
         let T_2_decoded = decode(T_2)?;
-    
 
         let mut mega_check = add(A_decoded, 
                          add(mul(x, S_decoded),
@@ -326,8 +351,8 @@ pub fn verify(
             let g_vec_i = g_vec[i].clone();
             let h_vec_i = h_vec[i].clone();
             for j in 0..n {
-                G[m*i + j] = g_vec_i[j];
-                H[m*i + j] = h_vec_i[j];
+                G[n*i + j] = g_vec_i[j];
+                H[n*i + j] = h_vec_i[j];
 
             }
         }
@@ -353,8 +378,10 @@ pub fn verify(
 
     fn sum_of_powers(x: Scalar, n: usize) -> Scalar {
         let mut res = Scalar::from_literal(0u128);
-        for i in 0..n {
-            res = res + x^(Scalar::from_literal(i as u128));
+        let mut x_exp = Scalar::from_literal(1u128);
+        for _ in 0..n {
+            res = res + x_exp;
+            x_exp = x_exp * x;
         }
         res
     }

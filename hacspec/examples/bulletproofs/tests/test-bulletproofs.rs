@@ -6,8 +6,6 @@ use hacspec_lib::*;
 use hacspec_ristretto::*;
 use hacspec_ristretto::Scalar as hac_scalar;
 use hacspec_ipp::InnerProductProof as hac_ipp;
-//use hacspec_merlin::*; Currently unused
-
 
 extern crate rand;
 use rand::*;
@@ -16,11 +14,10 @@ extern crate curve25519_dalek_ng;
 use curve25519_dalek_ng::scalar::Scalar as rust_scalar;
 use curve25519_dalek_ng::ristretto::CompressedRistretto;
 
-/*extern crate merlin;
-use merlin::Transcript;*/ //currently unused
-
 extern crate bulletproofs;
 use bulletproofs::{BulletproofGens, PedersenGens, RangeProof};
+
+// HELPER FUNCTIONS //
 
 fn convert(point: curve25519_dalek_ng::ristretto::RistrettoPoint) -> RistrettoPoint {
     decode(RistrettoPointEncoded::from_public_array(point.compress().to_bytes())).unwrap()
@@ -28,13 +25,13 @@ fn convert(point: curve25519_dalek_ng::ristretto::RistrettoPoint) -> RistrettoPo
 }
 
 fn create_bp_gens(number_of_values: usize, n:usize) -> ((usize, usize, Seq<Seq<RistrettoPoint>>, Seq<Seq<RistrettoPoint>>), BulletproofGens) {
-    let bp_gens_rust = BulletproofGens::new(64,number_of_values);
+    let bp_gens_rust = BulletproofGens::new(n,number_of_values);
 
     let mut bp_gens_G_vec_hac = Seq::<Seq<RistrettoPoint>>::new(number_of_values);
     let mut bp_gens_H_vec_hac = Seq::<Seq<RistrettoPoint>>::new(number_of_values);
     for i in 0..number_of_values {
-        bp_gens_G_vec_hac[i] = Seq::<RistrettoPoint>::new(64usize);
-        bp_gens_H_vec_hac[i] = Seq::<RistrettoPoint>::new(64usize);
+        bp_gens_G_vec_hac[i] = Seq::<RistrettoPoint>::new(n);
+        bp_gens_H_vec_hac[i] = Seq::<RistrettoPoint>::new(n);
         for j in 0..n{
             bp_gens_G_vec_hac[i][j] = convert(bp_gens_rust.G_vec[i][j]);
             bp_gens_H_vec_hac[i][j] = convert(bp_gens_rust.H_vec[i][j]);
@@ -176,21 +173,13 @@ fn compare_seqs(hac: Seq<RistrettoPointEncoded>, rust: Vec<CompressedRistretto>)
     }
     let mut res = true;
     for i in 0..hac.len() {
-        /*println!("hac index {}: {:?}", i, hac[i].to_le_bytes());
-        println!("rust index {}: {:?}", i, rust[i].to_bytes());*/
-
         res = res && compare_encoded_points(hac[i], rust[i]);
     }
     return res
 }
 
-#[test]
-fn main() {
+fn test_bulletproofs(number_of_values: usize, n: usize) {
 
-    
-
-    let number_of_values = 2usize;
-    let n = 8usize;
     let (bp_gens_hac, bp_gens_rust) = create_bp_gens(number_of_values, n);
     let (pc_gens_hac, pc_gens_rust) = create_pc_gens();
     let (transcript_hac, mut transcript_rust) = create_transcript();
@@ -205,7 +194,6 @@ fn main() {
     let (t2_blindings_hac, t2_blindings_rust) = generate_random_scalars(number_of_values);
 
 
-    // Create a 8-bit rangeproof.
     let (proof_rust, committed_values_rust) = RangeProof::prove_multiple_with_rng(
         &bp_gens_rust,
         &pc_gens_rust,
@@ -263,15 +251,86 @@ fn main() {
     assert!(verified_rust.is_ok());
     assert!(verified_hac.is_ok());
 
-    
-
 }
 
-//#[test]
-/*fn print() { 
-    let hac_scalar = hacspec_ristretto::Scalar::from_literal(2 as u128);
-    let rust_scalar = curve25519_dalek_ng::scalar::Scalar::from(2 as u64);
-    println!("{:?}",hac_scalar.to_le_bytes());
-    println!("{:?}",rust_scalar.as_bytes());
-    assert!(false);
+// TEST FUNCTIONS:
+
+#[test]
+fn i2j8() {
+    test_bulletproofs(2,8);
+}
+/*
+#[test]
+fn i2j16() {
+    test_bulletproofs(2,16);
+}
+
+#[test]
+fn i2j32() {
+    test_bulletproofs(2,32);
+}
+
+#[test]
+fn i2j64() {
+    test_bulletproofs(2,64);
+}
+
+#[test]
+fn i4j8() {
+    test_bulletproofs(4,8);
+}
+
+#[test]
+fn i4j16() {
+    test_bulletproofs(4,16);
+}
+
+#[test]
+fn i4j32() {
+    test_bulletproofs(4,32);
+}
+
+#[test]
+fn i4j64() {
+    test_bulletproofs(4,64);
+}
+
+#[test]
+fn i8j8() {
+    test_bulletproofs(8,8);
+} 
+
+#[test]
+fn i8j16() {
+    test_bulletproofs(8,16);
+}
+
+#[test]
+fn i8j32() {
+    test_bulletproofs(8,32);
+}
+
+#[test]
+fn i8j64() {
+    test_bulletproofs(8,64);
+}
+
+#[test]
+fn i16j8() {
+    test_bulletproofs(16,8);
+}
+
+#[test]
+fn i16j16() {
+    test_bulletproofs(16,16);
+}
+
+#[test]
+fn i16j32() {
+    test_bulletproofs(16,32);
+}
+
+#[test] 
+fn i16j64() {
+    test_bulletproofs(16,64);
 }*/
