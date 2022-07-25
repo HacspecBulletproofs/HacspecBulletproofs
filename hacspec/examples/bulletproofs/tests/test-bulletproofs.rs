@@ -259,7 +259,7 @@ fn test_bulletproofs(number_of_values: usize, n: usize) {
 fn i2j8() {
     test_bulletproofs(2,8);
 }
-/*
+
 #[test]
 fn i2j16() {
     test_bulletproofs(2,16);
@@ -333,4 +333,4 @@ fn i16j32() {
 #[test] 
 fn i16j64() {
     test_bulletproofs(16,64);
-}*/
+}
