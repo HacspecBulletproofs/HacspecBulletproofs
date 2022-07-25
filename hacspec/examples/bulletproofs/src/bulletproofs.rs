@@ -303,27 +303,6 @@ pub fn verify(
 
         let (base_point, blinding_point) = pc_gens;
 
-        println!("hac x: {:?}", x.to_le_bytes());
-        println!("hac c: {:?}", c.to_le_bytes());
-        for i in 0..x_sq.len() { 
-            println!("hac x_sq: {:?}", x_sq[i].to_le_bytes());
-        }
-        for i in 0..x_inv_sq.len() { 
-            println!("hac x_inv_sq: {:?}", x_inv_sq[i].to_le_bytes());
-        }
-        println!("hac e_blinding: {:?}", e_blinding.to_le_bytes());
-        println!("hac t_x_blinding: {:?}", t_x_blinding.to_le_bytes());
-        println!("hac basepoint_scalar: {:?}", basepoint_scalar.to_le_bytes());
-        for i in 0..g.len(){
-            println!("hac g: {:?}", g[i].to_le_bytes());
-        }
-        for i in 0..h.len(){
-            println!("hac h: {:?}", h[i].to_le_bytes());
-        }
-        for i in 0..value_commitment_scalars.len(){
-            println!("hac vc_scalars: {:?}", value_commitment_scalars[i].to_le_bytes());
-        }
-
         let A_decoded = decode(A)?;
         let S_decoded = decode(S)?;
         let T_1_decoded = decode(T_1)?;
