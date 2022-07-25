@@ -118,11 +118,11 @@ Corrolarily, this leads us to \textit{finite fields}:
 	A finite field, is a field that contains a finite number of elements.
 \end{definition}
 
-The most common types of finite fields, and those used throughout this report are \textit{Prime Fields:} 
+One of the most common types of finite fields, and those used throughout this report are \textit{Prime Fields:} 
 
 \begin{definition}[Prime Field]
 	A prime field $\F_p$ is a finite field with elements $[0,p-1]$
-	where each operation is performed over integers modulo $p$.
+	where each operation is performed over integers modulo $p$ with $p$ being a prime number.
 \end{definition}
 
 Something important to note about this definition is that inverses in
@@ -181,15 +181,14 @@ From these definitions we can extrapolate two more definitions:
 	$$P-Q = P + (-Q)$$
 \end{definition}
 
-\begin{definition}[EC Subtraction]
+\begin{definition}[EC Scalar Multiplication]
 	Let $m$ be a scalar and let $P$ be a point on $E$. The group operation:
 	Scalar multiplication is defined by adding $P$ to itself $m$ times and
 	denoted a $m\cdot P$.
 \end{definition}
 
-Due to the absence of scalar division it is therefore impossible to
-multiply by anything other than integers as we cannot have something
-like $2.5 \cdot P = \frac{5\cdot P}{2}$. Multiplying by $0$ will
+Due to the absence of scalar division it is impossible to
+multiply by anything other than integers as we cannot have something akin to $2.5 \cdot P = \frac{5\cdot P}{2}$. Therefore scalars are always integers when doing computations for elliptic curves. Multiplying by $0$ will
 naturally yield the identity element $\mathcal{O}$ by definition.
 Additionally multiplying by a negative integer, ${-m}$, is defined as
 $-m\cdot P = m\cdot ({-P})$. 
@@ -235,15 +234,15 @@ A Pedersen commitment is a commitment scheme defined by a certain
 property we will go into a little later. For our purposes we redefine
 the scheme to work with commitments to elliptic curve points rather than
 a value. First a single point $G$ on the chosen elliptic curve, in this
-case 25519. This point will be our generator. for 25519 we use the point
-we previously defined as the base point. 
+case 25519, is chosen. This point will be the so-called generator. For 25519 we use the point
+we previously defined as the base point with x = 9 and positive y. 
 
 Our adaptation of the Pedersen commitment scheme will involve point
 addition on the elliptic curve, rather than multiplication. This will
 have the desired effect of perfect hiding for Pedersen commitments. The
 points that we will add together to hide our commitment works using some
 amount of randomness which ensures the hiding property while also
-allowing for some decent binding. Not perfect, as this is impossible
+allowing for a decent binding property. Not perfect, as this is impossible
 alongside perfect hiding. 
 
 \begin{definition}[Pedersen Commitment]
@@ -252,8 +251,7 @@ alongside perfect hiding.
 
 	$$rH + aG$$
 
-	where $G$ is a canonical generator for the curve and $H$ is a public
-	key where no one knows $q$ such that $H = qG$.
+	where $G$ is a canonical generator for the curve and $H$ is a curve point where no one knows $q$ such that $H = qG$.
 \end{definition}
 
 Here $r$ serves as our perfect hiding, $G$ is our generator for the
@@ -286,8 +284,8 @@ Which ensures a homomorphism between the sum of commitments and the
 commitment to the sum. This property will become vital when proving zero
 knowledgeness later. 
 
-Expanding on the \textit{Vector Pederson Commitment}:
-\begin{definition}[Vector Pederson Commitment]
+Expanding on the \textit{Vector Pedersen Commitment}:
+\begin{definition}[Vector Pedersen Commitment]
 	A Vector Pedersen Commitment, to some vector of messages,
 	$\textbf{v}$, with a randomly chosen integer, $r$,
 	is defined as:
@@ -295,7 +293,7 @@ Expanding on the \textit{Vector Pederson Commitment}:
 	$$rH + \textbf{vG}$$
 
 	where $\textbf{G}$ is a vector of canonical generators for
-	the curve and $H$ is still a private key.
+	the curve and $H$ is still a curve point where no one knows q such that $H = qG$.
 \end{definition}
 
 \subsubsection{Inner Product Proof:}
@@ -397,10 +395,6 @@ $$\V \rightarrow \P: (\vec{f_x}, \vec{f_y}, r_x, r_y, r_z)$$
 	R   &= \vec{R_a + R_b} \\
 }
 
-
-
-\subsubsection{Range Proofs:}
-
 \subsubsection{Bulletproofs:}
 
 %\section{State of the art:}
@@ -470,8 +464,8 @@ over points, point negation, and the derived functions from these,
 namely point doubling, point subtraction and scalar multiplication. And
 the final function is the One Way Map function. This function is not
 entirely necessary for our purposes, but having it allows outside users
-to more easily generate points from simple byte sequences, additionally
-makes generating random points for testing much easier.
+to more easily generate points from simple byte sequences, and 
+also makes generating random points for testing much easier.
 
 \section{Contributions:}
 
@@ -560,8 +554,8 @@ is that decoding is a method available to the client and as such there is
 no guarantee that the byte-strings they want to decode are necessarily
 legal points that they first encoded properly, but could be artificially
 constructed byte-strings. We want to avoid this and thus the standard has
-a list of properties the byte-string input and attempted decoding must
-fulfill in order to be canonical. 
+a list of properties the byte-string input must satisfy for the decoding
+to be canonical and thus give a proper point as a result. 
 
 \subsection{Implementing Bulletproofs:}
 
@@ -579,6 +573,9 @@ The next step in the process towards implementing Bulletproofs is the
 inner product proof. The implementation of which does not lean itself
 against our Ristretto implementation as our implementation of Pedersen
 commitments did, however it does utilize said Pedersen commitments. 
+
+
+The final part was implementing the bulletproof methods themselves. 
 
 \subsection{Analysis of coding stuff:}
 

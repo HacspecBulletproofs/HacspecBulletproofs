@@ -6,6 +6,11 @@ thesis/main.run.xml
 thesis/main.toc
 thesis/texput.log
 thesis/x.log
+thesis/main.bbl
+thesis/main.blg
+thesis/main.fdb_latexmk
+thesis/main.fls
+thesis/main.synctex.gz
 bulletproofs-old
 bulletproofs/target
 curve25519-dalek
