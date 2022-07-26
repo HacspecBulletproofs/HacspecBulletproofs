@@ -21,7 +21,7 @@
 
 % === Custom Commands === %
 
-\newcommand{\eq}[1]{\begin{equation*}\begin{split}#1\end{split}\end{equation*}}
+\newcommand{\eq}[1]{\begin{alignat*}{20}#1\end{alignat*}}
 \newcommand{\eqNumbered}[1]{\begin{equation}\begin{split}#1\end{split}\end{equation}}
 
 \renewcommand{\vec}[1]{\mathbf{#1}}
@@ -34,6 +34,9 @@
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand\doubleplus{\mathbin{+\mkern-10mu+}} % concat-symbol
 \newcommand{\dotp}[2]{\langle #1, #2 \rangle}
+\newcommand{\opn}[1]{\operatorname{#1}}
+\newcommand{\vsub}[2]{\vec{#1_{\opn{#2}}}}
+
 
 % === Header === %
 
@@ -71,9 +74,12 @@ Department of Computer Science, Aarhus University\\
 \section{Notation:} \label{notation}
 
 We denote scalar in lowercase ($x$), vectors in bold lowercase
-($\vec{v}$), sets are capitalized ($S$), as are Elliptic Curve
-Points ($P$). We also have the sum of scalar-point products, with a vector of scalars $\vec{v}$ and a vector of curve points $\vec{P}$, written as:
-$$\vec{vP} = v_1 P_1 + v_2 P_2 + \cdots + v_n P_n$$
+($\vec{v}$), sets are capitalized ($S$), as are Elliptic Curve Points
+($P$). The vector dot product of vectors $v$ and $u$ is written as
+$\dotp{\vec{v}}{\vec{u}}$, likewise the sum of scalar-point products,
+with a vector of scalars $\vec{v}$ and a vector of curve points
+$\vec{P}$, is written as:
+$$\dotp{\vec{v}}{\vec{P}} = v_1 P_1 + v_2 P_2 + \cdots + v_n P_n$$
 
 \section{Prerequisites:}
 
@@ -301,91 +307,14 @@ Expanding on the \textit{Vector Pedersen Commitment}:
 \end{definition}
 
 \subsubsection{Inner Product Proof:}
-
-The inner product proof is a zero knowledge proof where the prover,
-$\mathcal{P}$, shows knowledge of two vectors $\vec{x}$ and $\vec{y}$,
-as well as their inner product, $z$, to the verifier, $\mathcal{V}$.
-
-In order to do this the \textit{Sigma Protocol}, which is a 3-phase
-protocol between verifier and prover of the form:
-
-\begin{enumerate}
-	\item $\P \rightarrow \V: \text{Commitment}$
-	\item $\V \rightarrow \P: \text{Challenge}$
-	\item $\P \rightarrow \V: \text{Response}$
-\end{enumerate}
-
-The prover sends a commitment to the verifier, the verifier responds with a randomly generated challenge, and finally the prover constructs a new commitment from the first commitment and the challenge... 
-
-We will now go through each step in order with the inner product proof
-in mind. The inner product, $z$, is the inner product of vectors
-$\vec{x}$ and $\vec{y}$. We assume that Pedersen
-commitments to these values are know:
-
-\eq{
-	C_z &= r_1 H + zG \\
-	C_x &= r_2 H + \vec{xG} \\
-	C_y &= r_3 H + \vec{yG} \\
-}
-
-We define two random nonce vectors $\vec{d_x}, \vec{d_y}$
-
-\textbf{Step 1:}
-
-\eq{
-	C_{d_x} &= r_{d_x} H + \vec{d_x G} \\ 
-	C_{d_y} &= r_{d_y} H + \vec{d_y G} \\
-}
-
-\eq{
-	C_{0} &= r_{0} H + (\vec{d_x \cdot d_y})\ G \\
-	C_{1} &= r_{1} H + (\vec{x \cdot d_x} + \vec{y \cdot d_x})\ G \\ 
-}
-
-So the prover sends:
-
-$$\P \rightarrow \V: (C_{d_x}, C_{d_y}, C_0, C_1)$$
-
-\textbf{Step 2:}
-
-The verifier sends challenge $e$ to prover
-
-$$\V \rightarrow \P: e$$
-
-\textbf{Step 3:}
-
-\eq{
-	\vec{f_x} &= e \vec{x} + \vec{d_x} \\
-	\vec{f_y} &= e \vec{y} + \vec{d_y} \\
-	r_x &= e r_2 + r_{d_x} \\
-	r_y &= e r_3 + r_{d_y} \\
-	r_z &= e r_4 + r_{d_y} \\
-}
-
-$$\V \rightarrow \P: (\vec{f_x}, \vec{f_y}, r_x, r_y, r_z)$$
-
-\eq{
-	r_x H + \vec{f_x \cdot G} =? e C_x + C_{d_x}
-}
-
-\eq{
-	r_y H + \vec{f_y \cdot G} =? e C_y + C_{d_y}
-}
-
-\eq{
-	r_z H + (\vec{f_x \cdot f_y}) G =? e^2 C_z + e C_1 + C_0
-}
-
-\eq{
-	\vec{G_L} &= [G_{1}, \cdots, G_{n/2}] \\
-	\vec{G_R} &= [G_{n/2+1}, \cdots, G_{n}] \\
-	\vec{H_L} &= [H_{1}, \cdots, H_{n/2}] \\
-	\vec{H_R} &= [H_{n/2+1}, \cdots, H_{n}] \\
-	\vec{a_L} &= [a_{1}, \cdots, a_{n/2}] \\
-	\vec{a_R} &= [a_{n/2+1}, \cdots, a_{n}] \\
-	\vec{b_L} &= [b_{1}, \cdots, b_{n/2}] \\
-	\vec{b_R} &= [b_{n/2+1}, \cdots, b_{n}] \\
-}
+We have two parties, a prover, $\P$, and a verifier, $\V$. $\P$ wants to
+prove to $\V$ that he has knowledge of two vectors $\vec{a}$, $\vec{b}$
+and know their dot product $\dotp{\vec{a}}{\vec{b}} = c$. The prover
+could simply send the verifier $\vec{a}$, $\vec{b}$ and $c$ but this
+would take up $O(n)$ bandwidth and time to verify, instead we will use a
+compression technique included in the bulletproofs paper allowing for
+just $O(log(n))$ bandwidth and time to verify. We have the following
+definitions:
 
 \eq{
 	\vec{a}, \vec{b} &\in \Z^n_p \\
@@ -394,43 +323,81 @@ $$\V \rightarrow \P: (\vec{f_x}, \vec{f_y}, r_x, r_y, r_z)$$
 	c &= \dotp{\vec{a}}{\vec{b}} \\
 }
 
+To indicate the partition of vectors, the following notation will be used:
+
 \eq{
-	P' &= \dotp{\vec{a}}{\vec{G}} + \dotp{\vec{b}}{\vec{H}} + \dotp{\vec{a}}{\vec{b}}Q \\
+	\vsub{a}{lo} &= [a_{1},     \cdots, a_{n/2}] \\
+	\vsub{a}{hi} &= [a_{n/2+1}, \cdots, a_{n}]   \\
+}
+
+We will rewrite $P$:
+
+\eq{
+	P' &= \dotp{\vec{a}}{\vec{G}} +
+	      \dotp{\vec{b}}{\vec{H}} +
+	      \dotp{\vec{a}}{\vec{b}}Q \\
 }
 
 \eq{
-	\vec{a}^{(k-1)} &= \vec{a_{L}} \cdot u_k      + u^{-1}_k \cdot \vec{a_R} \\
-	\vec{b}^{(k-1)} &= \vec{b_{L}} \cdot u^{-1}_k + u_k      \cdot \vec{b_R} \\
-	\vec{G}^{(k-1)} &= \vec{G_{L}} \cdot u^{-1}_k + u_k      \cdot \vec{G_R} \\
-	\vec{H}^{(k-1)} &= \vec{H_{L}} \cdot u_k      + u^{-1}_k \cdot \vec{H_R} \\
+	\vec{a}^{(k-1)} &= \vsub{a}{lo} &&\cdot u_k      &&+ u^{-1}_k &&\cdot \vsub{a}{hi} \\
+	\vec{b}^{(k-1)} &= \vsub{b}{lo} &&\cdot u^{-1}_k &&+ u_k      &&\cdot \vsub{b}{hi} \\
+	\vec{G}^{(k-1)} &= \vsub{G}{lo} &&\cdot u^{-1}_k &&+ u_k      &&\cdot \vsub{G}{hi} \\
+	\vec{H}^{(k-1)} &= \vsub{H}{lo} &&\cdot u_k      &&+ u^{-1}_k &&\cdot \vsub{H}{hi} \\
 }
 
 \eq{
-	P_{k-1} = \dotp{\vec{a}^{(k-1)}}{\vec{G}^{(k-1)}} + \dotp{\vec{b}^{(k-1)}}{\vec{H}^{(k-1)}} + \dotp{\vec{a}^{(k-1)}}{\vec{b}^{(k-1)}} \cdot Q
+	P_{k-1} =
+	\dotp{\vec{a}^{(k-1)}}{\vec{G}^{(k-1)}} +
+	\dotp{\vec{b}^{(k-1)}}{\vec{H}^{(k-1)}} +
+	\dotp{\vec{a}^{(k-1)}}{\vec{b}^{(k-1)}} \cdot Q
 }
 
 \eq{
-	L_a &= \vec{a_L G_R} \\
-	L_b &= \vec{b_L H_R} \\
-	L   &= \vec{L_a + L_b} \\
+	P_{k-1} = \: \:
+	&\dotp
+		{        \vsub{a}{lo} &&\cdot u_k      &&+ u_k^{-1} &&\cdot \vsub{a}{hi}}
+		{&&\quad \vsub{G}{lo} &&\cdot u_k      &&+ u_k^{-1} &&\cdot \vsub{G}{hi}}
+	+ \\
+	&\dotp
+		{        \vsub{b}{lo} &&\cdot u_k^{-1} &&+ u_k      &&\cdot \vsub{b}{hi}}
+		{&&\quad \vsub{H}{lo} &&\cdot u_k^{-1} &&+ u_k      &&\cdot \vsub{H}{hi}}
+	+ \\
+	&\dotp
+		{        \vsub{a}{lo} &&\cdot u_k      &&+ u_k^{-1} &&\cdot \vsub{a}{hi}}
+		{&&\quad \vsub{b}{lo} &&\cdot u_k^{-1} &&+ u_k      &&\cdot \vsub{b}{hi}}
+	\cdot Q \\
 }
 
 \eq{
-	\vec{l_{s}} &= \vec{a_L \doubleplus b_R \doubleplus [c_L]} \\
-	\vec{L_{p}} &= \vec{G_R \doubleplus H_L \doubleplus [Q] } \\
-	L   &= \vec{l_s L_p} \\
+	P_{k-1} = \: \:
+	        &\dotp{\vsub{a}{lo}}{\vsub{G}{lo}}            +
+	         \dotp{\vsub{a}{hi}}{\vsub{G}{hi}}          &&+
+	u^2_k    \dotp{\vsub{a}{lo}}{\vsub{G}{hi}}          &&+
+	u^{-2}_k \dotp{\vsub{a}{lo}}{\vsub{G}{hi}}            +\\
+	        &\dotp{\vsub{b}{lo}}{\vsub{H}{lo}}            +
+	         \dotp{\vsub{b}{hi}}{\vsub{H}{hi}}          &&+
+	u^2_k    \dotp{\vsub{b}{lo}}{\vsub{H}{hi}}          &&+
+	u^{-2}_k \dotp{\vsub{b}{lo}}{\vsub{H}{hi}}            +\\
+	       &(\dotp{\vsub{a}{lo}}{\vsub{b}{lo}}            +
+		       \dotp{\vsub{a}{hi}}{\vsub{b}{hi}}) \cdot Q &&+
+	(u^2_k   \dotp{\vsub{a}{lo}}{\vsub{b}{lo}}          &&+
+	u^{-2}_k \dotp{\vsub{a}{hi}}{\vsub{b}{hi}}) \cdot Q
 }
 
 \eq{
-	\vec{r_{s}} &= \vec{a_R \doubleplus b_L \doubleplus [c_R]} \\
-	\vec{R_{p}} &= \vec{G_L \doubleplus H_R \doubleplus [Q] } \\
-	R   &= \vec{r_s R_p} \\
+	P_{k-1} = P_k + u^2_k \cdot L_k + u^{-2}_k \cdot R_k
 }
 
+
 \eq{
-	R_a &= \vec{a_R G_L} \\
-	R_b &= \vec{b_R H_L} \\
-	R   &= \vec{R_a + R_b} \\
+	&P_{k-1} &&= P_k + u^2_k \cdot L_k + u^{-2}_k \cdot R_k \\
+	&\textbf{where:} \\
+	&L_k     &&= \dotp{\vsub{a}{lo}}{\vsub{G}{hi}} +
+	             \dotp{\vsub{b}{hi}}{\vsub{H}{lo}} + 
+	             \dotp{\vsub{a}{lo}}{\vsub{b}{hi}} \cdot Q \\
+	&R_k     &&= \dotp{\vsub{a}{hi}}{\vsub{G}{lo}} +
+	             \dotp{\vsub{b}{lo}}{\vsub{H}{hi}} +
+	             \dotp{\vsub{a}{hi}}{\vsub{b}{lo}} \cdot Q \\
 }
 
 \subsubsection{Range Proofs:}
