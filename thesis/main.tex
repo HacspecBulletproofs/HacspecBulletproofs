@@ -435,8 +435,50 @@ $$\V \rightarrow \P: (\vec{f_x}, \vec{f_y}, r_x, r_y, r_z)$$
 
 \subsubsection{Range Proofs:}
 
+A range-proof is a zero-knowledge proof which seeks to prove that for some value v, v lies within the range of $[0,2^n)$ without revealing v or any additional information about v, thus zero-knowledge. We wish to express this property of v in a single inner product to be able to use an innerproduct proof as described above. 
+
+If we let $\vec{a}$ be v expressed in bits and let $\vec{2^n}$ be the vector of powers of 2 i.e. [1,2,4,8.. $2^{n-1}$] then we know the following:
+
+\eq{z\dotp{\vec{a}}{\vec{2^n}} = v}
+
+However this is not enough as we need a guarantee that a is also bits. This can be proven by the following property: 
+
+\eq{\vec{a}\circ (\vec{a} - \vec{1}) = \vec{0}}
+
+This property will only hold if $\vec{a}$ has entries that are either 0 or 1. Additionally due to needing to commit to both $\vec{a}$ and $\vec{a} - \vec{1}$ we will rename these to $\vec{a_L}$ and $\vec{a_R}$ respectively and add another property to show the relationship between these two which gives us the following final innerproducts:
+
+\eq{
+	\dotp{\vec{a_L}}{\vec{2^n}} = v \\
+	\vec{a_L}\circ \vec{a_R} = \vec{0} \\
+	(\vec{a_L} - \vec{1}) - \vec{a_R} = \vec{0}
+}
+
+We wish to combine these properties into a single statement which we can manipulate into the kind of inner product we wish. To do this we observe that $\vec{a} = \vec{0} \iff \forall y\in\mathbb{Z}: \dotp{\vec{a}}{\vec{y^n}} = \vec{0}$. So we can let the verifier chose a y and then we get a new set of statements:
+
+\eq{
+	\dotp{\vec{a_L}}{\vec{2^n}} = v \\
+	\dotp{\vec{a_L} - \vec{1} - \vec{a_R}}{y^n} = 0 \\
+	\dotp{\vec{a_L}}{\vec{a_R}\circ \vec{y^n}} = 0
+}
+
+Next we let the verifier chose another scalar z, and can thus combine the three statements above to the following single statement: 
+
+\eq{
+	z^2v = 
+	z^2\dotp{\vec{a_L}}{\vec{2^n}} +
+	z\dotp{\vec{a_L} - \vec{1} - \vec{a_R}}{y^n} +
+	\dotp{\vec{a_L}}{\vec{a_R}\circ \vec{y^n}}
+}
+
+With this we have condensed the properties we wish to describe into a single statement. However this is not enough. We wish to express this as a single inner product where $\vec{a_L}$ appears only on the left-side of the inner product and $\vec{a_R}$ appears only on the right side and all non-secret terms are factored out. 
+
+
+
 \subsubsection{Bulletproofs:}
 
+In the most basic terms a Bulletproof is a zero-knowledge aggregated range-proof which proves that one or most likely more values lie within a certain range: $[0,2^n)$ for some integer n. This is done by aggregating range-proofs for each individual value into a single proof which, if verified proves that each value given lies within the range while giving away no more information about any of the values. This is done by using a multi-party protocol where a 'party' is created for each value that needs to be proven and each party will converse with the so-called 'dealer' who is responsible for collecting the various commitments from the parties and generating challenges which is used by all parties. At the very end the dealer will then collect all the individual rangeproofs for each value and aggregate them. 
+
+The steps used to do this are the same steps used in the construction of a rangeproof with an additional step at the end which is the aggregation step which combines all the individual rangeproofs into a single proof.
 %\section{State of the art:}
 
 \subsection{Hacspec:} \label{Hacspec}
