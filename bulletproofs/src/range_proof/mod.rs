@@ -399,7 +399,6 @@ impl RangeProof {
         transcript.append_scalar(b"e_blinding", &self.e_blinding);
         
         let w = transcript.challenge_scalar(b"w");
-        println!("Verify w: {:?}", w.as_bytes());
 
 
         let (x_sq, x_inv_sq, s) = self.ipp_proof.verification_scalars(n * m, transcript)?;

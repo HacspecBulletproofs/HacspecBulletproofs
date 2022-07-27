@@ -254,7 +254,6 @@ impl<'a, 'b> DealerAwaitingProofShares<'a, 'b> {
         
         // Get a challenge value to combine statements for the IPP
         let w = self.transcript.challenge_scalar(b"w");
-        println!("prove w: {:?}", w.as_bytes());
         let Q = w * self.pc_gens.B;
 
         let G_factors: Vec<Scalar> = iter::repeat(Scalar::one()).take(self.n * self.m).collect();
