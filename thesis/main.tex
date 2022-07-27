@@ -359,7 +359,10 @@ We have the following definitions:
 	c &= \dotp{\vec{a}}{\vec{b}} \\
 }
 
-Here $P$ is a Pedersen Commitment but crucially \textit{there is no blinding}, this blinding will be introduced later on in the range proofs section (\ref{range-proofs}). We will introduce a combined form of $P$ and $c$ in the form of $P'$:
+Here $P$ is a Pedersen Commitment but crucially \textit{there is no
+blinding}, this blinding will be introduced later on in the range proofs
+section (\ref{range-proofs}). We will introduce a combined form of $P$
+and $c$ in the form of $P'$:
 
 \eq{
 	P' &= \dotp{\vec{a}}{\vec{G}} +
@@ -367,16 +370,23 @@ Here $P$ is a Pedersen Commitment but crucially \textit{there is no blinding}, t
 	      \dotp{\vec{a}}{\vec{b}}Q \\
 }
 
-This will be useful, because it will allow us redefine $\vec{a}, \vec{b}, \vec{G}, \vec{H}$ into a shorter format while keeping the properties in equation \ref{def2} as invariants.
+This will be useful, because it will allow us redefine $\vec{a},
+\vec{b}, \vec{G}, \vec{H}$ into a shorter format while keeping the
+properties in equation \ref{def2} as invariants.
 
 \eq{
-	\vec{a}^{(k-1)} &= \veclo{a} &&\cdot u_k      &&+ u^{-1}_k &&\cdot \vechi{a} \\
-	\vec{b}^{(k-1)} &= \veclo{b} &&\cdot u^{-1}_k &&+ u_k      &&\cdot \vechi{b} \\
-	\vec{G}^{(k-1)} &= \veclo{G} &&\cdot u^{-1}_k &&+ u_k      &&\cdot \vechi{G} \\
-	\vec{H}^{(k-1)} &= \veclo{H} &&\cdot u_k      &&+ u^{-1}_k &&\cdot \vechi{H} \\
+	\vec{a}^{(k-1)} &= \veclo{a} &&\cdot \ran{u}_k      &&+ \ran{u}^{-1}_k &&\cdot \vechi{a} \\
+	\vec{b}^{(k-1)} &= \veclo{b} &&\cdot \ran{u}^{-1}_k &&+ \ran{u}_k      &&\cdot \vechi{b} \\
+	\vec{G}^{(k-1)} &= \veclo{G} &&\cdot \ran{u}^{-1}_k &&+ \ran{u}_k      &&\cdot \vechi{G} \\
+	\vec{H}^{(k-1)} &= \veclo{H} &&\cdot \ran{u}_k      &&+ \ran{u}^{-1}_k &&\cdot \vechi{H} \\
 }
 
-Notice, that these redefined vectors will have a length half of that of the original vectors. From these new vectors we will define a new compressed $P$:
+The random variable $\ran{u}$ is sent by the verifier to
+ensure that it is indeed random. To make the inner product
+proof \textit{non-interactive}, the Fiat-Shamir Heuristic
+(\ref{fiat-shamir-heuristic}) can be used.  Notice, that these redefined
+vectors will have a length half of that of the original vectors. From
+these new vectors we will define a new compressed $P$:
 
 \eq{
 	P_{k-1} =
@@ -385,7 +395,9 @@ Notice, that these redefined vectors will have a length half of that of the orig
 	\dotp{\vec{a}^{(k-1)}}{\vec{b}^{(k-1)}} \cdot Q
 }
 
-Notice that $P$ is still defined the same way, and that the property $c^{k-1} = \dotp{\vec{a}^{k-1}}{\vec{b}^{k-1}}$ still holds. If we substitute our defined variables:
+Notice that $P$ is still defined the same way, and that the property
+$c^{k-1} = \dotp{\vec{a}^{k-1}}{\vec{b}^{k-1}}$ still holds. If we
+substitute our defined variables:
 
 \eq{
 	P_{k-1} = \: \:
@@ -434,9 +446,18 @@ Finally, we define variables $L_k$ and $R_k$ to further simplify:
 	             \dotp{\vechi{a}}{\veclo{b}} \cdot Q \\
 }
 
-This process is repeated until it reaches the bottom
+This process is repeated $log_2(n)$ times, until we get:
 
-The prover finally returns $a^{(0)}_0$, $b^{(0)}_0$, $\vec{L}$ and $\vec{R}$ 
+\eq{
+	P_0 &= a^{(0)}_0 G^{(0)}_0 + b^{(0)}_0 H^{(0)}_0 + a^{(0)}_0 b^{(0)}_0 Q \\
+	P_0 &= P_k + \sum^k_{i=1}(L_i u^2_i + u^{-2}_i R_i)
+}
+
+The prover finally returns $a^{(0)}_0$, $b^{(0)}_0$, $\vec{L}$
+and $\vec{R}$
+
+\paragraph{Verifiers Algorithm}
+The verifiers algorithm...
 
 \subsubsection{Zero Knowledge Proofs:}
 \subsubsection{Range Proofs:}\label{range-proofs}
@@ -484,6 +505,9 @@ In the most basic terms a Bulletproof is a zero-knowledge aggregated range-proof
 
 The steps used to do this are the same steps used in the construction of a rangeproof with an additional step at the end which is the aggregation step which combines all the individual rangeproofs into a single proof.
 %\section{State of the art:}
+
+\subsubsection{Fiat-Shamir Heuristic}\label{fiat-shamir-heuristic}
+% Include the recently found vulnerability
 
 \subsection{Hacspec:} \label{Hacspec}
 
