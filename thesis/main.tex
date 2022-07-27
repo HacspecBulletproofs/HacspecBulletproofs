@@ -15,6 +15,18 @@
 
 \addbibresource{sample.bib} % Import the bibliography file
 
+% === Paragraphing === %
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+% display heading, like subsubsection
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {1.5ex \@plus .2ex}%
+                                     {\normalfont\normalsize\bfseries}}
+ \setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+\makeatother
+
 % === Theorem Styles === %
 
 \newtheorem{definition}{Definition}[section]
@@ -22,7 +34,7 @@
 % === Custom Commands === %
 
 \newcommand{\eq}[1]{\begin{alignat*}{20}#1\end{alignat*}}
-\newcommand{\eqNumbered}[1]{\begin{equation}\begin{split}#1\end{split}\end{equation}}
+\newcommand{\eqn}[2]{\begin{equation}\label{#1}\begin{split}#2\end{split}\end{equation}}
 
 \renewcommand{\vec}[1]{\boldsymbol{#1}}
 \newcommand{\ran}[1]{\text{#1}}
@@ -40,8 +52,8 @@
 \newcommand\doubleplus{\mathbin{+\mkern-10mu+}} % concat-symbol
 \newcommand{\dotp}[2]{\langle #1, #2 \rangle}
 \newcommand{\opn}[1]{\operatorname{#1}}
-\newcommand{\vsub}[2]{\vec{#1_{\opn{#2}}}}
-
+\newcommand{\veclo}[1]{\vec{#1_{\opn{lo}}}}
+\newcommand{\vechi}[1]{\vec{#1_{\opn{hi}}}}
 
 % === Header === %
 
@@ -79,7 +91,7 @@ Department of Computer Science, Aarhus University\\
 \section{Notation:} \label{notation}
 
 % Should be moved to appendix
-A table of used notation:
+A table of notation used throughout this report:
 
 \begin{center}
 \begin{tabular}{ c l }
@@ -90,6 +102,8 @@ A table of used notation:
 	$\ran{a}$                 & A scalar random variable \\
 	$\vecran{a}$              & A vector of scalar random variables \\
 	$\vecran{A}$              & A vector of random curve points \\
+	$\veclo{a}$               & The first half of vector $\vec{a}$, ($\veclo{a} = [a_{1}, \cdots, a_{n/2}]$) \\
+	$\vechi{a}$               & The second half of vector $\vec{a}$, ($\vechi{a} = [a_{n/2+1}, \cdots, a_{n}]$) \\
 	$\mathbb{A}$              & A set \\
 	$\mathbb{A}^n$            & A vector space of dimension $n$ \\ 
 	$\mathbb{A}_n$            & A set whose elements are mod $n$ \\ 
@@ -331,24 +345,21 @@ and know their dot product $\dotp{\vec{a}}{\vec{b}} = c$. The prover
 could simply send the verifier $\vec{a}$, $\vec{b}$ and $c$ but this
 would take up $O(n)$ bandwidth and time to verify, instead we will use a
 compression technique included in the bulletproofs paper allowing for
-just $O(log_2(n))$ bandwidth and time to verify. We have the following
-definitions:
+just $O(log_2(n))$ bandwidth and time to verify.
 
-\eq{
+\paragraph{Provers Algorithm:}
+We have the following definitions:
+
+\eqn{def1}{
 	\vec{a}, \vec{b} &\in \Z^n_p \\
 	\vec{G}, \vec{H} &\in \G^n \\
+}
+\eqn{def2}{
 	P &= \dotp{\vec{a}}{\vec{G}} + \dotp{\vec{b}}{\vec{H}} \\
 	c &= \dotp{\vec{a}}{\vec{b}} \\
 }
 
-To indicate the partition of vectors, the following notation will be used:
-
-\eq{
-	\vsub{a}{lo} &= [a_{1},     \cdots, a_{n/2}] \\
-	\vsub{a}{hi} &= [a_{n/2+1}, \cdots, a_{n}]   \\
-}
-
-We will define $P'$ from P:
+Here $P$ is a Pedersen Commitment but crucially \textit{there is no blinding}, this blinding will be introduced later on in the range proofs section (\ref{range-proofs}). We will introduce a combined form of $P$ and $c$ in the form of $P'$:
 
 \eq{
 	P' &= \dotp{\vec{a}}{\vec{G}} +
@@ -356,12 +367,16 @@ We will define $P'$ from P:
 	      \dotp{\vec{a}}{\vec{b}}Q \\
 }
 
+This will be useful, because it will allow us redefine $\vec{a}, \vec{b}, \vec{G}, \vec{H}$ into a shorter format while keeping the properties in equation \ref{def2} as invariants.
+
 \eq{
-	\vec{a}^{(k-1)} &= \vsub{a}{lo} &&\cdot u_k      &&+ u^{-1}_k &&\cdot \vsub{a}{hi} \\
-	\vec{b}^{(k-1)} &= \vsub{b}{lo} &&\cdot u^{-1}_k &&+ u_k      &&\cdot \vsub{b}{hi} \\
-	\vec{G}^{(k-1)} &= \vsub{G}{lo} &&\cdot u^{-1}_k &&+ u_k      &&\cdot \vsub{G}{hi} \\
-	\vec{H}^{(k-1)} &= \vsub{H}{lo} &&\cdot u_k      &&+ u^{-1}_k &&\cdot \vsub{H}{hi} \\
+	\vec{a}^{(k-1)} &= \veclo{a} &&\cdot u_k      &&+ u^{-1}_k &&\cdot \vechi{a} \\
+	\vec{b}^{(k-1)} &= \veclo{b} &&\cdot u^{-1}_k &&+ u_k      &&\cdot \vechi{b} \\
+	\vec{G}^{(k-1)} &= \veclo{G} &&\cdot u^{-1}_k &&+ u_k      &&\cdot \vechi{G} \\
+	\vec{H}^{(k-1)} &= \veclo{H} &&\cdot u_k      &&+ u^{-1}_k &&\cdot \vechi{H} \\
 }
+
+Notice, that these redefined vectors will have a length half of that of the original vectors. From these new vectors we will define a new compressed $P$:
 
 \eq{
 	P_{k-1} =
@@ -370,56 +385,61 @@ We will define $P'$ from P:
 	\dotp{\vec{a}^{(k-1)}}{\vec{b}^{(k-1)}} \cdot Q
 }
 
+Notice that $P$ is still defined the same way, and that the property $c^{k-1} = \dotp{\vec{a}^{k-1}}{\vec{b}^{k-1}}$ still holds. If we substitute our defined variables:
+
 \eq{
 	P_{k-1} = \: \:
 	&\dotp
-		{        \vsub{a}{lo} &&\cdot u_k      &&+ u_k^{-1} &&\cdot \vsub{a}{hi}}
-		{&&\quad \vsub{G}{lo} &&\cdot u_k      &&+ u_k^{-1} &&\cdot \vsub{G}{hi}}
+		{        \veclo{a} &&\cdot u_k      &&+ u_k^{-1} &&\cdot \vechi{a}}
+		{&&\quad \veclo{G} &&\cdot u_k      &&+ u_k^{-1} &&\cdot \vechi{G}}
 	+ \\
 	&\dotp
-		{        \vsub{b}{lo} &&\cdot u_k^{-1} &&+ u_k      &&\cdot \vsub{b}{hi}}
-		{&&\quad \vsub{H}{lo} &&\cdot u_k^{-1} &&+ u_k      &&\cdot \vsub{H}{hi}}
+		{        \veclo{b} &&\cdot u_k^{-1} &&+ u_k      &&\cdot \vechi{b}}
+		{&&\quad \veclo{H} &&\cdot u_k^{-1} &&+ u_k      &&\cdot \vechi{H}}
 	+ \\
 	&\dotp
-		{        \vsub{a}{lo} &&\cdot u_k      &&+ u_k^{-1} &&\cdot \vsub{a}{hi}}
-		{&&\quad \vsub{b}{lo} &&\cdot u_k^{-1} &&+ u_k      &&\cdot \vsub{b}{hi}}
+		{        \veclo{a} &&\cdot u_k      &&+ u_k^{-1} &&\cdot \vechi{a}}
+		{&&\quad \veclo{b} &&\cdot u_k^{-1} &&+ u_k      &&\cdot \vechi{b}}
 	\cdot Q \\
 }
 
+And group the terms:
+
 \eq{
 	P_{k-1} = \: \:
-	        &\dotp{\vsub{a}{lo}}{\vsub{G}{lo}}            +
-	         \dotp{\vsub{a}{hi}}{\vsub{G}{hi}}          &&+
-	u^2_k    \dotp{\vsub{a}{lo}}{\vsub{G}{hi}}          &&+
-	u^{-2}_k \dotp{\vsub{a}{lo}}{\vsub{G}{hi}}            +\\
-	        &\dotp{\vsub{b}{lo}}{\vsub{H}{lo}}            +
-	         \dotp{\vsub{b}{hi}}{\vsub{H}{hi}}          &&+
-	u^2_k    \dotp{\vsub{b}{lo}}{\vsub{H}{hi}}          &&+
-	u^{-2}_k \dotp{\vsub{b}{lo}}{\vsub{H}{hi}}            +\\
-	       &(\dotp{\vsub{a}{lo}}{\vsub{b}{lo}}            +
-		       \dotp{\vsub{a}{hi}}{\vsub{b}{hi}}) \cdot Q &&+
-	(u^2_k   \dotp{\vsub{a}{lo}}{\vsub{b}{lo}}          &&+
-	u^{-2}_k \dotp{\vsub{a}{hi}}{\vsub{b}{hi}}) \cdot Q
+	        &\dotp{\veclo{a}}{\veclo{G}}            +
+	         \dotp{\vechi{a}}{\vechi{G}}          &&+
+	u^2_k    \dotp{\veclo{a}}{\vechi{G}}          &&+
+	u^{-2}_k \dotp{\veclo{a}}{\vechi{G}}            +\\
+	        &\dotp{\veclo{b}}{\veclo{H}}            +
+	         \dotp{\vechi{b}}{\vechi{H}}          &&+
+	u^2_k    \dotp{\veclo{b}}{\vechi{H}}          &&+
+	u^{-2}_k \dotp{\veclo{b}}{\vechi{H}}            +\\
+	       &(\dotp{\veclo{a}}{\veclo{b}}            +
+		       \dotp{\vechi{a}}{\vechi{b}}) \cdot Q &&+
+	(u^2_k   \dotp{\veclo{a}}{\veclo{b}}          &&+
+	u^{-2}_k \dotp{\vechi{a}}{\vechi{b}}) \cdot Q
 }
 
-\eq{
-	P_{k-1} = P_k + u^2_k \cdot L_k + u^{-2}_k \cdot R_k
-}
-
+Finally, we define variables $L_k$ and $R_k$ to further simplify: 
 
 \eq{
 	&P_{k-1} &&= P_k + u^2_k \cdot L_k + u^{-2}_k \cdot R_k \\
 	&\textbf{where:} \\
-	&L_k     &&= \dotp{\vsub{a}{lo}}{\vsub{G}{hi}} +
-	             \dotp{\vsub{b}{hi}}{\vsub{H}{lo}} + 
-	             \dotp{\vsub{a}{lo}}{\vsub{b}{hi}} \cdot Q \\
-	&R_k     &&= \dotp{\vsub{a}{hi}}{\vsub{G}{lo}} +
-	             \dotp{\vsub{b}{lo}}{\vsub{H}{hi}} +
-	             \dotp{\vsub{a}{hi}}{\vsub{b}{lo}} \cdot Q \\
+	&L_k     &&= \dotp{\veclo{a}}{\vechi{G}} +
+	             \dotp{\vechi{b}}{\veclo{H}} + 
+	             \dotp{\veclo{a}}{\vechi{b}} \cdot Q \\
+	&R_k     &&= \dotp{\vechi{a}}{\veclo{G}} +
+	             \dotp{\veclo{b}}{\vechi{H}} +
+	             \dotp{\vechi{a}}{\veclo{b}} \cdot Q \\
 }
 
+This process is repeated until it reaches the bottom
+
+The prover finally returns $a^{(0)}_0$, $b^{(0)}_0$, $\vec{L}$ and $\vec{R}$ 
+
 \subsubsection{Zero Knowledge Proofs:}
-\subsubsection{Range Proofs:}
+\subsubsection{Range Proofs:}\label{range-proofs}
 
 A range-proof is a zero-knowledge proof which seeks to prove that for some value v, v lies within the range of $[0,2^n)$ without revealing v or any additional information about v, thus zero-knowledge. We wish to express this property of v in a single inner product to be able to use an innerproduct proof as described above. 
 
@@ -447,7 +467,7 @@ We wish to combine these properties into a single statement which we can manipul
 	\dotp{\vec{a_L}}{\vec{a_R}\circ \vec{y^n}} = 0
 }
 
-Next we let the verifier chose another scalar z, and can thus combine the three statements above to the following single statement: 
+Next we let the verifier chose another scalar z, and can thus combine the three statements above to the following single statement:
 
 \eq{
 	z^2v = 
