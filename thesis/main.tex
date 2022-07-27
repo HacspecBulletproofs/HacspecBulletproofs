@@ -24,14 +24,19 @@
 \newcommand{\eq}[1]{\begin{alignat*}{20}#1\end{alignat*}}
 \newcommand{\eqNumbered}[1]{\begin{equation}\begin{split}#1\end{split}\end{equation}}
 
-\renewcommand{\vec}[1]{\mathbf{#1}}
+\renewcommand{\vec}[1]{\boldsymbol{#1}}
+\newcommand{\ran}[1]{\text{#1}}
+\newcommand{\vecran}[1]{\mathbf{#1}}
 
+\renewcommand{\O}{\mathcal{O}}
 \newcommand{\V}{\mathcal{V}}
 \renewcommand{\P}{\mathcal{P}}
-\renewcommand{\O}{\mathcal{O}}
+
+% Sets
 \newcommand{\F}{\mathbb{F}}
 \newcommand{\G}{\mathbb{G}}
 \newcommand{\Z}{\mathbb{Z}}
+
 \newcommand\doubleplus{\mathbin{+\mkern-10mu+}} % concat-symbol
 \newcommand{\dotp}[2]{\langle #1, #2 \rangle}
 \newcommand{\opn}[1]{\operatorname{#1}}
@@ -73,13 +78,25 @@ Department of Computer Science, Aarhus University\\
 \section{Introduction:} \label{Introduction}
 \section{Notation:} \label{notation}
 
-We denote scalar in lowercase ($x$), vectors in bold lowercase
-($\vec{v}$), sets are capitalized ($S$), as are Elliptic Curve Points
-($P$). The vector dot product of vectors $v$ and $u$ is written as
-$\dotp{\vec{v}}{\vec{u}}$, likewise the sum of scalar-point products,
-with a vector of scalars $\vec{v}$ and a vector of curve points
-$\vec{P}$, is written as:
-$$\dotp{\vec{v}}{\vec{P}} = v_1 P_1 + v_2 P_2 + \cdots + v_n P_n$$
+% Should be moved to appendix
+A table of used notation:
+
+\begin{center}
+\begin{tabular}{ c l }
+	$a$                       & A scalar \\
+	$\vec{a}$                 & A vector \\
+	$A$                       & A curve point \\
+	$\vec{A}$                 & A vector of curve points \\
+	$\ran{a}$                 & A scalar random variable \\
+	$\vecran{a}$              & A vector of scalar random variables \\
+	$\vecran{A}$              & A vector of random curve points \\
+	$\mathbb{A}$              & A set \\
+	$\mathbb{A}^n$            & A vector space of dimension $n$ \\ 
+	$\mathbb{A}_n$            & A set whose elements are mod $n$ \\ 
+	$\dotp{\vec{a}}{\vec{b}}$ & Dot product of $\vec{a}$ and $\vec{b}$ \\
+	$\dotp{\vec{a}}{\vec{A}}$ & The sum of scalar-point products of $\vec{a}$ and $\vec{A}$ ($\dotp{\vec{a}}{\vec{A}} = a_1 A_1 + a_2 A_2 + \cdots + a_n A_n$) \\
+\end{tabular}
+\end{center}
 
 \section{Prerequisites:}
 
@@ -128,7 +145,8 @@ Corrolarily, this leads us to \textit{finite fields}:
 	A finite field, is a field that contains a finite number of elements.
 \end{definition}
 
-One of the most common types of finite fields, and those used throughout this report are \textit{Prime Fields:} 
+One of the most commonly used types of finite fields, and those used
+throughout this report are \textit{Prime Fields:} 
 
 \begin{definition}[Prime Field]
 	A prime field $\F_p$ is a finite field with elements $[0,p-1]$
@@ -313,7 +331,7 @@ and know their dot product $\dotp{\vec{a}}{\vec{b}} = c$. The prover
 could simply send the verifier $\vec{a}$, $\vec{b}$ and $c$ but this
 would take up $O(n)$ bandwidth and time to verify, instead we will use a
 compression technique included in the bulletproofs paper allowing for
-just $O(log(n))$ bandwidth and time to verify. We have the following
+just $O(log_2(n))$ bandwidth and time to verify. We have the following
 definitions:
 
 \eq{
@@ -330,7 +348,7 @@ To indicate the partition of vectors, the following notation will be used:
 	\vsub{a}{hi} &= [a_{n/2+1}, \cdots, a_{n}]   \\
 }
 
-We will rewrite $P$:
+We will define $P'$ from P:
 
 \eq{
 	P' &= \dotp{\vec{a}}{\vec{G}} +
@@ -400,6 +418,7 @@ We will rewrite $P$:
 	             \dotp{\vsub{a}{hi}}{\vsub{b}{lo}} \cdot Q \\
 }
 
+\subsubsection{Zero Knowledge Proofs:}
 \subsubsection{Range Proofs:}
 
 A range-proof is a zero-knowledge proof which seeks to prove that for some value v, v lies within the range of $[0,2^n)$ without revealing v or any additional information about v, thus zero-knowledge. We wish to express this property of v in a single inner product to be able to use an innerproduct proof as described above. 
@@ -438,8 +457,6 @@ Next we let the verifier chose another scalar z, and can thus combine the three 
 }
 
 With this we have condensed the properties we wish to describe into a single statement. However this is not enough. We wish to express this as a single inner product where $\vec{a_L}$ appears only on the left-side of the inner product and $\vec{a_R}$ appears only on the right side and all non-secret terms are factored out. 
-
-
 
 \subsubsection{Bulletproofs:}
 
