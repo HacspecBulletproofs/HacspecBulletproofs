@@ -37,7 +37,7 @@
 \newcommand{\eqn}[2]{\begin{equation}\label{#1}\begin{split}#2\end{split}\end{equation}}
 
 \renewcommand{\vec}[1]{\boldsymbol{#1}}
-\newcommand{\ran}[1]{\text{#1}}
+\newcommand{\ran}[1]{\mathrm{#1}}
 \newcommand{\vecran}[1]{\mathbf{#1}}
 
 \renewcommand{\O}{\mathcal{O}}
@@ -466,6 +466,8 @@ A range-proof is a zero-knowledge proof which seeks to prove that for some value
 
 Here we introduce a new notation: $\vec{x^n}$ which is the vector of powers of x i.e. [1,x,$x^2$... $x^{n-1}$].
 
+Before we attempt to prove anything to the verifier we first commit to v using a Pedersen commitment V and send this to the verifier. This will be used later.
+
 If we let $\vec{a}$ be $v$ expressed in bits then we know the following:
 
 \eq{\dotp{\vec{a}}{\vec{2^n}} = v}
@@ -482,7 +484,7 @@ This property will only hold if $\vec{a}$ has entries that are either 0 or 1. Ad
 	(\vec{a_L} - \vec{1}) - \vec{a_R} = \vec{0}
 }
 
-We wish to combine these properties into a single statement which we can manipulate into the kind of inner product we wish. To do this we observe that $\vec{a} = \vec{0} \iff \forall \ran{y}\in\mathbb{Z}: \dotp{\vec{a}}{\vec{y^n}} = \vec{0}$. So we can let the verifier chose a random value \ran{y} and then we get a new set of statements:
+We wish to combine these properties into a single statement which we can manipulate into the kind of inner product we wish. To do this we observe that $\vec{a} = \vec{0} \iff \forall \ran{y}\in\mathbb{Z}: \dotp{\vec{a}}{\vec{y^n}} = \vec{0}$. So we can let the verifier chose a random value $\ran{y}$ and then we get a new set of statements:
 
 \eq{
 	\dotp{\vec{a_L}}{\vec{2^n}} = v \\
@@ -490,12 +492,12 @@ We wish to combine these properties into a single statement which we can manipul
 	\dotp{\vec{a_L}}{\vec{a_R}\circ \vecran{y^n}} = 0
 }
 
-Next we let the verifier chose another scalar \ran{z}, and can thus combine the three statements above to the following single statement: 
+Next we let the verifier chose another scalar $\ran{z}$, and can thus combine the three statements above to the following single statement: 
 
 \eq{
-	z^2v = 
-	z^2\dotp{\vec{a_L}}{\vec{2^n}} +
-	z\dotp{\vec{a_L} - \vec{1} - \vec{a_R}}{\vecran{y^n}} +
+	\ran{z^2}v = 
+	\ran{z^2}\dotp{\vec{a_L}}{\vec{2^n}} +
+	\ran{z}\dotp{\vec{a_L} - \vec{1} - \vec{a_R}}{\vecran{y^n}} +
 	\dotp{\vec{a_L}}{\vec{a_R}\circ \vecran{y^n}}
 }
 
@@ -504,40 +506,40 @@ With this we have condensed the properties we wish to describe into a single sta
 First we can rewrite the middle term:
 
 \eq{	
-	&z^2v &&= 
-	z^2\dotp{\vec{a_L}}{\vec{2^n}} +
-	z\dotp{\vec{a_L}}{\vecran{y^n}} -
-	z\dotp{\vec{1}}{\vecran{y^n}} -
-	z\dotp{\vec{a_R}}{\vecran{y^n}} +
+	&\ran{z^2}v &&= 
+	\ran{z^2}\dotp{\vec{a_L}}{\vec{2^n}} +
+	\ran{z}\dotp{\vec{a_L}}{\vecran{y^n}} -
+	\ran{z}\dotp{\vec{1}}{\vecran{y^n}} -
+	\ran{z}\dotp{\vec{a_R}}{\vecran{y^n}} +
 	\dotp{\vec{a_L}}{\vec{a_R}\circ \vecran{y^n}} \\
-	&z^2v + z\dotp{\vec{1}}{\vecran{y^n}} 
-	&&= z^2\dotp{\vec{a_L}}{\vec{2^n}} +
-	z\dotp{\vec{a_L}}{\vecran{y^n}} -
-	z\dotp{\vec{1}}{\vec{a_R}\circ\vecran{y^n}} +
+	&\ran{z^2}v + \ran{z}\dotp{\vec{1}}{\vecran{y^n}} 
+	&&= \ran{z^2}\dotp{\vec{a_L}}{\vec{2^n}} +
+	\ran{z}\dotp{\vec{a_L}}{\vecran{y^n}} -
+	\ran{z}\dotp{\vec{1}}{\vec{a_R}\circ\vecran{y^n}} +
 	\dotp{\vec{a_L}}{\vec{a_R}\circ \vecran{y^n}} \\
-	&z^2v + z\dotp{\vec{1}}{\vecran{y^n}} 
-	&&= \dotp{\vec{a_L}}{z^2\vec{2^n}} +
-	\dotp{\vec{a_L}}{z\vecran{y^n}} +
-	\dotp{-z\vec{1}}{\vec{a_R}\circ\vecran{y^n}} +
+	&\ran{z^2}v + \ran{z}\dotp{\vec{1}}{\vecran{y^n}} 
+	&&= \dotp{\vec{a_L}}{\ran{z^2}\vec{2^n}} +
+	\dotp{\vec{a_L}}{\ran{z}\vecran{y^n}} +
+	\dotp{-\ran{z}\vec{1}}{\vec{a_R}\circ\vecran{y^n}} +
 	\dotp{\vec{a_L}}{\vec{a_R}\circ \vecran{y^n}} \\
-	&z^2v + z\dotp{\vec{1}}{\vecran{y^n}} 
-	&&= \dotp{\vec{a_L}}{z^2\vec{2^n} + z\vecran{y^n} + \vec{a_R}\circ \vecran{y^n}} +
-	\dotp{-z\vec{1}}{\vec{a_R}\circ\vecran{y^n}}
+	&\ran{z^2}v + \ran{z}\dotp{\vec{1}}{\vecran{y^n}} 
+	&&= \dotp{\vec{a_L}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n} + \vec{a_R}\circ \vecran{y^n}} +
+	\dotp{-\ran{z}\vec{1}}{\vec{a_R}\circ\vecran{y^n}}
 }
 
-For the final step towards combining all the conditions into a single innerproduct we add $\dotp{-z\vec{1}}{z^2\vec{2^n} + z\vecran{y^n}}$ to either side and simplify again:
+For the final step towards combining all the conditions into a single innerproduct we add $\dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n}}$ to either side and simplify again:
 
 \eq{
-	&z^2v + z\dotp{\vec{1}}{\vecran{y^n}} + \dotp{-z\vec{1}}{z^2\vec{2^n} + z\vecran{y^n}}
-	&&= \dotp{\vec{a_L}}{z^2\vec{2^n} + z\vecran{y^n} + \vec{a_R}\circ \vecran{y^n}} +
-	\dotp{-z\vec{1}}{\vec{a_R}\circ\vecran{y^n}} + \dotp{-z\vec{1}}{z^2\vec{2^n} + z\vecran{y^n}} \\
-	&z^2v + (z - z^2)\dotp{\vec{1}}{\vecran{y^n}} - z^3\dotp{\vec{1}}{\vec{2^n}} &&= \dotp{\vec{a_L}- z\vec{1}}{z^2\vec{2^n} + z\vecran{y^n} + \vec{a_R}\circ \vecran{y^n}}
+	&\ran{z^2}v + \ran{z}\dotp{\vec{1}}{\vecran{y^n}} + \dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n}}
+	&&= \dotp{\vec{a_L}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n} + \vec{a_R}\circ \vecran{y^n}} +
+	\dotp{-z\vec{1}}{\vec{a_R}\circ\vecran{y^n}} + \dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n}} \\
+	&\ran{z^2}v + (\ran{z} - \ran{z^2})\dotp{\vec{1}}{\vecran{y^n}} - \ran{z^3}\dotp{\vec{1}}{\vec{2^n}} &&= \dotp{\vec{a_L}- \ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n} + \vec{a_R}\circ \vecran{y^n}}
 }
 
-And from here we define a function $\delta(y,z) = (z - z^2)\dotp{\vec{1}}{\vecran{y^n}} - z^3\dotp{\vec{1}}{\vec{2^n}}$ and finish simplifying:
+And from here we define a function $\delta(\ran{y},\ran{z}) = (\ran{z} - \ran{z^2})\dotp{\vec{1}}{\vecran{y^n}} - \ran{z^3}\dotp{\vec{1}}{\vec{2^n}}$ and finish simplifying:
 
 \eq{
-	z^2v + \delta(y,z) = \dotp{\vec{a_L}- z\vec{1}}{z^2\vec{2^n} + (a_R + z\vec{1})\circ\vecran{y^n}}
+	\ran{z^2}v + \delta(\ran{y},\ran{z}) = \dotp{\vec{a_L}- \ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + (a_R + \ran{z}\vec{1})\circ\vecran{y^n}}
 }
 
 From here on we will refer to the left side of the innerproduct as $\vec{l(x)}$ and the right side as $\vec{r(x)}$.
@@ -547,9 +549,48 @@ If the goal was simply to construct a single inner product which would prove tha
 First we chose random blinding factors $\vecran{s_L}$ and $\vecran{s_R}$ which are vectors of length n. Using these we can rebuild l(x) and r(x) in the following way:
 
 \eq{
-	\vec{l(x)} &= \vec{l_0} + \vec{l_1}x &&= (\vec{a_L} + \vec{s_L}x) - z\vec{1}\\
-	\vec{r(x)} &= \vec{r_0} + \vec{r_1}x &&= z^2\vec{2^n} + ((\vec{a_R} + \vec{s_R}x) + z\vec{1})\circ\vecran{y^n}
+	\vec{l(x)} &= \vec{l_0} + \vec{l_1}\ran{x} &&= (\vec{a_L} + \vec{s_L}\ran{x}) - z\vec{1}\\
+	\vec{r(x)} &= \vec{r_0} + \vec{r_1}\ran{x} &&= \ran{z^2}\vec{2^n} + ((\vec{a_R} + \vec{s_R}\ran{x}) + \ran{z}\vec{1})\circ\vecran{y^n}
 }
+
+Here $\vec{l_0}$ and $\vec{r_0}$ represent the zero-degree polynomial meaning that they are simply the unblinded versions of $\vec{l(x)}$ and $\vec{r(x)}$. This means that:
+
+\eq{
+	\dotp{\vec{l_0}}{\vec{r_0}} = \ran{z^2}v + \delta(\ran{y},\ran{z})
+}
+
+We will use this property later. Now we can construct t(x) as follows:
+
+\eq{
+	t(x) = \dotp{l(x)}{r(x)} = t_0 + t_1\ran{x} + t_2\ran{x^2}
+}
+
+One way to construct this is using what's known as the Karatsuba method:
+
+\eq{
+	t_0 &= \dotp{\vec{l_0}}{\vec{r_0}}\\
+	t_2 &= \dotp{\vec{l_1}}{\vec{r_1}}\\
+	t_1 &= \dotp{l_0+l_1}{r_0 + r_1} - t_0 - t_2
+}
+
+Now the prover's new goal is to convince the verifier of two things. First to convince them that $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$ and secondly that t(x) is the correct polynomial. To prove the latter means to show that l(x) and r(x) are correctly constructed and that t(x) = $\dotp{\vec{l(x)}}{\vec{r(x)}}$
+
+First we want to show that $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$. To do this we make commitments to each of the coefficients of t(x). Here we pick up the commitment V we made at the VERY start which is actually a commitment to $t_0$ by construction as well. Additionally we make a commitment to $T_1 = C(t_1, \widetilde{t_1})$ and $T_2 = C(t_2, \widetilde{t_2})$. The prover sends these to the verifer who sends back a challenge point $\ran{x}$. Now with the Pedersen-commitment having base-point B and blinding point $\widetilde{B}$ we know from the definitions that these commitments relate in the following manner:
+
+\eq{
+	t(x)B &= \ran{z^2}vB &&+ \delta(\ran{y},\ran{z})B &&+ \ran{x}t_1B &&+ \ran{x^2}t_2B \\
+	\widetilde{t}(x)\widetilde{B} &= \ran{z^2}\widetilde{v}\widetilde{B} &&+ 0\widetilde{B} &&+ \ran{x}\widetilde{t_1}\widetilde{B} &&+ \ran{x^2}\widetilde{t_2}\widetilde{B}\\
+	t(x)B + \widetilde{t}(x)\widetilde{B} &= \ran{z^2}V &&+ \delta(\ran{y},\ran{z})B &&+ \ran{x}T_1 &&+ \ran{x^2}T_2
+}
+
+The sum of the first two coefficients in each 'column' is also equal to the last coefficient in their column. To convince the verifier the prover sends over t(x)B and $\widetilde{t}(x)\widetilde{B}$ which are evaluated at $\ran{x}$ to the verifier who can then check if the following equation holds:
+
+\eq{
+	t(x)B + \widetilde{t}(x)\widetilde{B} = \ran{z^2} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
+}
+
+And if it does then that will convince the verifier that $t(x) = \ran{z^2}v + \delta(\ran{y},\ran{z}) + t_1x + t_2\ran{x^2}$ due to the column-sums seen above.
+
 
 \subsubsection{Bulletproofs:}
 
