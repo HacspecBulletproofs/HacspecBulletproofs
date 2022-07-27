@@ -1,5 +1,1 @@
-- Bulletproofs
-- Thesis writing
-- Merlin comments
-- Merlin PR
-- Bulletproofs PR
+- Add images of elliptic curve operations
