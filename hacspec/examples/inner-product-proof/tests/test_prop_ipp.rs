@@ -107,6 +107,7 @@ fn testquick() {
 
         // Generate n as a random bounded power of 2
         let n = (2 as usize).pow(rng.sample(&n_range));
+        let n = 4;
 
         // Initialize input variables
         let mut G: Vec<Vec<u8>> = Vec::with_capacity(n);

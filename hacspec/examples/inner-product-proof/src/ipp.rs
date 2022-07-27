@@ -59,13 +59,20 @@ fn point_dot(xs: Seq<Scalar>, Ps: Seq<RistrettoPoint>) -> RistrettoPoint {
     acc
 }
 
-fn rev(xs: Seq<Scalar>) -> Seq<Scalar> {
+fn inv(xs: Seq<Scalar>) -> Seq<Scalar> {
     let mut ys = Seq::<Scalar>::new(xs.len());
 
     for i in 0..xs.len() {
-        ys[i] = xs[xs.len() - 1 - i]
+        ys[i] = xs[i].inv()
     }
     ys
+}
+
+fn is_inv(i: usize, j: usize) -> bool {
+    //1 & (i >> j)
+    let i = i as i32;
+    let j = j as u32;
+    (i % 2i32.pow(j + 1)) < 2i32.pow(j)
 }
 
 // === External Functions === //
@@ -178,49 +185,51 @@ pub fn verification_scalars(
     } else {
         transcript = innerproduct_domain_sep(transcript, U64::classify(n as u64));
 
-        // 1. Recompute x_k,...,x_1 based on the proof transcript
+        // 1. Recompute u_k,...,u_1 based on the proof transcript
 
-        let mut challenges = Seq::<Scalar>::new(lg_n);
+        let mut u = Seq::<Scalar>::new(lg_n);
         for i in 0..lg_n {
             transcript = validate_and_append_point(transcript, L_U8(), L_vec[i])?;
             transcript = validate_and_append_point(transcript, R_U8(), R_vec[i])?;
             let (t, c) = challenge_scalar(transcript, u_U8());
             transcript = t;
-            challenges[i] = c;
+            u[i] = c;
         }
 
-        // 2. Compute 1/(u_k * ... * u_1)
+        // 2. Compute 1/u_i
 
-        let mut challenges_inv = challenges.clone();
-        // allinv = u[0] * ... * u[n]
-        let mut allinv = Scalar::ONE();
+        let mut u_inv = u.clone();
         for i in 0..lg_n {
-            challenges_inv[i] = challenges_inv[i].inv();
-            allinv = allinv * challenges_inv[i];
+            u_inv[i] = u_inv[i].inv();
         }
 
-        // 3. Compute u_i^2 and (1/u_i)^2
-
-        for i in 0..lg_n {
-            challenges[i] = challenges[i].pow(2u128);
-            challenges_inv[i] = challenges_inv[i].pow(2u128);
-        }
-
-        let challenges_sq = challenges;
-        let challenges_inv_sq = challenges_inv;
-
-        //4. Compute s values inductively
+        //3. Compute s values inductively
 
         let mut s = Seq::<Scalar>::with_capacity(n);
-        s = s.push(&allinv);
-        for i in 1..n {
-            let lg_i = (32u32 - 1u32 - (i as u32).leading_zeros()) as usize;
-            let k = 1 << lg_i;
-            let u_lg_i_sq = challenges_sq[(lg_n - 1) - lg_i];
-            s = s.push(&(s[i - k] * u_lg_i_sq));
+        for i in 0..n {
+            let mut s_i = Scalar::ONE();
+            for j in 0..lg_n {
+                if is_inv(i, j) {
+                    s_i = s_i * u_inv[lg_n - j - 1];
+                } else {
+                    s_i = s_i * u[lg_n - j - 1];
+                }
+            }
+            s = s.push(&s_i);
+        }
+        let s = s;
+
+        // 4. Compute u_i^2 and (1/u_i)^2
+
+        let mut u_sq = u.clone();
+        let mut u_inv_sq = u_inv.clone();
+
+        for i in 0..lg_n {
+            u_sq[i] = u[i].pow(2u128);
+            u_inv_sq[i] = u_inv[i].pow(2u128);
         }
 
-        res = VerScalarsRes::Ok((challenges_sq, challenges_inv_sq, s))
+        res = VerScalarsRes::Ok((u_sq, u_inv_sq, s))
     }
 
     res
@@ -246,7 +255,7 @@ pub fn verify(
         gas[i] = G_factors[i] * a * s[i]
     }
 
-    let inv_s = rev(s);
+    let inv_s = inv(s);
 
     let mut hb_div_s = Seq::<Scalar>::new(H_factors.len());
     for i in 0..H_factors.len() {
