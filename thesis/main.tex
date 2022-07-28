@@ -106,6 +106,8 @@ A table of notation used throughout this report:
 	$\vecran{A}$              & A vector of random curve points \\
 	$\veclo{a}$               & The first half of vector $\vec{a}$, ($\veclo{a} = [a_{1}, \cdots, a_{n/2}]$) \\
 	$\vechi{a}$               & The second half of vector $\vec{a}$, ($\vechi{a} = [a_{n/2+1}, \cdots, a_{n}]$) \\
+	$\vec{x^n}$ 			  & A vector of scalars which are made up of
+								powers of x i.e. $[1,x,x^2... x^{n-1}]$\\
 	$\mathbb{A}$              & A set \\
 	$\mathbb{A}^n$            & A vector space of dimension $n$ \\ 
 	$\mathbb{A}_n$            & A set whose elements are mod $n$ \\ 
@@ -533,23 +535,19 @@ Now we can simply check:
 
 \subsubsection{Zero Knowledge Proofs:}\label{zero-knowledge}
 
-A zero knowledge proof is any proof which proves the single property we set out to prove, without revealing any additional properties about any of the values involved. This kind of proof is incredibly complex in the sense that proving even basic properties without revealing anything else. 
-
-The most basic example involves two children, let's name them Alison and Billy. They wish to see if both of them have gotten the exact same amount of candy-bars from their halloween trick-or-treating, but they don't want to just say the number, since if they don't the one with more will have to share. They are both INSANELY smart kids and figure out a way to do it. They both agree they either got 10, 20, 30, 40, or 50 candy-bars. So Alison prepares five boxes labeled with the numbers on them and locks them, bringing the keys with her. Bobby then takes five slips, four labeled with a - sign and one with a + on it. He slips the one with a + into the box that has the number of candy-bars he got and the - into all the others. Billy then leaves and Alison returns and unlocks only the box with HER number of candy-bars. Inside is a single slip. Either a + or a -. Afterwards she locks the box again and Billy returns. Now they can both see from the slip if they got the same amount. It will be a + on the slip if they did and a - if they did not. One important thing to note here is that if the slip is a - they don't know which of them has more candy-bars. This obviously is not entirely fool-proof as Alison will know she got more if she placed the plus slip into the 50 box or less if she placed it in the 10 box, and the slip result was a -. So in the ideal example they would have an infinite amount of boxes with every integer. 
-
 \subsubsection{Range Proofs:}\label{range-proofs}
 
-A range-proof is a zero-knowledge proof which seeks to prove that for some value $v$, $v$ lies within the range of $[0,2^n)$ without revealing v or any additional information about $v$, thus zero-knowledge. We wish to express this property of $v$ in a single inner product to be able to use an innerproduct proof as described above. 
+A range-proof is a zero-knowledge proof which seeks to prove that for some value $v$, $v$ lies within the range of $[0,2^n)$ without revealing $v$ or any additional information about $v$, thus zero-knowledge. We wish to express this property of $v$ in a single inner product to be able to use an innerproduct proof as described above. 
 
-Here we introduce a new notation: $\vec{x^n}$ which is the vector of powers of x i.e. [1,x,$x^2$... $x^{n-1}$].
+Here we introduce a new notation: $\vec{x^n}$ which is the vector of powers of $x$ i.e. $[1,x,x^2... x^{n-1}]$.
 
-Before we attempt to prove anything to the verifier we first commit to v using a Pedersen commitment V and send this to the verifier. This will be used later.
+Before we attempt to prove anything to the verifier we first commit to $v$ using a Pedersen commitment $V$ and send this to the verifier. This will be used later.
 
 If we let $\vec{a}$ be $v$ expressed in bits then we know the following:
 
 \eq{\dotp{\vec{a}}{\vec{2^n}} = v}
 
-However this is not enough as we need a guarantee that $a$ is also bits. This can be proven by the following property: 
+However this is not enough as we also need a guarantee that $a$ consists entirely of bits i.e. $\forall a_i\in a: a_i\in \{0,1\}$. This can be proven by the following property: 
 
 \eq{\vec{a}\circ (\vec{a} - \vec{1}) = \vec{0}}
 
@@ -561,7 +559,7 @@ This property will only hold if $\vec{a}$ has entries that are either 0 or 1. Ad
 	(\vec{a_L} - \vec{1}) - \vec{a_R} = \vec{0}
 }
 
-We wish to combine these properties into a single statement which we can manipulate into the kind of inner product we wish. To do this we observe that $\vec{a} = \vec{0} \iff \forall \ran{y}\in\mathbb{Z}: \dotp{\vec{a}}{\vec{y^n}} = \vec{0}$. So we can let the verifier chose a random value $\ran{y}$ and then we get a new set of statements:
+We wish to combine these properties into a single statement which we can manipulate into the kind of inner product we wish. To do this we observe that $\vec{a} = \vec{0} \iff \forall y\in\mathbb{Z}: \dotp{\vec{a}}{\vec{y^n}} = \vec{0}$. So we can let the verifier chose a random scalar $\ran{y}$ and then we get a new set of statements:
 
 \eq{
 	\dotp{\vec{a_L}}{\vec{2^n}} = v \\
@@ -569,7 +567,7 @@ We wish to combine these properties into a single statement which we can manipul
 	\dotp{\vec{a_L}}{\vec{a_R}\circ \vecran{y^n}} = 0
 }
 
-Next we let the verifier chose another scalar $\ran{z}$, and can thus combine the three statements above to the following single statement: 
+Next we let the verifier chose a random scalar $\ran{z}$, and can thus combine the three statements above to the following single statement: 
 
 \eq{
 	\ran{z^2}v = 
@@ -609,7 +607,9 @@ For the final step towards combining all the conditions into a single innerprodu
 \eq{
 	&\ran{z^2}v + \ran{z}\dotp{\vec{1}}{\vecran{y^n}} + \dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n}}
 	&&= \dotp{\vec{a_L}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n} + \vec{a_R}\circ \vecran{y^n}} +
-	\dotp{-z\vec{1}}{\vec{a_R}\circ\vecran{y^n}} + \dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n}} \\
+	\dotp{-z\vec{1}}{\vec{a_R}\circ\vecran{y^n}} + \dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n}} \\ 
+	&\ran{z^2}v + (\ran{z} - \ran{z^2})\dotp{\vec{1}}{\vecran{y^n}} - \ran{z^3}\dotp{\vec{1}}{\vec{2^n}} &&= \dotp{\vec{a_L}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n} + \vec{a_R}\circ \vecran{y^n}} + \dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n}+\ran{z}\vecran{y^n} + \vec{a_R}\circ\vecran{y^n}}
+	\\
 	&\ran{z^2}v + (\ran{z} - \ran{z^2})\dotp{\vec{1}}{\vecran{y^n}} - \ran{z^3}\dotp{\vec{1}}{\vec{2^n}} &&= \dotp{\vec{a_L}- \ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n} + \vec{a_R}\circ \vecran{y^n}}
 }
 
@@ -621,9 +621,9 @@ And from here we define a function $\delta(\ran{y},\ran{z}) = (\ran{z} - \ran{z^
 
 From here on we will refer to the left side of the innerproduct as $\vec{l(x)}$ and the right side as $\vec{r(x)}$.
 
-If the goal was simply to construct a single inner product which would prove that v lies in $[0,2^n)$ then we would simply send this data over and be done, however we also wish for the proof to be zero-knowledge we need to blind this innerproduct somehow. To do this we construct a polynomial t(x). We will construct this polynomial in a way that allows us to change our objective to proving something about t(x) instead of this innerproduct proof.
+If the goal was simply to construct a single inner product which would prove that $v$ lies in $[0,2^n)$ then we would simply send these values to $\V$ and be done, however we also wish for the proof to be zero-knowledge we need to blind this innerproduct somehow. To do this we construct a polynomial $t(x)$. We will construct this polynomial in a way that allows us to change our objective to proving something about $t(x)$ instead of this innerproduct proof.
 
-First we chose random blinding factors $\vecran{s_L}$ and $\vecran{s_R}$ which are vectors of length n. Using these we can rebuild l(x) and r(x) in the following way:
+First we chose random blinding factors $\vecran{s_L}$ and $\vecran{s_R}$ which are vectors of length $n$. Using these we can rebuild $l(x)$ and $r(x)$ in the following way:
 
 \eq{
 	\vec{l(x)} &= \vec{l_0} + \vec{l_1}\ran{x} &&= (\vec{a_L} + \vec{s_L}\ran{x}) - z\vec{1}\\
@@ -636,7 +636,7 @@ Here $\vec{l_0}$ and $\vec{r_0}$ represent the zero-degree polynomial meaning th
 	\dotp{\vec{l_0}}{\vec{r_0}} = \ran{z^2}v + \delta(\ran{y},\ran{z})
 }
 
-We will use this property later. Now we can construct t(x) as follows:
+We will use this property later. Now we can construct $t(x)$ as follows:
 
 \eq{
 	t(x) = \dotp{l(x)}{r(x)} = t_0 + t_1\ran{x} + t_2\ran{x^2}
@@ -650,9 +650,9 @@ One way to construct this is using what's known as the Karatsuba method:
 	t_1 &= \dotp{l_0+l_1}{r_0 + r_1} - t_0 - t_2
 }
 
-Now the prover's new goal is to convince the verifier of two things. First to convince them that $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$ and secondly that t(x) is the correct polynomial. To prove the latter means to show that l(x) and r(x) are correctly constructed and that t(x) = $\dotp{\vec{l(x)}}{\vec{r(x)}}$
+Now the prover's new goal is to convince the verifier of two things. First to convince them that $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$ and secondly that $t(x)$ is the correct polynomial. To prove the latter means to show that $l(x)$ and $r(x)$ are correctly constructed and that t(x) = $\dotp{\vec{l(x)}}{\vec{r(x)}}$
 
-First we want to show that $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$. To do this we make commitments to each of the coefficients of t(x). Here we pick up the commitment V we made at the VERY start which is actually a commitment to $t_0$ by construction as well. Additionally we make a commitment to $T_1 = C(t_1, \widetilde{t_1})$ and $T_2 = C(t_2, \widetilde{t_2})$. The prover sends these to the verifer who sends back a challenge point $\ran{x}$. Now with the Pedersen-commitment having base-point B and blinding point $\widetilde{B}$ we know from the definitions that these commitments relate in the following manner:
+First we want to show that $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$. To do this we make commitments to each of the coefficients of $t(x)$. Here we pick up the commitment $V$ we made at the VERY start which is actually a commitment to $t_0$ by construction as well. Additionally we make a commitment to $T_1 = C(t_1, \widetilde{t_1})$ and $T_2 = C(t_2, \widetilde{t_2})$. The prover sends these to the verifer who sends back a challenge point $\ran{x}$. Now with the Pedersen-commitment having base-point $B$ and blinding point $\widetilde{B}$ we know from the definitions that these commitments relate in the following manner:
 
 \eq{
 	t(x)B &= \ran{z^2}vB &&+ \delta(\ran{y},\ran{z})B &&+ \ran{x}t_1B &&+ \ran{x^2}t_2B \\
@@ -660,7 +660,7 @@ First we want to show that $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$. To do t
 	t(x)B + \widetilde{t}(x)\widetilde{B} &= \ran{z^2}V &&+ \delta(\ran{y},\ran{z})B &&+ \ran{x}T_1 &&+ \ran{x^2}T_2
 }
 
-The sum of the first two coefficients in each 'column' is also equal to the last coefficient in their column. To convince the verifier the prover sends over t(x)B and $\widetilde{t}(x)\widetilde{B}$ which are evaluated at $\ran{x}$ to the verifier who can then check if the following equation holds:
+The sum of the first two coefficients in each 'column' is also equal to the last coefficient in their column. To convince the verifier the prover sends over $t(x)B$ and $\widetilde{t}(x)\widetilde{B}$ which are evaluated at $\ran{x}$ to the verifier who can then check if the following equation holds:
 
 \eq{
 	t(x)B + \widetilde{t}(x)\widetilde{B} \stackrel{?}{=} \ran{z^2} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
@@ -668,7 +668,7 @@ The sum of the first two coefficients in each 'column' is also equal to the last
 
 And if it does then that will convince the verifier that $t(x) = \ran{z^2}v + \delta(\ran{y},\ran{z}) + t_1x + t_2\ran{x^2}$ due to the column-sums seen above.
 
-In order to convince the verifier that l(x) and r(x) are both constructed correctly and that t(x) = $\dotp{l(x)}{r(x)}$ the prover will use a similar construction as seen above. We wish to make commitments that allow us to relate l(x) and r(x) to $\vec{a_L}, \vec{s_L}, \vec{a_R}$ and $\vec{s_R}$. It is not that simple however. As seen here:
+In order to convince the verifier that $l(x)$ and $r(x)$ are both constructed correctly and that $t(x) = \dotp{l(x)}{r(x)}$ the prover will use a similar construction as seen above. We wish to make commitments that allow us to relate $l(x)$ and $r(x)$ to $\vec{a_L}, \vec{s_L}, \vec{a_R}$ and $\vec{s_R}$. It is not that simple however. As seen here:
 
 \eq{
 	r(x) = \ran{z^2}\vec{2^n} + ((\vec{a_R} + \vec{s_R}\ran{x}) + \ran{z}\vec{1})\circ\vecran{y^n}
@@ -703,7 +703,7 @@ From here, using the same argument as above the prover sends $\widetilde{e}$ to 
 	&= -\widetilde{e}\widetilde{B} &&+ A &&+ xS &&+ \dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}\circ\vecran{y^{-n}}}{H} &&- \ran{z}\dotp{\vec{1}}{\vec{G}}
 }
 
-from the definition of the column-sum argument we can deduce that $P = \dotp{l(x)}{G} + \dotp{r(x)}{H'}$ assuming an honest prover. Thus the verifier can use t(x) and P as inputs into the innerproduct protocol to prove that $ t(x) = \dotp{l(x)}{r(x)}$. And if this proof is verified then the prover has done their range-proof and successfully convinced the verifier that $v\in [0,2^n)$ without revealing any additional information about v, thus it has done so in zero-knowledge.
+from the definition of the column-sum argument we can deduce that $P = \dotp{l(x)}{G} + \dotp{r(x)}{H'}$ assuming an honest prover. Thus the verifier can use $t(x)$ and $P$ as inputs into the innerproduct protocol to prove that $ t(x) = \dotp{l(x)}{r(x)}$. And if this proof is verified then the prover has done their range-proof and successfully convinced the verifier that $v\in [0,2^n)$ without revealing any additional information about $v$, thus it has done so in zero-knowledge.
 
 \subsubsection{Bulletproofs:}
 
