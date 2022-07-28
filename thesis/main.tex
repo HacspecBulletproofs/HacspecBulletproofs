@@ -23,7 +23,7 @@
                                      {-3.25ex\@plus -1ex \@minus -.2ex}%
                                      {1.5ex \@plus .2ex}%
                                      {\normalfont\normalsize\bfseries}}
- \setcounter{secnumdepth}{4}
+\setcounter{secnumdepth}{4}
 \setcounter{tocdepth}{4}
 \makeatother
 
@@ -457,7 +457,81 @@ The prover finally returns $a^{(0)}_0$, $b^{(0)}_0$, $\vec{L}$
 and $\vec{R}$
 
 \paragraph{Verifiers Algorithm}
-The verifiers algorithm...
+The verifier is given the following values:
+\eqn{def1-ver}{
+	a^{(0)}_0, b^{(0)}_0 &\in \Z_p \\
+	\vec{G}, \vec{H} &\in \G^n \\
+	P, Q &\in \G \\
+}
+We need a way to get the final $G^{(0)}_0$ and $H^{(0)}_0$, from $\vec{G}$ and $\vec{H}$, let's start with the former. We observe:
+
+\eqn{G0}{
+	\vec{G}^{(j-1)} = \veclo{G^\textit{(j)}} u^{-1}_j + \vechi{G^\textit{(j)}} u^{-1}_j
+}
+
+We want to define a vector $\vec{s}$ such that $\dotp{\vec{s}}{\vec{G}} = G^{(0)}_0$. From equation \ref{G0} we conclude that each $s_i$ is defined as: 
+
+\eq{
+	&s_i = u^{b(i,k)}_k \cdots u^{b(i,1)}_1 \\
+	&\textbf{where:} \\
+	&b(i,j) = 
+	\begin{cases}
+		\text{-1} &\quad  g(i,j) = \top \\
+		\text{1}  &\quad  g(i,j) = \bot \\
+	\end{cases} \\
+	&g(i,j) = 
+	\begin{cases}
+		\top &\quad  \text{if $(i$ mod $2^j) <    2^{j-1}$} \\
+		\bot &\quad  \text{if $(i$ mod $2^j) \geq 2^{j-1}$} \\
+	\end{cases}
+}
+
+Which is the same as:
+
+\eq{
+	g(i,j) = 
+	\begin{cases}
+		\top &\quad  \text{if bit $j-1$ of $i$ is 0} \\
+		\bot &\quad  \text{if bit $j-1$ of $i$ is 1} \\
+	\end{cases}
+}
+
+Note that in the code we zero-index so $j_{\text{code}} = j+1$.
+
+We make a similar argument for $H^{(0)}_0$. We want to define a vector $\vec{s'}$ such that $\dotp{\vec{s'}}{\vec{H}} = H^{(0)}_0$: 
+\eqn{H0}{
+	\vec{H}^{(j-1)} = \veclo{H^\textit{(j)}} u^{-1}_j + \vechi{H^\textit{(j)}} u^{-1}_j
+}
+
+\eq{
+	&s_i' = u^{b'(i,k)}_k \cdots u^{b'(i,1)}_1 \\
+	&\textbf{where:} \\
+	&b'(i,j) = 
+	\begin{cases}
+		\text{-1} &\quad  \lnot g(i,j) = \top \\
+		\text{1}  &\quad  \lnot g(i,j) = \bot \\
+	\end{cases} \\
+}
+
+But this is indeed just:
+
+\eq{
+	s' = \frac{1}{s'_1}, \frac{1}{s'_2}, \cdots \frac{1}{s'_n}
+}
+
+Now we can define:
+\eq{
+	\vec{G}^{(0)}_0 &= \dotp{\vec{s}}{\vec{G}} \\
+	\vec{H}^{(0)}_0 &= \dotp{\vec{s'}}{\vec{H}}
+}
+
+Now we can simply check:
+
+\eq{
+	P' &\stackrel{?}{=} P \\
+	   &= aG + bH + abQ - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i) \\
+	   &= \dotp{a\vec{s}}{G} + \dotp{b\vec{s'}}{H} + abQ - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i)
+}
 
 \subsubsection{Zero Knowledge Proofs:}\label{zero-knowledge}
 
