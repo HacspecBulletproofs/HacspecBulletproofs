@@ -1,5 +1,3 @@
-//TODO: Rewrite seqs to vectors/matrices
-
 #![feature(int_log)]
 #![allow(non_snake_case)]
 #![allow(unused_assignments)]
@@ -41,6 +39,7 @@ fn u_U8() -> Seq<U8> {
 
 // === Helper Functions === //
 
+// The regular inner product of vectors u and v
 fn inner_product(u: Seq<Scalar>, v: Seq<Scalar>) -> Scalar {
     let mut ret = Scalar::ZERO();
 
@@ -50,15 +49,17 @@ fn inner_product(u: Seq<Scalar>, v: Seq<Scalar>) -> Scalar {
     ret
 }
 
-fn point_dot(xs: Seq<Scalar>, Ps: Seq<RistrettoPoint>) -> RistrettoPoint {
+// The scalar-sum of vectors xs and Xs
+fn point_dot(xs: Seq<Scalar>, Xs: Seq<RistrettoPoint>) -> RistrettoPoint {
     let mut acc = IDENTITY_POINT();
 
     for i in 0..xs.len() {
-        acc = add(acc, mul(xs[i], Ps[i]));
+        acc = add(acc, mul(xs[i], Xs[i]));
     }
     acc
 }
 
+// Batch-inverts a list of scalars
 fn inv(xs: Seq<Scalar>) -> Seq<Scalar> {
     let mut ys = Seq::<Scalar>::new(xs.len());
 
@@ -68,11 +69,9 @@ fn inv(xs: Seq<Scalar>) -> Seq<Scalar> {
     ys
 }
 
-fn is_inv(i: usize, j: usize) -> bool {
-    //1 & (i >> j)
-    let i = i as i32;
-    let j = j as u32;
-    (i % 2i32.pow(j + 1)) < 2i32.pow(j)
+// i % 2^(j + 1) < 2^j
+fn g(i: usize, j: usize) -> bool {
+    1 & (i >> j) == 0
 }
 
 // === External Functions === //
@@ -198,18 +197,18 @@ pub fn verification_scalars(
 
         // 2. Compute 1/u_i
 
-        let mut u_inv = u.clone();
+        let mut u_inv = Seq::<Scalar>::new(lg_n);
         for i in 0..lg_n {
             u_inv[i] = u_inv[i].inv();
         }
 
-        //3. Compute s values inductively
+        //3. Compute s values
 
         let mut s = Seq::<Scalar>::with_capacity(n);
         for i in 0..n {
             let mut s_i = Scalar::ONE();
             for j in 0..lg_n {
-                if is_inv(i, j) {
+                if g(i, j) {
                     s_i = s_i * u_inv[lg_n - j - 1];
                 } else {
                     s_i = s_i * u[lg_n - j - 1];
@@ -221,13 +220,13 @@ pub fn verification_scalars(
 
         // 4. Compute u_i^2 and (1/u_i)^2
 
-        let mut u_sq = u.clone();
-        let mut u_inv_sq = u_inv.clone();
-
         for i in 0..lg_n {
-            u_sq[i] = u[i].pow(2u128);
-            u_inv_sq[i] = u_inv[i].pow(2u128);
+            u[i] = u[i].pow(2u128);
+            u_inv[i] = u_inv[i].pow(2u128);
         }
+
+        let u_sq = u;
+        let u_inv_sq = u_inv;
 
         res = VerScalarsRes::Ok((u_sq, u_inv_sq, s))
     }
@@ -255,11 +254,9 @@ pub fn verify(
         gas[i] = G_factors[i] * a * s[i]
     }
 
-    let inv_s = inv(s);
-
     let mut hb_div_s = Seq::<Scalar>::new(H_factors.len());
     for i in 0..H_factors.len() {
-        hb_div_s[i] = b * inv_s[i] * H_factors[i]
+        hb_div_s[i] = b * s[i].inv() * H_factors[i]
     }
 
     let mut neg_u_sq = Seq::<Scalar>::new(u_sq.len());
