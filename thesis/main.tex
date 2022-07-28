@@ -53,6 +53,8 @@
 \newcommand{\dotp}[2]{\langle #1, #2 \rangle}
 \newcommand{\opn}[1]{\operatorname{#1}}
 \newcommand{\veclo}[1]{\vec{#1_{\opn{lo}}}}
+\newcommand{\vecloh}[2]{\vec{#1^{\textit{#2}}_{\opn{lo}}}}
+\newcommand{\vechih}[2]{\vec{#1^{\textit{#2}}_{\opn{hi}}}}
 \newcommand{\vechi}[1]{\vec{#1_{\opn{hi}}}}
 
 % === Header === %
@@ -339,13 +341,13 @@ Expanding on the \textit{Vector Pedersen Commitment}:
 \end{definition}
 
 \subsubsection{Inner Product Proof:}
-We have two parties, a prover, $\P$, and a verifier, $\V$. $\P$ wants to
-prove to $\V$ that he has knowledge of two vectors $\vec{a}$, $\vec{b}$
-and know their dot product $\dotp{\vec{a}}{\vec{b}} = c$. The prover
+We have a prover, $\P$, and a verifier, $\V$. $\P$ wants to prove
+to $\V$ that he has knowledge of two vectors $\vec{a}$, $\vec{b}$
+and know their inner product $\dotp{\vec{a}}{\vec{b}} = c$. The prover
 could simply send the verifier $\vec{a}$, $\vec{b}$ and $c$ but this
-would take up $O(n)$ bandwidth and time to verify, instead we will use a
-compression technique included in the bulletproofs paper allowing for
-just $O(log_2(n))$ bandwidth and time to verify.
+would take up $O(n)$ bandwidth and time to verify, instead we will use
+a compression technique included in the bulletproofs paper allowing
+for just $O(log_2(n))$ bandwidth and time to verify.
 
 \paragraph{Provers Algorithm:}
 We have the following definitions:
@@ -375,10 +377,10 @@ This will be useful, because it will allow us redefine $\vec{a},
 properties in equation \ref{def2} as invariants.
 
 \eq{
-	\vec{a}^{(k-1)} &= \veclo{a} &&\cdot \ran{u}_k      &&+ \ran{u}^{-1}_k &&\cdot \vechi{a} \\
-	\vec{b}^{(k-1)} &= \veclo{b} &&\cdot \ran{u}^{-1}_k &&+ \ran{u}_k      &&\cdot \vechi{b} \\
-	\vec{G}^{(k-1)} &= \veclo{G} &&\cdot \ran{u}^{-1}_k &&+ \ran{u}_k      &&\cdot \vechi{G} \\
-	\vec{H}^{(k-1)} &= \veclo{H} &&\cdot \ran{u}_k      &&+ \ran{u}^{-1}_k &&\cdot \vechi{H} \\
+	\vec{a}^{(k-1)} &= \veclo{a^{\text{(k)}}} &&\cdot \ran{u}_k      &&+ \ran{u}^{-1}_k &&\cdot \vechi{a^{\text{(k)}}} \\
+	\vec{b}^{(k-1)} &= \veclo{b^{\text{(k)}}} &&\cdot \ran{u}^{-1}_k &&+ \ran{u}_k      &&\cdot \vechi{b^{\text{(k)}}} \\
+	\vec{G}^{(k-1)} &= \veclo{G^{\text{(k)}}} &&\cdot \ran{u}^{-1}_k &&+ \ran{u}_k      &&\cdot \vechi{G^{\text{(k)}}} \\
+	\vec{H}^{(k-1)} &= \veclo{H^{\text{(k)}}} &&\cdot \ran{u}_k      &&+ \ran{u}^{-1}_k &&\cdot \vechi{H^{\text{(k)}}} \\
 }
 
 The random variable $\ran{u}$ is sent by the verifier to
@@ -389,18 +391,18 @@ vectors will have a length half of that of the original vectors. From
 these new vectors we will define a new compressed $P$:
 
 \eq{
-	P_{k-1} =
+	P^{(k-1)} =
 	\dotp{\vec{a}^{(k-1)}}{\vec{G}^{(k-1)}} +
 	\dotp{\vec{b}^{(k-1)}}{\vec{H}^{(k-1)}} +
 	\dotp{\vec{a}^{(k-1)}}{\vec{b}^{(k-1)}} \cdot Q
 }
 
-Notice that $P$ is still defined the same way, and that the property
-$c^{k-1} = \dotp{\vec{a}^{k-1}}{\vec{b}^{k-1}}$ still holds. If we
-substitute our defined variables:
+Notice that $P^{(k-1)}$ is still defined the same way as $P$ was,
+and that the property $c^{k-1} = \dotp{\vec{a}^{k-1}}{\vec{b}^{k-1}}$
+still holds. If we substitute our defined variables:
 
 \eq{
-	P_{k-1} = \: \:
+	P^{(k-1)} = \: \:
 	&\dotp
 		{        \veclo{a} &&\cdot u_k      &&+ u_k^{-1} &&\cdot \vechi{a}}
 		{&&\quad \veclo{G} &&\cdot u_k      &&+ u_k^{-1} &&\cdot \vechi{G}}
@@ -418,7 +420,7 @@ substitute our defined variables:
 And group the terms:
 
 \eq{
-	P_{k-1} = \: \:
+	P^{(k-1)} = \: \:
 	        &\dotp{\veclo{a}}{\veclo{G}}            +
 	         \dotp{\vechi{a}}{\vechi{G}}          &&+
 	u^2_k    \dotp{\veclo{a}}{\vechi{G}}          &&+
@@ -433,24 +435,24 @@ And group the terms:
 	u^{-2}_k \dotp{\vechi{a}}{\vechi{b}}) \cdot Q
 }
 
-Finally, we define variables $L_k$ and $R_k$ to further simplify: 
+Then, we define variables $L_k$ and $R_k$ to further simplify: 
 
 \eq{
-	&P_{k-1} &&= P_k + u^2_k \cdot L_k + u^{-2}_k \cdot R_k \\
+	&P^{(k-1)} &&= P_k + u^2_k \cdot L_k + u^{-2}_k \cdot R_k \\
 	&\textbf{where:} \\
-	&L_k     &&= \dotp{\veclo{a}}{\vechi{G}} +
-	             \dotp{\vechi{b}}{\veclo{H}} + 
-	             \dotp{\veclo{a}}{\vechi{b}} \cdot Q \\
-	&R_k     &&= \dotp{\vechi{a}}{\veclo{G}} +
-	             \dotp{\veclo{b}}{\vechi{H}} +
-	             \dotp{\vechi{a}}{\veclo{b}} \cdot Q \\
+	&L_k     &&= \dotp{\veclo{a^{\text{(k)}}}}{\vechi{G^{\text{(k)}}}} +
+	             \dotp{\vechi{b^{\text{(k)}}}}{\veclo{H^{\text{(k)}}}} + 
+	             \dotp{\veclo{a^{\text{(k)}}}}{\vechi{b^{\text{(k)}}}} \cdot Q \\
+	&R_k     &&= \dotp{\vechi{a^{\text{(k)}}}}{\veclo{G^{\text{(k)}}}} +
+	             \dotp{\veclo{b^{\text{(k)}}}}{\vechi{H^{\text{(k)}}}} +
+	             \dotp{\vechi{a^{\text{(k)}}}}{\veclo{b^{\text{(k)}}}} \cdot Q \\
 }
 
-This process is repeated $log_2(n)$ times, until we get:
+And repeat this process $log_2(n)$ times, until we get the final $P$, $P^{(0)}$:
 
 \eq{
-	P_0 &= a^{(0)}_0 G^{(0)}_0 + b^{(0)}_0 H^{(0)}_0 + a^{(0)}_0 b^{(0)}_0 Q \\
-	P_0 &= P_k + \sum^k_{i=1}(L_i u^2_i + u^{-2}_i R_i)
+	P^{(0)} &= a^{(0)}_0 G^{(0)}_0 + b^{(0)}_0 H^{(0)}_0 + a^{(0)}_0 b^{(0)}_0 Q \\
+	P^{(0)} &= P_k + \sum^k_{i=1}(L_i u^2_i + u^{-2}_i R_i)
 }
 
 The prover finally returns $a^{(0)}_0$, $b^{(0)}_0$, $\vec{L}$
@@ -460,9 +462,13 @@ and $\vec{R}$
 The verifier is given the following values:
 \eqn{def1-ver}{
 	a^{(0)}_0, b^{(0)}_0 &\in \Z_p \\
+	\vec{L}, \vec{R} &\in \G_p^{log_2(n)} \\
 	\vec{G}, \vec{H} &\in \G^n \\
 	P, Q &\in \G \\
 }
+
+Furthermore, since the verifier provided the challenges ($\vec{u} \in \Z^{log_2(n)}$), they of course also have knowledge of them
+
 We need a way to get the final $G^{(0)}_0$ and $H^{(0)}_0$, from $\vec{G}$ and $\vec{H}$, let's start with the former. We observe:
 
 \eqn{G0}{
@@ -486,17 +492,7 @@ We want to define a vector $\vec{s}$ such that $\dotp{\vec{s}}{\vec{G}} = G^{(0)
 	\end{cases}
 }
 
-Which is the same as:
-
-\eq{
-	g(i,j) = 
-	\begin{cases}
-		\top &\quad  \text{if bit $j-1$ of $i$ is 0} \\
-		\bot &\quad  \text{if bit $j-1$ of $i$ is 1} \\
-	\end{cases}
-}
-
-Note that in the code we zero-index so $j_{\text{code}} = j+1$.
+\footnote{Note that in the code we zero-index so $j_{\text{code}} = j+1$.}
 
 We make a similar argument for $H^{(0)}_0$. We want to define a vector $\vec{s'}$ such that $\dotp{\vec{s'}}{\vec{H}} = H^{(0)}_0$: 
 \eqn{H0}{
@@ -520,6 +516,7 @@ But this is indeed just:
 }
 
 Now we can define:
+
 \eq{
 	\vec{G}^{(0)}_0 &= \dotp{\vec{s}}{\vec{G}} \\
 	\vec{H}^{(0)}_0 &= \dotp{\vec{s'}}{\vec{H}}
@@ -529,8 +526,8 @@ Now we can simply check:
 
 \eq{
 	P' &\stackrel{?}{=} P \\
-	   &= aG + bH + abQ - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i) \\
-	   &= \dotp{a\vec{s}}{G} + \dotp{b\vec{s'}}{H} + abQ - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i)
+	   &\stackrel{?}{=} aG + bH + abQ - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i) \\
+	   &\stackrel{?}{=} \dotp{a\vec{s}}{\vec{G}} + \dotp{b\vec{s'}}{\vec{H}} + abQ - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i)
 }
 
 \subsubsection{Zero Knowledge Proofs:}\label{zero-knowledge}
