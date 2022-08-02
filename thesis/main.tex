@@ -56,7 +56,6 @@
 \newcommand{\vechi}[1]{\vec{#1_{\opn{hi}}}}
 \newcommand{\vecloh}[2]{\vec{#1^{\textit{#2}}_{\opn{lo}}}}
 \newcommand{\vechih}[2]{\vec{#1^{\textit{#2}}_{\opn{hi}}}}
-\newcommand{\vechi}[1]{\vec{#1_{\opn{hi}}}}
 \newcommand{\vecl}[1]{\vec{#1_{\opn{L}}}}
 \newcommand{\vecr}[1]{\vec{#1_{\opn{R}}}}
 
@@ -93,33 +92,6 @@ Department of Computer Science, Aarhus University\\
 % === Body === %
 
 \section{Introduction:} \label{Introduction}
-\section{Notation:} \label{notation}
-
-% Should be moved to appendix
-A table of notation used throughout this report:
-
-\begin{center}
-\begin{tabular}{ c l }
-	$a$                       & A scalar \\
-	$\vec{a}$                 & A vector \\
-	$A$                       & A curve point \\
-	$\vec{A}$                 & A vector of curve points \\
-	$\ran{a}$                 & A scalar random variable \\
-	$\vecran{a}$              & A vector of scalar random variables \\
-	$\vecran{A}$              & A vector of random curve points \\
-	$\veclo{a}$               & The first half of vector $\vec{a}$, ($\veclo{a} = [a_{1}, \cdots, a_{n/2}]$) \\
-	$\vechi{a}$               & The second half of vector $\vec{a}$, ($\vechi{a} = [a_{n/2+1}, \cdots, a_{n}]$) \\
-	$\vec{x^n}$ 			  & A vector of scalars which are made up of
-								powers of x i.e. $[1,x,x^2... x^{n-1}]$\\
-	$\vec{x} || \vec{y}$	  & A vector, $\vec{y}$, extending another
-								vector, $\vec{x}$\\
-	$\mathbb{A}$              & A set \\
-	$\mathbb{A}^n$            & A vector space of dimension $n$ \\ 
-	$\mathbb{A}_n$            & A set whose elements are mod $n$ \\ 
-	$\dotp{\vec{a}}{\vec{b}}$ & Dot product of $\vec{a}$ and $\vec{b}$ \\
-	$\dotp{\vec{a}}{\vec{A}}$ & The sum of scalar-point products of $\vec{a}$ and $\vec{A}$ ($\dotp{\vec{a}}{\vec{A}} = a_1 A_1 + a_2 A_2 + \cdots + a_n A_n$) \\
-\end{tabular}
-\end{center}
 
 \section{Prerequisites:}
 
@@ -377,7 +349,7 @@ Here $P$ is a Pedersen Commitment but crucially \textit{there is no
 blinding}, this blinding will be introduced later on in the range
 proofs section (\ref{range-proofs}). We will introduce a combined form
 of $P$ and $c$ in the form of $P^{(k)}$, The parenthesised superscript,
-denotes that its a new variable, it does \textit{not} refer to exponentiation:
+denotes that it's a new variable, it does \textit{not} refer to exponentiation:
 
 \eq{
 	P^{(k)} &= \dotp{\vec{a}}{\vec{G}} +
@@ -1020,5 +992,31 @@ The final part was implementing the bulletproof methods themselves.
 \section{References}
 \printbibliography
 
+\section{Appendix A: Notation:} \label{notation}
+
+A table of notation used throughout this report:
+
+\begin{center}
+\begin{tabular}{ c l }
+	$a$                       & A scalar \\
+	$\vec{a}$                 & A vector \\
+	$A$                       & A curve point \\
+	$\vec{A}$                 & A vector of curve points \\
+	$\ran{a}$                 & A scalar random variable \\
+	$\vecran{a}$              & A vector of scalar random variables \\
+	$\vecran{A}$              & A vector of random curve points \\
+	$\veclo{a}$               & The first half of vector $\vec{a}$, ($\veclo{a} = [a_{1}, \cdots, a_{n/2}]$) \\
+	$\vechi{a}$               & The second half of vector $\vec{a}$, ($\vechi{a} = [a_{n/2+1}, \cdots, a_{n}]$) \\
+	$\vec{x^n}$ 			  & A vector of scalars which are made up of
+								powers of x i.e. $[1,x,x^2... x^{n-1}]$\\
+	$\vec{x} || \vec{y}$	  & A vector, $\vec{y}$, extending another
+								vector, $\vec{x}$\\
+	$\mathbb{A}$              & A set \\
+	$\mathbb{A}^n$            & A vector space of dimension $n$ \\ 
+	$\mathbb{A}_n$            & A set whose elements are mod $n$ \\ 
+	$\dotp{\vec{a}}{\vec{b}}$ & Dot product of $\vec{a}$ and $\vec{b}$ \\
+	$\dotp{\vec{a}}{\vec{A}}$ & The sum of scalar-point products of $\vec{a}$ and $\vec{A}$ ($\dotp{\vec{a}}{\vec{A}} = a_1 A_1 + a_2 A_2 + \cdots + a_n A_n$) \\
+\end{tabular}
+\end{center}
 
 \end{document}
