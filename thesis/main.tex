@@ -56,6 +56,9 @@
 \newcommand{\vecloh}[2]{\vec{#1^{\textit{#2}}_{\opn{lo}}}}
 \newcommand{\vechih}[2]{\vec{#1^{\textit{#2}}_{\opn{hi}}}}
 \newcommand{\vechi}[1]{\vec{#1_{\opn{hi}}}}
+\newcommand{\vecl}[1]{\vec{#1_{\opn{L}}}}
+\newcommand{\vecr}[1]{\vec{#1_{\opn{R}}}}
+
 
 % === Header === %
 
@@ -108,6 +111,8 @@ A table of notation used throughout this report:
 	$\vechi{a}$               & The second half of vector $\vec{a}$, ($\vechi{a} = [a_{n/2+1}, \cdots, a_{n}]$) \\
 	$\vec{x^n}$ 			  & A vector of scalars which are made up of
 								powers of x i.e. $[1,x,x^2... x^{n-1}]$\\
+	$\vec{x} || \vec{y}$	  & A vector, $\vec{y}$, extending another
+								vector, $\vec{x}$\\
 	$\mathbb{A}$              & A set \\
 	$\mathbb{A}^n$            & A vector space of dimension $n$ \\ 
 	$\mathbb{A}_n$            & A set whose elements are mod $n$ \\ 
@@ -567,7 +572,7 @@ We wish to combine these properties into a single statement which we can manipul
 	\dotp{\vec{a_L}}{\vec{a_R}\circ \vecran{y^n}} = 0
 }
 
-Next we let the verifier chose a random scalar $\ran{z}$, and can thus combine the three statements above to the following single statement: 
+Just as with the inner product proof, we can make use of the Fiat-Shamir Heuristic (\ref{fiat-shamir-heuristic}) for choosing our random scalars, which we do in practice. Next we let the verifier chose a random scalar $\ran{z}$, and can thus combine the three statements above to the following single statement: 
 
 \eq{
 	\ran{z^2}v = 
@@ -613,7 +618,7 @@ For the final step towards combining all the conditions into a single innerprodu
 	&\ran{z^2}v + (\ran{z} - \ran{z^2})\dotp{\vec{1}}{\vecran{y^n}} - \ran{z^3}\dotp{\vec{1}}{\vec{2^n}} &&= \dotp{\vec{a_L}- \ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n} + \vec{a_R}\circ \vecran{y^n}}
 }
 
-And from here we define a function $\delta(\ran{y},\ran{z}) = (\ran{z} - \ran{z^2})\dotp{\vec{1}}{\vecran{y^n}} - \ran{z^3}\dotp{\vec{1}}{\vec{2^n}}$ and finish simplifying:
+We define a function $\delta(\ran{y},\ran{z}) = (\ran{z} - \ran{z^2})\dotp{\vec{1}}{\vecran{y^n}} - \ran{z^3}\dotp{\vec{1}}{\vec{2^n}}$ and finish simplifying:
 
 \eq{
 	\ran{z^2}v + \delta(\ran{y},\ran{z}) = \dotp{\vec{a_L}- \ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + (a_R + \ran{z}\vec{1})\circ\vecran{y^n}}
@@ -660,7 +665,7 @@ First we want to show that $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$. To do t
 	t(x)B + \widetilde{t}(x)\widetilde{B} &= \ran{z^2}V &&+ \delta(\ran{y},\ran{z})B &&+ \ran{x}T_1 &&+ \ran{x^2}T_2
 }
 
-The sum of the first two coefficients in each 'column' is also equal to the last coefficient in their column. To convince the verifier the prover sends over $t(x)B$ and $\widetilde{t}(x)\widetilde{B}$ which are evaluated at $\ran{x}$ to the verifier who can then check if the following equation holds:
+The sum of the first two coefficients in each 'column' is also equal to the last coefficient in their column. To convince the verifier the prover sends over $t(x)B$ and $\widetilde{t}(x)\widetilde{B}$, evaluated at $\ran{x}$ to the verifier who can then check if the following equation holds:
 
 \eq{
 	t(x)B + \widetilde{t}(x)\widetilde{B} \stackrel{?}{=} \ran{z^2} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
@@ -705,11 +710,86 @@ From here, using the same argument as above the prover sends $\widetilde{e}$ to 
 
 from the definition of the column-sum argument we can deduce that $P = \dotp{l(x)}{G} + \dotp{r(x)}{H'}$ assuming an honest prover. Thus the verifier can use $t(x)$ and $P$ as inputs into the innerproduct protocol to prove that $ t(x) = \dotp{l(x)}{r(x)}$. And if this proof is verified then the prover has done their range-proof and successfully convinced the verifier that $v\in [0,2^n)$ without revealing any additional information about $v$, thus it has done so in zero-knowledge.
 
-\subsubsection{Bulletproofs:}
+\subsubsection{Aggregation of rangeproofs:}
 
 In the most basic terms a Bulletproof is a zero-knowledge aggregated range-proof which proves that one or most likely more values lie within a certain range: $[0,2^n)$ for some integer n. This is done by aggregating range-proofs for each individual value into a single proof which, if verified proves that each value given lies within the range while giving away no more information about any of the values. This is done by using a multi-party protocol where a 'party' is created for each value that needs to be proven and each party will converse with the so-called 'dealer' who is responsible for collecting the various commitments from the parties and generating challenges which is used by all parties. At the very end the dealer will then collect all the individual rangeproofs for each value and aggregate them. 
 
-The steps used to do this are the same steps used in the construction of a rangeproof with an additional step at the end which is the aggregation step which combines all the individual rangeproofs into a single proof.
+The steps used to do this are the same steps used in the construction of a rangeproof with a few additional steps which aggregate the proofs into a single rangeproof. 
+
+To start with a number of parties are created, one for each value that $\P$ wishes to prove. We call this number m. These parties each create the needed values that $\P$ needs to send to $\V$ in order to convince them that each of these values lie within the range, with one key difference. Namely that the so-called dealer is in charge of generating the needed challenges $\ran{y}, \ran{z}$ and $\ran{x}$ and uses an offset for each party to ensure the order matters. This offset is defined as such for the jth party:
+
+\eq{
+	z_{(j)} &= z^j * \vec{y^n_{(j)}}\\
+	y^n_{(j)} &= y^{n*m}[j*n:(j+1)*n]
+}
+
+the evaluation point $\ran{x}$ is the same for all parties. The choice of $\ran{y}, \ran{z}$ and $\ran{x}$ is done where it would ordinarily be done, but only once $\V$ has received the needed values from ALL parties. Once again, this can also be done using the Fiat-Shamir Heuristic. (\ref{fiat-shamir-heuristic}) 
+
+After each party has created $t(x)_{(j)} = \dotp{\vec{l_{(j)}(x)}}{\vec{r_{(j)}(x)}}$ it is sufficient to perform the proving steps from \ref{range-proofs} for each party. However sending all of the created values to $\V$ will require $\V$ to make $m$ checks to see if all of these values prove that each v lies within the range. However $\P$ can do a few more computations to create a singular proof which requires a single check from $\V$ to see that ALL $v$ lie within the range.
+
+To prove that a single $t_{(j)}$ is correct means proving that $\vec{l_{(j)}(x)}$ and $\vec{r_{(j)}(x)}$ are created correctly and that $t_{(j), 0} = \dotp{\vec{l_{(j)}(x)}}{r_{(j)}(x)}$. But $\P$ can combine some of these statements into one single statement as follows: 
+
+\eq{
+	t(x) &= \sum^{m-1}_{j = 0} t_{j}(x)\\
+	\widetilde{t}(x) &= \sum^{m-1}_{j = 0} \widetilde{t}_{j}(x)
+}
+
+Now $\P$ sends $t(x)$ and $\widetilde{t}(x)$ alongside all the values each party would send individually to $\V$ as before and $\V$ can convince themselves that this is correct by computing:
+
+\eq{
+	T_1 &= \sum^{m-1}_{j = 0} T_{1,(j)}\\
+	T_2 &= \sum^{m-1}_{j = 0} T_{2,(j)}\\
+	\delta(y,z) &= \sum^{m-1}_{j = 0} \delta_{(j)}(y,z)
+}
+
+and from here the following check is used by $\V$ to convince them that $t_{0, (j)} = \dotp{\vec{l_{(j)}(x)}}{\vec{r_{(j)}(x)}}$ for all j values:
+
+\eq{
+	t(x)B + \widetilde{t}(x)\widetilde{B} \stackrel{?}{=} \ran{z^2}\sum^{m-1}_{j = 0} \ran{z_{(j)}}*V_{(j)} + \delta(y,z)B + \ran{x}T_1 + \ran{x^2}T_2
+}
+
+we know that $z_{(j)} = z^j$ we can make a small rewrite:
+
+\eq{
+	t(x)B + \widetilde{t}(x)\widetilde{B} \stackrel{?}{=} \sum^{m-1}_{j = 0} \ran{z^{j+2}}*V_{(j)} + \delta(y,z)B + \ran{x}T_1 + \ran{x^2}T_2
+}
+
+And this check will then convince the verifier that all $t_{0,(j)}$ are correct.
+
+And once again we wish to show that each $\vec{l_{(j)}(x)}$ and $\vec{r_{(j)}(x)}$ are constructed correctly by all parties. This is done in a similar manner as proving $t_{(j)}(x)$ are all correct. Proving this property the jth party would be proving the following:
+
+\eq{
+	\dotp{l_{(j)}(x)}{\vec{G_{(j)}}} + \dotp{r_{(j)}(x)}{\vec{H'_{(j)}}} = -\widetilde{e}_{(j)}\widetilde{B} + A_{(j)} + \ran{x}S_{(j)} &&+ (\dotp{\ran{z}\vecran{y^n_{(j)}} + \ran{z^2}\ran{z_{(j)}}\vec{2^n}}{H'_{(j)}} - \ran{z}\dotp{\vec{1}}{\vec{G_{(j)}}})
+}
+
+$\P$ can then combine the variables in the following way:
+
+\eq{
+	\vec{l}(x) &= \vec{l_0}(x) &&|| \vec{l_1}(x) &&|| \dots &&|| \vec{l_{m-1}}(x)\\
+	\vec{r}(x) &= \vec{r_0}(x) &&|| \vec{r_1}(x) &&|| \dots &&|| \vec{r_{m-1}}(x)\\
+	\vec{G} &= \vec{G_0} &&|| \vec{G_1} &&|| \dots &&|| \vec{G_{m-1}}\\
+	\vec{H'} &= \vec{H'_0} &&|| \vec{H'_1} &&|| \dots &&|| \vec{H'_{m-1}}
+}
+
+And send $\dotp{\vec{l}(x)}{\vec{G}}$ and $\dotp{\vec{r}(x)}{\vec{H'}}$ to $\V$, along with all the values from the parties it needs, as per \ref*{range-proofs}. From here $\V$ can then construct:
+
+\eq{
+	\vecran{y^n_{(j)}} &= y^{n*m}[j*n : (j+1)*n]\\
+	\ran{z_{(j)}} &= z^j\\
+	\widetilde{e} &= \sum^{m-1}_{j = 0} \widetilde{e}_{(j)}\\
+	A &= \sum^{m-1}_{j = 0} A_{(j)}\\
+	S &= \sum^{m-1}_{j = 0} S_{(j)}
+}
+
+and then use the following check to convince itself that all $\vec{l_{(j)}}(x)$ and $\vec{r_{(j)}}(x)$ are correctly constructed:
+
+\eq{
+	\vec{l_{(j)}}(x) + \vec{r_{(j)}}(x) \stackrel{?}{=} -\widetilde{e}\widetilde{B} + A + \ran{x}S - \ran{z}\dotp{\vec{1}}{\vec{G}} + \ran{z}\dotp{\vecran{y^{n*m}}}{\vec{H'}} + \sum^{m-1}_{j = 0}\dotp{\ran{z^{j+2}}*\vec{2^n}}{\vec{H'}[j*n: (j+1)*n]}
+}
+
+And if this holds then $\V$ is convinced that $\vec{l_{(j)}}(x)$ and $\vec{r_{(j)}}(x)$ are correctly constructed and with the previous part on top it is now convinced that all the given v are within the range $[0,2^n)$.
+
+
 %\section{State of the art:}
 
 \subsubsection{Fiat-Shamir Heuristic}\label{fiat-shamir-heuristic}
