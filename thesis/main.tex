@@ -53,12 +53,12 @@
 \newcommand{\dotp}[2]{\langle #1, #2 \rangle}
 \newcommand{\opn}[1]{\operatorname{#1}}
 \newcommand{\veclo}[1]{\vec{#1_{\opn{lo}}}}
+\newcommand{\vechi}[1]{\vec{#1_{\opn{hi}}}}
 \newcommand{\vecloh}[2]{\vec{#1^{\textit{#2}}_{\opn{lo}}}}
 \newcommand{\vechih}[2]{\vec{#1^{\textit{#2}}_{\opn{hi}}}}
 \newcommand{\vechi}[1]{\vec{#1_{\opn{hi}}}}
 \newcommand{\vecl}[1]{\vec{#1_{\opn{L}}}}
 \newcommand{\vecr}[1]{\vec{#1_{\opn{R}}}}
-
 
 % === Header === %
 
@@ -238,11 +238,13 @@ From these definitions we can extrapolate two more definitions:
 	denoted a $m\cdot P$.
 \end{definition}
 
-Due to the absence of scalar division it is impossible to
-multiply by anything other than integers as we cannot have something akin to $2.5 \cdot P = \frac{5\cdot P}{2}$. Therefore scalars are always integers when doing computations for elliptic curves. Multiplying by $0$ will
+Due to the absence of scalar division it is impossible to multiply by
+anything other than integers as we cannot have something akin to $2.5
+\cdot P = \frac{5\cdot P}{2}$. Therefore scalars are always integers
+when doing computations for elliptic curves. Multiplying by $0$ will
 naturally yield the identity element $\mathcal{O}$ by definition.
 Additionally multiplying by a negative integer, ${-m}$, is defined as
-$-m\cdot P = m\cdot ({-P})$. 
+$-m\cdot P = m\cdot ({-P})$.
 
 The particular curve used for our implementation, as well as the
 implementation of the Rust bulletproofs, is a special curve from a subset
@@ -285,16 +287,17 @@ A Pedersen commitment is a commitment scheme defined by a certain
 property we will go into a little later. For our purposes we redefine
 the scheme to work with commitments to elliptic curve points rather than
 a value. First a single point $G$ on the chosen elliptic curve, in this
-case 25519, is chosen. This point will be the so-called generator. For 25519 we use the point
-we previously defined as the base point with x = 9 and positive y. 
+case 25519, is chosen. This point will be the so-called generator. For
+25519 we use the point we previously defined as the base point with x =
+9 and positive $y$.
 
 Our adaptation of the Pedersen commitment scheme will involve point
 addition on the elliptic curve, rather than multiplication. This will
 have the desired effect of perfect hiding for Pedersen commitments. The
-points that we will add together to hide our commitment works using some
-amount of randomness which ensures the hiding property while also
-allowing for a decent binding property. Not perfect, as this is impossible
-alongside perfect hiding. 
+points that we will add together to hide our commitment works using
+some amount of randomness which ensures the hiding property while
+also allowing for a decent binding property. Not perfect, as this is
+impossible alongside perfect hiding.
 
 \begin{definition}[Pedersen Commitment]
 	A Pedersen commitment, to some message, $a$, with a randomly chosen
@@ -302,7 +305,8 @@ alongside perfect hiding.
 
 	$$rH + aG$$
 
-	where $G$ is a canonical generator for the curve and $H$ is a curve point where no one knows $q$ such that $H = qG$.
+	where $G$ is a canonical generator for the curve and $H$
+	is a curve point where no one knows $q$ such that $H = qG$.
 \end{definition}
 
 Here $r$ serves as our perfect hiding, $G$ is our generator for the
@@ -344,7 +348,8 @@ Expanding on the \textit{Vector Pedersen Commitment}:
 	$$rH + \textbf{vG}$$
 
 	where $\textbf{G}$ is a vector of canonical generators for
-	the curve and $H$ is still a curve point where no one knows q such that $H = qG$.
+	the curve and $H$ is still a curve point where no one knows
+	q such that $H = qG$.
 \end{definition}
 
 \subsubsection{Inner Product Proof:}
@@ -357,7 +362,7 @@ a compression technique included in the bulletproofs paper allowing
 for just $O(log_2(n))$ bandwidth and time to verify.
 
 \paragraph{Provers Algorithm:}
-We have the following definitions:
+$\P$ is given values with the following definitions:
 
 \eqn{def1}{
 	\vec{a}, \vec{b} &\in \Z^n_p \\
@@ -369,18 +374,20 @@ We have the following definitions:
 }
 
 Here $P$ is a Pedersen Commitment but crucially \textit{there is no
-blinding}, this blinding will be introduced later on in the range proofs
-section (\ref{range-proofs}). We will introduce a combined form of $P$
-and $c$ in the form of $P'$:
+blinding}, this blinding will be introduced later on in the range
+proofs section (\ref{range-proofs}). We will introduce a combined form
+of $P$ and $c$ in the form of $P^{(k)}$, The parenthesised superscript,
+denotes that its a new variable, it does \textit{not} refer to exponentiation:
 
 \eq{
-	P' &= \dotp{\vec{a}}{\vec{G}} +
-	      \dotp{\vec{b}}{\vec{H}} +
-	      \dotp{\vec{a}}{\vec{b}}Q \\
-}
+	P^{(k)} &= \dotp{\vec{a}}{\vec{G}} +
+	           \dotp{\vec{b}}{\vec{H}} +
+	           \dotp{\vec{a}}{\vec{b}}Q \\
+} 
 
-This will be useful, because it will allow us redefine $\vec{a},
-\vec{b}, \vec{G}, \vec{H}$ into a shorter format while keeping the
+This redefinition will be useful, because it will allow us redefine
+$\vec{a}, \vec{b}, \vec{G}, \vec{H}$ ($\vec{a}^{(k)}, \vec{b}^{(k)},
+\vec{G}^{(k)}, \vec{H}^{(k)}$) into a shorter format, while keeping the
 properties in equation \ref{def2} as invariants.
 
 \eq{
@@ -390,12 +397,11 @@ properties in equation \ref{def2} as invariants.
 	\vec{H}^{(k-1)} &= \veclo{H^{\text{(k)}}} &&\cdot \ran{u}_k      &&+ \ran{u}^{-1}_k &&\cdot \vechi{H^{\text{(k)}}} \\
 }
 
-The random variable $\ran{u}$ is sent by the verifier to
-ensure that it is indeed random. To make the inner product
-proof \textit{non-interactive}, the Fiat-Shamir Heuristic
-(\ref{fiat-shamir-heuristic}) can be used.  Notice, that these redefined
-vectors will have a length half of that of the original vectors. From
-these new vectors we will define a new compressed $P$:
+Notice, that these redefined vectors will have a length half of
+that of the original vectors, satisfying our requirement for more
+compact vectors. The random variable, $\ran{u}$, will be provided by $\V$
+to ensure that it is indeed random. From these new vectors we will
+define a new compressed $P^{(k-1)}$ and isolate the variable $\ran{u}$:
 
 \eq{
 	P^{(k-1)} =
@@ -404,9 +410,10 @@ these new vectors we will define a new compressed $P$:
 	\dotp{\vec{a}^{(k-1)}}{\vec{b}^{(k-1)}} \cdot Q
 }
 
-Notice that $P^{(k-1)}$ is still defined the same way as $P$ was,
-and that the property $c^{k-1} = \dotp{\vec{a}^{k-1}}{\vec{b}^{k-1}}$
-still holds. If we substitute our defined variables:
+Notice that $P^{(k-1)}$ is still defined the same way
+that we defined $P^{(k)}$, and that the property $c^{(k-1)} =
+\dotp{\vec{a}^{(k-1)}}{\vec{b}^{(k-1)}}$ still holds. If we substitute
+our defined variables:
 
 \eq{
 	P^{(k-1)} = \: \:
@@ -455,38 +462,57 @@ Then, we define variables $L_k$ and $R_k$ to further simplify:
 	             \dotp{\vechi{a^{\text{(k)}}}}{\veclo{b^{\text{(k)}}}} \cdot Q \\
 }
 
-And repeat this process $log_2(n)$ times, until we get the final $P$, $P^{(0)}$:
+So, $\P$ calculates $L_k, R_k$ and sends it to $\V$. Afterwards,
+$\V$ responds with $u_k$. This is repeated $k = log_2(n)$ times,
+until we get the final $P$, $P^{(0)}$:
 
 \eq{
 	P^{(0)} &= a^{(0)}_0 G^{(0)}_0 + b^{(0)}_0 H^{(0)}_0 + a^{(0)}_0 b^{(0)}_0 Q \\
-	P^{(0)} &= P_k + \sum^k_{i=1}(L_i u^2_i + u^{-2}_i R_i)
+	P^{(0)} &= P^{(k)} + \sum^k_{i=1}(L_i u^2_i + u^{-2}_i R_i)
 }
 
-The prover finally returns $a^{(0)}_0$, $b^{(0)}_0$, $\vec{L}$
-and $\vec{R}$
+$\P$ finally sends $a^{(0)}$, $b^{(0)}$, $\vec{L}$ and $\vec{R}$
 
-\paragraph{Verifiers Algorithm}
-The verifier is given the following values:
-\eqn{def1-ver}{
-	a^{(0)}_0, b^{(0)}_0 &\in \Z_p \\
-	\vec{L}, \vec{R} &\in \G_p^{log_2(n)} \\
-	\vec{G}, \vec{H} &\in \G^n \\
-	P, Q &\in \G \\
-	\vec{u} &\in \Z^{log_2(n)} \\
-}
-
-Furthermore, since the verifier provided the challenges ($\vec{u} \in \Z^{log_2(n)}$), they of course also have knowledge of them
-
-We need a way to get the final $G^{(0)}_0$ and $H^{(0)}_0$, from $\vec{G}$ and $\vec{H}$, let's start with the former. We observe:
-
-\eqn{G0}{
-	\vec{G}^{(j-1)} = \veclo{G^\textit{(j)}} u^{-1}_j + \vechi{G^\textit{(j)}} u^{-1}_j
-}
-
-We want to define a vector $\vec{s}$ such that $\dotp{\vec{s}}{\vec{G}} = G^{(0)}_0$. From equation \ref{G0} we conclude that each $s_i$ is defined as: 
+Formally, the entirety of the dialogue between $\V$ and $\P$,
+the so called \textit{transcript}, will end up being the following:
 
 \eq{
-	&s_i = u^{b(i,k)}_k \cdots u^{b(i,1)}_1 \\
+	\P \rightarrow \V &: L_k, R_k \\
+	\V \rightarrow \P &: u_k \\[5pt]
+	\P \rightarrow \V &: L_{k-1}, R_{k-1} \\
+	\V \rightarrow \P &: u_{k-1} \\[-5pt]
+	                  &\vdots \\
+	\P \rightarrow \V &: L_{1}, R_{1} \\
+	\V \rightarrow \P &: u_{1} \\[5pt]
+	\P \rightarrow \V &: a^{(0)}, b^{(0)} \\
+}
+
+To make the inner product proof \textit{non-interactive}, the Fiat-Shamir Heuristic (\ref{fiat-shamir-heuristic}) can be used. 
+
+\paragraph{Verifiers Algorithm}
+$\V$ has knowledge of the following values:
+\eqn{def1-ver}{
+	a^{(0)}, b^{(0)} &\in \Z_p \\
+	\vec{L}, \vec{R} &\in \G_p^{k} \\
+	\vec{G}, \vec{H} &\in \G^n \\
+	P^{(k)}, Q &\in \G \\
+	\vec{u} &\in \Z^{k} \\
+}
+
+We need a way to get the final $G^{(0)}$ and $H^{(0)}$, from $\vec{G}$
+and $\vec{H}$, let's start with the former. We recall our reduced
+version of $\vec{G}$:
+
+\eqn{G0}{
+	\vec{G}^{(j-1)} = \veclo{G^\textit{(j)}} u^{-1}_j + \vechi{G^\textit{(j)}} u^{1}_j
+}
+
+We want to define a vector $\vec{s}$ such that $\dotp{\vec{s}}{\vec{G}}
+= G^{(0)}$. From equation \ref{G0} we conclude that each $s_i$ is
+defined as:
+
+\eq{
+	&s_i = u^{b(i,k)}_k, \cdots, u^{b(i,1)}_1 \\
 	&\textbf{where:} \\
 	&b(i,j) = 
 	\begin{cases}
@@ -500,11 +526,12 @@ We want to define a vector $\vec{s}$ such that $\dotp{\vec{s}}{\vec{G}} = G^{(0)
 	\end{cases}
 }
 
-\footnote{Note that in the code we zero-index so $j_{\text{code}} = j+1$.}
+Some text here\footnote{Note that in the code we zero-index so $j_{\text{code}} = j+1$.}
 
-We make a similar argument for $H^{(0)}_0$. We want to define a vector $\vec{s'}$ such that $\dotp{\vec{s'}}{\vec{H}} = H^{(0)}_0$: 
+We make a similar argument for $H^{(0)}$. We want to define a vector
+$\vec{s'}$ such that $\dotp{\vec{s'}}{\vec{H}} = H^{(0)}$:
 \eqn{H0}{
-	\vec{H}^{(j-1)} = \veclo{H^\textit{(j)}} u^{-1}_j + \vechi{H^\textit{(j)}} u^{-1}_j
+	\vec{H}^{(k-1)} = \veclo{H^\textit{(k)}} u^{-1}_j + \vechi{H^\textit{(j)}} u^{-1}_j
 }
 
 \eq{
@@ -530,13 +557,17 @@ Now we can define:
 	\vec{H}^{(0)}_0 &= \dotp{\vec{s'}}{\vec{H}}
 }
 
-Now we can simply check:
+Now $\V$ can simply check if $P^{(k)} \stackrel{?}{=} P^{\V}$,
+if the former statement is true, then the $\V$ concludes that
+$\dotp{\vec{a}}{\vec{b}} = c$:
 
 \eq{
-	P' &\stackrel{?}{=} P \\
-	   &\stackrel{?}{=} aG + bH + abQ - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i) \\
-	   &\stackrel{?}{=} \dotp{a\vec{s}}{\vec{G}} + \dotp{b\vec{s'}}{\vec{H}} + abQ - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i)
+	P^{(k)} &\stackrel{?}{=} P^{\V} \\
+	        &\stackrel{?}{=} aG + bH + abQ - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i) \\
+	        &\stackrel{?}{=} \dotp{a\vec{s}}{\vec{G}} + \dotp{b\vec{s'}}{\vec{H}} + abQ - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i)
 }
+
+Some intuition here...
 
 \subsubsection{Zero Knowledge Proofs:}\label{zero-knowledge}
 
