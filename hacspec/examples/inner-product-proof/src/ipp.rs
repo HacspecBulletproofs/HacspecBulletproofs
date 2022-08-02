@@ -59,16 +59,6 @@ fn point_dot(xs: Seq<Scalar>, Xs: Seq<RistrettoPoint>) -> RistrettoPoint {
     acc
 }
 
-// Batch-inverts a list of scalars
-fn inv(xs: Seq<Scalar>) -> Seq<Scalar> {
-    let mut ys = Seq::<Scalar>::new(xs.len());
-
-    for i in 0..xs.len() {
-        ys[i] = xs[i].inv()
-    }
-    ys
-}
-
 // i % 2^(j + 1) < 2^j
 fn g(i: usize, j: usize) -> bool {
     1 & (i >> j) == 0
