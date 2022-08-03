@@ -464,7 +464,8 @@ the so called \textit{transcript}, will end up being the following:
 	\P \rightarrow \V &: a^{(0)}, b^{(0)} \\
 }
 
-To make the inner product proof \textit{non-interactive}, the Fiat-Shamir Heuristic (\ref{fiat-shamir-heuristic}) can be used.
+To make the inner product proof \textit{non-interactive}, the
+Fiat-Shamir Heuristic (\ref{fiat-shamir-heuristic}) can be used.
 
 \paragraph{Verifiers Algorithm}
 $\V$ has knowledge of the following values:
@@ -489,7 +490,7 @@ We want to define a vector $\vec{s}$ such that $\dotp{\vec{s}}{\vec{G}}
 defined as:
 
 \eq{
-	&s_i = u^{b(i,k)}_k, \cdots, u^{b(i,1)}_1 \\
+	&s_i = u^{b(i,k)}_k \cdots u^{b(i,1)}_1 \\
 	&\textbf{where:} \\
 	&b(i,j) = 
 	\begin{cases}
@@ -503,7 +504,11 @@ defined as:
 	\end{cases}
 }
 
-We define $b(i,j)$\footnote{Note that in the code we zero-index so $j_{\text{code}} = j+1$.} to be -1 if $G_i$ appears in the left half of $\vec{G}^{(j)}$, and 1 if $G_i$ appears in the right half of $\vec{G}^{(j)}$. Because $G_i$ appears in the $(i \text{ mod } 2^j)$-th entry of $\vec{G}^{j}$....
+We define $b(i,j)$\footnote{Note that in the code we zero-index
+so $j_{\text{code}} = j+1$.} to be -1 if $G_i$ appears in the left
+half of $\vec{G}^{(j)}$, and 1 if $G_i$ appears in the right half
+of $\vec{G}^{(j)}$. Therefore $G_i$ is in the right side if
+$(i$ mod $2^j) < 2^{j-1}$.
 
 We make a similar argument for $H^{(0)}$. We want to define a vector
 $\vec{s'}$ such that $\dotp{\vec{s'}}{\vec{H}} = H^{(0)}$:
