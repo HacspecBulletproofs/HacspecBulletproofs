@@ -550,7 +550,7 @@ $\dotp{\vec{a}}{\vec{b}} = c$:
 
 \subsubsection{Range Proofs:}\label{range-proofs}
 
-\paragraph{Prover's Algorithm}
+\paragraph{Prover's Algorithm}\label{prover-range-proofs}
 
 A range-proof is a zero-knowledge proof which seeks to prove that for some value $v$, $v$ lies within the range of $[0,2^n)$ without revealing $v$ or any additional information about $v$, thus zero-knowledge. We wish to express this property of $v$ in a single inner product to be able to use an inner product proof as described above. 
 
@@ -698,8 +698,8 @@ The sum of the two top-most coefficients in each 'column' is also
 equal to the bottom coefficient of that column. To convince $\V$, $\P$
 sends $t(\ran{x})B$ and $\tt(\ran{x})\tB$, evaluated at $\ran{x}$
 to $\V$. This is enough to convince $\V$ that $t_0 = \ran{z^2}v +
-\delta(\ran{y},\ran{z})$, which is seen in The Verifier Algorithm
-(insert reference) further down.
+\delta(\ran{y},\ran{z})$, which is seen in The Verifier Algorithm.
+(\ref{Verifier-range-proof})
 
 Next $\P$ wishes to convince $\V$ that $\vec{l}(x)$ and
 $\vec{r}(x)$ are both constructed correctly and that $t(x) =
@@ -750,7 +750,7 @@ In summary the transcript between $\V$ and $\P$, will end up being the following
 
 Just as with the inner product the Fiat-Shamir Heuristic (\ref{fiat-shamir-heuristic}) can be used to make this process non-interactive.
 
-\paragraph{Verifier's Algorithm:}
+\paragraph{Verifier's Algorithm:} \label{Verifier-range-proof}
 
 $\V$ has access to the following values:
 
@@ -759,25 +759,27 @@ $\V$ has access to the following values:
 	\vec{L}, \vec{R} &\in \G_p^{k} \\
 	\vec{G}, \vec{H}, \vec{H'} &\in \G^n \\
 	V, A, B, T_0, T_1, B, \tB &\in \G \\
-	t(x)B, \widetilde{t}(x)\tB &\in \G \hspace*{1cm} \text{(evaluated at x)}
+	t(\ran{x})B, \tt(\ran{x})\tB &\in \G \hspace*{1cm} \text{(evaluated at x)}
 }
 
-$\V$ needs to make a check to see 
+$\V$ needs to make a check for the two properties that $\P$ want to prove to it.
 
-who can then check if the following equation holds:
+To check the first property $\V$ simply checks if the following equation holds:
 
 \eq{
 	t(x)B + \tt(x)\tB \stackrel{?}{=} \ran{z^2} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
 }
 
-And if it does then that will convince the verifier that $t(x) = \ran{z^2}v + \delta(\ran{y},\ran{z}) + t_1x + t_2\ran{x^2}$ due to the column-sums seen above.
+And if it does then that will convince $\V$ that $t(x) = \ran{z^2}v + \delta(\ran{y},\ran{z}) + t_1x + t_2\ran{x^2}$ due to the column-sum argument made in the Prover's Algorithm. (\ref{prover-range-proofs})
+
+Similarly to become convinced of the second property $\V$ checks if this equation holds:
 
 \eq{
 	P &= -\widetilde{e}\tB &&+ A &&+ xS &&+ \dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}}{\vec{H'}} &&- \ran{z}\dotp{\vec{1}}{\vec{\vec{G}}} \\
 	&= -\widetilde{e}\tB &&+ A &&+ xS &&+ \dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}\circ\vecran{y^{-n}}}{\vec{H}} &&- \ran{z}\dotp{\vec{1}}{\vec{G}}
 }
 
-from the definition of the column-sum argument we can deduce that $P = \dotp{\vec{l}(x)}{\vec{G}} + \dotp{\vec{r}(x)}{\vec{H'}}$ assuming an honest prover. Thus the verifier can use $t(x)$ and $P$ as inputs into the innerproduct protocol to prove that $ t(x) = \dotp{\vec{l}(x)}{\vec{r}(x)}$. And if this proof is verified then the prover has done their range-proof and successfully convinced the verifier that $v\in [0,2^n)$ without revealing any additional information about $v$, thus it has done so in zero-knowledge.
+From the column-sum argument we can deduce that $P = \dotp{\vec{l}(x)}{\vec{G}} + \dotp{\vec{r}(x)}{\vec{H'}}$ assuming an honest $\P$. Thus $\V$ can use $t(x)$ and $P$ as inputs into the inner product protocol to prove that $ t(x) = \dotp{\vec{l}(x)}{\vec{r}(x)}$. And if this proof is verified then $\V$ is now convinced that $v\in [0,2^n)$ without knowing any other properties of $v$, thus the range-proof is zero-knowledge.
 
 \subsubsection{Aggregation of rangeproofs:}
 
