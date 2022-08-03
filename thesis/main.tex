@@ -547,7 +547,7 @@ $\dotp{\vec{a}}{\vec{b}} = c$:
 
 \paragraph{Prover's Algorithm}
 
-A range-proof is a zero-knowledge proof which seeks to prove that for some value $v$, $v$ lies within the range of $[0,2^n)$ without revealing $v$ or any additional information about $v$, thus zero-knowledge. We wish to express this property of $v$ in a single inner product to be able to use an innerproduct proof as described above. 
+A range-proof is a zero-knowledge proof which seeks to prove that for some value $v$, $v$ lies within the range of $[0,2^n)$ without revealing $v$ or any additional information about $v$, thus zero-knowledge. We wish to express this property of $v$ in a single inner product to be able to use an inner product proof as described above. 
 
 To start the prover, $\P$, commits a value $v$ using a Pedersen commitment, $V$, to the verifier, $\V$, as well commiting to the desired range n, which is not blinded. These will be used later.
 
@@ -569,7 +569,7 @@ This property will only hold if $\vec{a}$ has entries that are either 0 or 1. Ad
 	(\vecl{a} - \vec{1}) - \vecr{a} = \vec{0}
 }
 
-We wish to combine these properties into a single innerproduct which $\P$ will then prove to $\V$. To do this we observe that $\vec{a} = \vec{0} \iff \forall y\in\mathbb{Z}: \dotp{\vec{a}}{\vec{y^n}} = \vec{0}$. So $\P$ lets $\V$ chose a random scalar $\ran{y}$ and using $\ran{y}$ we get a new set of properties:
+We wish to combine these properties into a single inner product which $\P$ will then prove to $\V$. To do this we observe that $\vec{a} = \vec{0} \iff \forall y\in\mathbb{Z}: \dotp{\vec{a}}{\vec{y^n}} = \vec{0}$. So $\P$ lets $\V$ chose a random scalar $\ran{y}$ and using $\ran{y}$ we get a new set of properties:
 
 \eq{
 	\dotp{\vecl{a}}{\vec{2^n}} = v \\
@@ -612,7 +612,7 @@ First we can rewrite the middle term:
 	\dotp{-\ran{z}\vec{1}}{\vecr{a}\circ\vecran{y^n}}
 }
 
-For the final step towards combining all the conditions into a single innerproduct we add $\dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n}}$ to both sides and simplify again:
+For the final step towards combining all the conditions into a single inner product we add $\dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n}}$ to both sides and simplify again:
 
 \eq{
 	&\ran{z^2}v + \ran{z}\dotp{\vec{1}}{\vecran{y^n}} + \dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n}}
@@ -623,28 +623,28 @@ For the final step towards combining all the conditions into a single innerprodu
 	&\ran{z^2}v + (\ran{z} - \ran{z^2})\dotp{\vec{1}}{\vecran{y^n}} - \ran{z^3}\dotp{\vec{1}}{\vec{2^n}} &&= \dotp{\vecl{a}- \ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n} + \vecr{a}\circ \vecran{y^n}}
 }
 
-We define a function $\delta(\ran{y},\ran{z}) = (\ran{z} - \ran{z^2})\dotp{\vec{1}}{\vecran{y^n}} - \ran{z^3}\dotp{\vec{1}}{\vec{2^n}}$ and finish simplifying:
+We define a function $\delta(y,z) = (z - z^2)\dotp{\vec{1}}{\vec{y^n}} - z^3\dotp{\vec{1}}{\vec{2^n}}$ and finish simplifying:
 
 \eq{
 	\ran{z^2}v + \delta(\ran{y},\ran{z}) = \dotp{\vecl{a}- \ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + (\vecr{a} + \ran{z}\vec{1})\circ\vecran{y^n}}
 }
 
-From here on we will refer to the left side of the innerproduct as $\vec{l(x)}$ and the right side as $\vec{r(x)}$:
+From here on we will refer to the first argument of the inner product as $\vec{l_0}$ and the second argument as $\vec{r_0}$:
 
 \eq{
-	\ran{z^2}v + \delta(\ran{y},\ran{z}) = \dotp{\vec{l}(x)}{\vec{r}(x)}
+	\ran{z^2}v + \delta(\ran{y},\ran{z}) = \dotp{\vec{l_0}}{\vec{r_0}}
 }
 
-If the goal was simply to construct a single inner product which would prove that $v$ lies in $[0,2^n)$ then $\P$ could simply send these values to $\V$ and be done, however we also wish for the proof to be zero-knowledge this innerproduct needs to be blinded somehow. To do this $\P$ constructs a polynomial $t(x)$. This polynomial will be constructed in a way that allows us to change our objective to proving something about $t(x)$ instead of this innerproduct proof.
+If the goal was simply to construct a single inner product which would prove that $v$ lies in $[0,2^n)$, then $\P$ could simply send these values to $\V$ and be done. However, we wish for the proof to be zero-knowledge and therefore this inner product needs to be blinded. To do this, $\P$ constructs a polynomial $t(x)$. (rewrite to be more clear what the goal is!) This polynomial will be constructed in a way that allows us to change our objective to proving something about $t(x)$ instead of this inner product proof.
 
-First $\P$ chose random blinding factors $\vecran{s_L}$ and $\vecran{s_R}$ which are vectors of length $n$. Using these $\P$ can rebuild $\vec{l}(x)$ and $\vec{r}(x)$ in the following way:
-
+First $\P$ chooses random blinding factors $\vecran{s_L}$ and $\vecran{s_R}$ such that $\vecl{s},\vecr{s}\in \Z^n_p$. Using these $\P$ can costruct two vector-function $\vec{l}(x)$ and $\vec{r}(x)$ in the following way:
+(Hvad er l1 og r1)
 \eq{
-	\vec{l}(x) &= \vec{l_0} + \vec{l_1}\ran{x} &&= (\vecl{a} + \vecl{s}\ran{x}) - z\vec{1}\\
-	\vec{r}(x) &= \vec{r_0} + \vec{r_1}\ran{x} &&= \ran{z^2}\vec{2^n} + ((\vecr{a} + \vecr{s}\ran{x}) + \ran{z}\vec{1})\circ\vecran{y^n}
+	\vec{l}(x) &= \vec{l_0} + \vec{l_1}x &&= (\vecl{a} + \vecl{s}x) - z\vec{1}\\
+	\vec{r}(x) &= \vec{r_0} + \vec{r_1}x &&= \ran{z^2}\vec{2^n} + ((\vecr{a} + \vecr{s}x) + \ran{z}\vec{1})\circ\vecran{y^n}
 }
-
-Here $\vec{l_0}$ and $\vec{r_0}$ represent the zero-degree polynomial meaning that they are simply the unblinded versions of $\vec{l}(x)$ and $\vec{r(x)}$. This means that:
+(Omskriv dette til at passe med tidligere omskrivinger)
+Here $\vec{l_0}$ and $\vec{r_0}$ represent the zero-degree polynomial meaning that they are simply the unblinded versions of $\vec{l}(x)$ and $\vec{r}(x)$. This means that:
 
 \eq{
 	\dotp{\vec{l_0}}{\vec{r_0}} = \ran{z^2}v + \delta(\ran{y},\ran{z})
@@ -664,7 +664,7 @@ One way to construct this is using what's known as the Karatsuba method:
 	t_1 &= \dotp{\vec{l_0}+\vec{l_1}}{\vec{r_0} + \vec{r_1}} - t_0 - t_2
 }
 
-Now $\P$'s new goal is to convince $\V$ of two things. First to convince them that $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$ and secondly that $t(x)$ is the correct polynomial. To prove the latter means to show that $\vec{l}(x)$ and $\vec{r}(x)$ are correctly constructed and that $t(x) = \dotp{\vec{l}(x)}{\vec{r}(x)}$
+Now $\P$'s new goal is to convince $\V$ of two properties. The first property $\P$ wishes to prove is that $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$. The second property $\P$ wishes to prove is t(x) is the correct polynomial. The latter means showing that $\vec{l}(x)$ and $\vec{r}(x)$ are correctly constructed and that $t(x) = \dotp{\vec{l}(x)}{\vec{r}(x)}$.
 
 First $\P$ wants to show that $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$. To do this $\P$ makes commitments to each of the coefficients of $t(x)$. Here we make note of the fact that we already commitmed to $t_0$. Namely the commitment to $v$, $V$, we made at the very start, which is also a commitment to $t_0$ by construction. Additionally $\P$ makes a commitment to $T_1 = C(t_1, \widetilde{t_1})$ and $T_2 = C(t_2, \widetilde{t_2})$. After commiting these values to $\V$, $\V$ sends back a challenge scalar $\ran{x}$. Now with the Pedersen-commitment having base-point $B$ and blinding point $\widetilde{B}$ we know from the definitions that these commitments relate in the following manner:
 
