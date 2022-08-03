@@ -1,2 +1,3 @@
 - Add images of elliptic curve operations
 - Add source on karatsuba
+- Shorten up pedersen

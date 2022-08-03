@@ -554,7 +554,7 @@ $\dotp{\vec{a}}{\vec{b}} = c$:
 
 A range-proof is a zero-knowledge proof which seeks to prove that for some value $v$, $v$ lies within the range of $[0,2^n)$ without revealing $v$ or any additional information about $v$, thus zero-knowledge. We wish to express this property of $v$ in a single inner product to be able to use an inner product proof as described above. 
 
-To start the prover, $\P$, commits a value $v$ using a Pedersen commitment, $V$, to the verifier, $\V$, as well commiting to the desired range n, which is not blinded.
+To start the prover, $\P$, commits a value $v$ using a Pedersen commitment, $V$, to the verifier, $\V$, as well commiting to the desired range n, which is not blinded. With the Pedersen-commitment having base-point $B$ and blinding point $\tB$:
 
 \eq{
 	V = vB + \tv \tB
@@ -681,12 +681,11 @@ constructed. So, $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$, and $t(x)
 First $\P$ wants to show that $t_0$ is correctly constructed. $\P$
 starts by making commitments to each of the coefficients of $t(x)$. Here
 we make note of the fact that $\P$ has already commited $t_0$. Namely,
-the commitment to $v$, $V$, made at the very start, is also a commitment
-to $t_0$ as per the construction of $t_0$. Additionally $\P$ makes
+commitment, $V$, made at the very start, is also a commitment
+to $t_0$ as per the construction of $t_0$. $\P$ makes
 commitments to $T_1 = C(t_1, \tt_1)$ and $T_2 = C(t_2, \tt_2)$. After
 commiting these values to $\V$, $\V$ sends back a challenge scalar
-$\ran{x}$. Now with the Pedersen-commitment having base-point $B$
-and blinding point $\tB$ we know from the definitions of $V, T_1, T_2$
+$\ran{x}$. We know from the definitions of $V, T_1, T_2$
 that these commitments relate in the following manner:
 
 \eq{
@@ -695,9 +694,19 @@ that these commitments relate in the following manner:
 	t(\ran{x})B + \tt(\ran{x})\tB &= \ran{z^2}V       &&+ \delta(\ran{y},\ran{z})B &&+ \ran{x}T_1        &&+ \ran{x^2}T_2
 }
 
-The sum of the first two coefficients in each 'column' is also equal to the last coefficient in their column. To convince $\V$, $\P$ sends $t(x)B$ and $\tt(x)\tB$, evaluated at $\ran{x}$ to $\V$. This is enough to convince $\V$ that $t(x) = \ran{z^2}v + \delta(\ran{y},\ran{z}) + t_1x + t_2\ran{x^2} \Rightarrow t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$, which is seen in The Verifier Algorithm further down.
+The sum of the two top-most coefficients in each 'column' is also
+equal to the bottom coefficient of that column. To convince $\V$, $\P$
+sends $t(\ran{x})B$ and $\tt(\ran{x})\tB$, evaluated at $\ran{x}$
+to $\V$. This is enough to convince $\V$ that $t_0 = \ran{z^2}v +
+\delta(\ran{y},\ran{z})$, which is seen in The Verifier Algorithm
+(insert reference) further down.
 
-Next $\P$ wishes to convince $\V$ that $\vec{l}(x)$ and $\vec{r}(x)$ are both constructed correctly and that $\vec{t}(x) = \dotp{\vec{l}(x)}{\vec{r}(x)}$. To achieve this $\P$ will use a similar construction as seen above. We want $\P$ to make commitments that allows $\V$ to relate $\vec{l}(x)$ and $\vec{r}(x)$ to $\vecl{a}, \vecl{s}, \vecr{a}$ and $\vecr{s}$. It is not that simple however. As seen here:
+Next $\P$ wishes to convince $\V$ that $\vec{l}(x)$ and
+$\vec{r}(x)$ are both constructed correctly and that $t(x) =
+\dotp{\vec{l}(x)}{\vec{r}(x)}$. To achieve this $\P$ will use a similar
+construction as seen above. We want $\P$ to make commitments that allows
+$\V$ to relate $\vec{l}(x)$ and $\vec{r}(x)$ to $\vecl{a}, \vecl{s},
+\vecr{a}$ and $\vecr{s}$. It is not that simple however. As seen here:
 
 \eq{
 	\vec{r}(x) = \ran{z^2}\vec{2^n} + ((\vecr{a} + \vecr{s}\ran{x}) + \ran{z}\vec{1})\circ\vecran{y^n}
@@ -706,10 +715,11 @@ Next $\P$ wishes to convince $\V$ that $\vec{l}(x)$ and $\vec{r}(x)$ are both co
 This means we want $\P$ to make commitments to $\vec{y^n}\circ \vecr{a}$ and $\vec{y^n}\circ\vecr{s}$. This is a problem as these commitments need to be made and sent to $\V$ BEFORE $\P$ gets the challenge $\ran{y}$ from $\V$. To fix this issue $\P$ will make a special commitment to $\vecl{a}$ and $\vecr{a}$ as follows:
 
 \eq{
-	C(\vecl{a}, \vecr{a}, \widetilde{a}) = \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecl{a}}{\vec{H}} + \widetilde{a}\tB
+	C(\vecl{a}, \vecr{a}, \widetilde{a}) = \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecr{a}}{\vec{H}} + \widetilde{a}\tB
 }
 
-Where G and H are vectors of canonical generator points and hiding points respectively, $\widetilde{a}$ is a randomly chosen blinding scalar and $\tB$ is the same blinding point used in the previous step. This same construction is used for the commitment to $C(\vecl{s}, \vecr{s}, \widetilde{s})$. Here we notice that: 
+This same construction is used for the commitment to $C(\vecl{s},
+\vecr{s}, \widetilde{s})$. Here we notice that:
 
 \eq{
 	C(\vecl{a}, \vecr{a}, \widetilde{a}) &= \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecr{a}}{\vec{H}} + \widetilde{a}\tB \\
@@ -721,24 +731,24 @@ We define $\vec{H'} = \vecran{y^{-n}}\circ\vec{H}$, $A = C(\vecl{a},\vecr{a}, \w
 \eq{
 	\dotp{\vec{l}(x)}{\vec{G}} &= \dotp{\vecl{a}}{\vec{G}} &&+ \ran{x}\dotp{\vecl{s}}{\vec{G}} &&+ \dotp{-\ran{z}\vec{1}}{\vec{G}} \\
 	\dotp{\vec{r}(x)}{\vec{H'}} &= \dotp{\vecr{a}}{\vec{H}} &&+ \ran{x}\dotp{\vecr{s}}{\vec{H}} &&+ \dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}}{\vec{H'}}\\
-	\widetilde{e}\tB &= \widetilde{a}\tB &&+ \ran{x}\widetilde{s}\tB &&+ 0 \\
+	\widetilde{e}\tB &= \widetilde{a}\tB &&+ \ran{x}\widetilde{s}\tB &&+ 0 \tB \\
 	\dotp{\vec{l}(x)}{\vec{G}} + \dotp{\vec{r}(x)}{\vec{H'}} + \widetilde{e}\tB &= A &&+ \ran{x}S &&+ (\dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}}{\vec{H'}} - \ran{z}\dotp{\vec{1}}{\vec{G}})
 }
 
 From here, using the same argument as above $\P$ sends $\widetilde{e}$ to $\V$. This will be enough to convince $\V$ that $\vec{l}(x)$ and $\vec{r}(x)$ are correctly constructed and that $t(x) = \dotp{\vec{l}(x)}{\vec{r}(x)}$ and together with the previous commitments to $\V$, $\P$ will be able to successfully convince $\V$ that $v$ lies in the range $[0, 2^n)$.
 
-In summary the \textit{transcript} between $\V$ and $\P$, will end up being the following:
+In summary the transcript between $\V$ and $\P$, will end up being the following:
 
 \eq{
 	\P \rightarrow \V &: V, n, A, S \\
 	\V \rightarrow \P &: y, z \\
 	\P \rightarrow \V &: T_0, T_1 \\
 	\V \rightarrow \P &: x \\
-	\P \rightarrow \V &: t(x)B, \tt(x)\tB \hspace*{1cm}\text{(both evaluated at x)}\\
+	\P \rightarrow \V &: t(\ran{x})B, \tt(\ran{x})\tB \hspace*{1cm}\text{(both evaluated at $\ran{x}$)}\\
 	\P \rightarrow \V &: \widetilde{e}
 }
 
-Just as with the inner product the Fiat-Shamir Heuristic (\ref{fiat-shamir-heuristic}) can be used to make this process \textit{non-interactive}.
+Just as with the inner product the Fiat-Shamir Heuristic (\ref{fiat-shamir-heuristic}) can be used to make this process non-interactive.
 
 \paragraph{Verifier's Algorithm:}
 
