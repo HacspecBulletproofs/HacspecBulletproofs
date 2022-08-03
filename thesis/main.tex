@@ -49,6 +49,11 @@
 \newcommand{\G}{\mathbb{G}}
 \newcommand{\Z}{\mathbb{Z}}
 
+% Basepoint
+\newcommand{\tB}{\widetilde{B}}
+\renewcommand{\tt}{\widetilde{t}}
+\newcommand{\tv}{\widetilde{v}}
+
 \newcommand\concat{\mathbin{+\mkern-10mu+}} % concat-symbol
 \newcommand{\dotp}[2]{\langle #1, #2 \rangle}
 \newcommand{\opn}[1]{\operatorname{#1}}
@@ -549,7 +554,11 @@ $\dotp{\vec{a}}{\vec{b}} = c$:
 
 A range-proof is a zero-knowledge proof which seeks to prove that for some value $v$, $v$ lies within the range of $[0,2^n)$ without revealing $v$ or any additional information about $v$, thus zero-knowledge. We wish to express this property of $v$ in a single inner product to be able to use an inner product proof as described above. 
 
-To start the prover, $\P$, commits a value $v$ using a Pedersen commitment, $V$, to the verifier, $\V$, as well commiting to the desired range n, which is not blinded. These will be used later.
+To start the prover, $\P$, commits a value $v$ using a Pedersen commitment, $V$, to the verifier, $\V$, as well commiting to the desired range n, which is not blinded.
+
+\eq{
+	V = vB + \tv \tB
+}
 
 If we let $\vec{a}$ be $v$ expressed in bits then we know the following:
 
@@ -664,14 +673,24 @@ One way to construct this is using what's known as the Karatsuba method:
 	t_1 &= \dotp{\vec{l_0}+\vec{l_1}}{\vec{r_0} + \vec{r_1}} - t_0 - t_2
 }
 
-Now $\P$'s new goal is to convince $\V$ of two properties. The first property $\P$ wishes to prove is that $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$. The second property $\P$ wishes to prove is t(x) is the correct polynomial. The latter means showing that $\vec{l}(x)$ and $\vec{r}(x)$ are correctly constructed and that $t(x) = \dotp{\vec{l}(x)}{\vec{r}(x)}$.
+Now $\P$ wishes to prove to $\V$ that $t_0$ and $t(x)$ are correctly constructed. So, $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$, and $t(x) = \dotp{\vec{l}(x)}{\vec{r}(x)}$ such that, $\vec{l}(x) = \vec{l_0} + \vec{l_1}x$, and, $\vec{r}(x) = \vec{l_0} + \vec{l_1}x$.
 
-First $\P$ wants to show that $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$. To do this $\P$ makes commitments to each of the coefficients of $t(x)$. Here we make note of the fact that we already commitmed to $t_0$. Namely the commitment to $v$, $V$, we made at the very start, which is also a commitment to $t_0$ by construction. Additionally $\P$ makes a commitment to $T_1 = C(t_1, \widetilde{t_1})$ and $T_2 = C(t_2, \widetilde{t_2})$. After commiting these values to $\V$, $\V$ sends back a challenge scalar $\ran{x}$. Now with the Pedersen-commitment having base-point $B$ and blinding point $\widetilde{B}$ we know from the definitions that these commitments relate in the following manner:
+First $\P$ wants to show that $t_0$ is correctly constructed. To do
+this $\P$ starts by making commitments to each of the coefficients
+of $t(x)$. Here we make note of the fact that $\P$ has already
+commited $t_0$. Namely, the commitment to $v$, $V$, made at the
+very start, is also a commitment to $t_0$ as per the construction
+of $t_0$. Additionally $\P$ makes commitments to $T_1 = C(t_1,
+\tt_1)$ and $T_2 = C(t_2, \tt_2)$. After commiting
+these values to $\V$, $\V$ sends back a challenge scalar $\ran{x}$. Now
+with the Pedersen-commitment having base-point $B$ and blinding point
+$\tB$ we know from the definitions of $V, T_1, T_2$ that these commitments
+relate in the following manner:
 
 \eq{
-	t(x)B &= \ran{z^2}vB &&+ \delta(\ran{y},\ran{z})B &&+ \ran{x}t_1B &&+ \ran{x^2}t_2B \\
-	\widetilde{t}(x)\widetilde{B} &= \ran{z^2}\widetilde{v}\widetilde{B} &&+ 0\widetilde{B} &&+ \ran{x}\widetilde{t_1}\widetilde{B} &&+ \ran{x^2}\widetilde{t_2}\widetilde{B}\\
-	t(x)B + \widetilde{t}(x)\widetilde{B} &= \ran{z^2}V &&+ \delta(\ran{y},\ran{z})B &&+ \ran{x}T_1 &&+ \ran{x^2}T_2
+	t(\ran{x})B                   &= \ran{z^2}vB      &&+ \delta(\ran{y},\ran{z})B &&+ \ran{x}t_1B       &&+ \ran{x^2}t_2B \\
+	\tt(\ran{x})\tB               &= \ran{z^2}\tv \tB &&+ 0\tB                     &&+ \ran{x} \tt_1 \tB &&+ \ran{x^2} \tt_2 \tB\\
+	t(\ran{x})B + \tt(\ran{x})\tB &= \ran{z^2}V       &&+ \delta(\ran{y},\ran{z})B &&+ \ran{x}T_1        &&+ \ran{x^2}T_2
 }
 
 The sum of the first two coefficients in each 'column' is also equal to the last coefficient in their column. To convince $\V$, $\P$ sends $t(x)B$ and $\widetilde{t}(x)\widetilde{B}$, evaluated at $\ran{x}$ to $\V$. This is enough to convince $\V$ that $t(x) = \ran{z^2}v + \delta(\ran{y},\ran{z}) + t_1x + t_2\ran{x^2} \Rightarrow t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$, which is seen in The Verifier Algorithm further down.
