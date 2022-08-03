@@ -693,7 +693,7 @@ relate in the following manner:
 	t(\ran{x})B + \tt(\ran{x})\tB &= \ran{z^2}V       &&+ \delta(\ran{y},\ran{z})B &&+ \ran{x}T_1        &&+ \ran{x^2}T_2
 }
 
-The sum of the first two coefficients in each 'column' is also equal to the last coefficient in their column. To convince $\V$, $\P$ sends $t(x)B$ and $\widetilde{t}(x)\widetilde{B}$, evaluated at $\ran{x}$ to $\V$. This is enough to convince $\V$ that $t(x) = \ran{z^2}v + \delta(\ran{y},\ran{z}) + t_1x + t_2\ran{x^2} \Rightarrow t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$, which is seen in The Verifier Algorithm further down.
+The sum of the first two coefficients in each 'column' is also equal to the last coefficient in their column. To convince $\V$, $\P$ sends $t(x)B$ and $\tt(x)\tB$, evaluated at $\ran{x}$ to $\V$. This is enough to convince $\V$ that $t(x) = \ran{z^2}v + \delta(\ran{y},\ran{z}) + t_1x + t_2\ran{x^2} \Rightarrow t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$, which is seen in The Verifier Algorithm further down.
 
 Next $\P$ wishes to convince $\V$ that $\vec{l}(x)$ and $\vec{r}(x)$ are both constructed correctly and that $\vec{t}(x) = \dotp{\vec{l}(x)}{\vec{r}(x)}$. To achieve this $\P$ will use a similar construction as seen above. We want $\P$ to make commitments that allows $\V$ to relate $\vec{l}(x)$ and $\vec{r}(x)$ to $\vecl{a}, \vecl{s}, \vecr{a}$ and $\vecr{s}$. It is not that simple however. As seen here:
 
@@ -704,14 +704,14 @@ Next $\P$ wishes to convince $\V$ that $\vec{l}(x)$ and $\vec{r}(x)$ are both co
 This means we want $\P$ to make commitments to $\vec{y^n}\circ \vecr{a}$ and $\vec{y^n}\circ\vecr{s}$. This is a problem as these commitments need to be made and sent to $\V$ BEFORE $\P$ gets the challenge $\ran{y}$ from $\V$. To fix this issue $\P$ will make a special commitment to $\vecl{a}$ and $\vecr{a}$ as follows:
 
 \eq{
-	C(\vecl{a}, \vecr{a}, \widetilde{a}) = \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecl{a}}{\vec{H}} + \widetilde{a}\widetilde{B}
+	C(\vecl{a}, \vecr{a}, \widetilde{a}) = \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecl{a}}{\vec{H}} + \widetilde{a}\tB
 }
 
-Where G and H are vectors of canonical generator points and hiding points respectively, $\widetilde{a}$ is a randomly chosen blinding scalar and $\widetilde{B}$ is the same blinding point used in the previous step. This same construction is used for the commitment to $C(\vecl{s}, \vecr{s}, \widetilde{s})$. Here we notice that: 
+Where G and H are vectors of canonical generator points and hiding points respectively, $\widetilde{a}$ is a randomly chosen blinding scalar and $\tB$ is the same blinding point used in the previous step. This same construction is used for the commitment to $C(\vecl{s}, \vecr{s}, \widetilde{s})$. Here we notice that: 
 
 \eq{
-	C(\vecl{a}, \vecr{a}, \widetilde{a}) &= \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecr{a}}{\vec{H}} + \widetilde{a}\widetilde{B} \\
-	&= \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecran{y^n}\circ \vecr{a}}{\vecran{y^{-n}}\circ \vec{H}} + \widetilde{a}\widetilde{B}
+	C(\vecl{a}, \vecr{a}, \widetilde{a}) &= \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecr{a}}{\vec{H}} + \widetilde{a}\tB \\
+	&= \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecran{y^n}\circ \vecr{a}}{\vecran{y^{-n}}\circ \vec{H}} + \widetilde{a}\tB
 }
 
 We define $\vec{H'} = \vecran{y^{-n}}\circ\vec{H}$, $A = C(\vecl{a},\vecr{a}, \widetilde{a})$ and $S = C(\vecl{s}, \vecr{s}, \widetilde{s})$ and can now construct our argument similarly to what was done in the previous segment:
@@ -719,8 +719,8 @@ We define $\vec{H'} = \vecran{y^{-n}}\circ\vec{H}$, $A = C(\vecl{a},\vecr{a}, \w
 \eq{
 	\dotp{\vec{l}(x)}{\vec{G}} &= \dotp{\vecl{a}}{\vec{G}} &&+ \ran{x}\dotp{\vecl{s}}{\vec{G}} &&+ \dotp{-\ran{z}\vec{1}}{\vec{G}} \\
 	\dotp{\vec{r}(x)}{\vec{H'}} &= \dotp{\vecr{a}}{\vec{H}} &&+ \ran{x}\dotp{\vecr{s}}{\vec{H}} &&+ \dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}}{\vec{H'}}\\
-	\widetilde{e}\widetilde{B} &= \widetilde{a}\widetilde{B} &&+ \ran{x}\widetilde{s}\widetilde{B} &&+ 0 \\
-	\dotp{\vec{l}(x)}{\vec{G}} + \dotp{\vec{r}(x)}{\vec{H'}} + \widetilde{e}\widetilde{B} &= A &&+ \ran{x}S &&+ (\dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}}{\vec{H'}} - \ran{z}\dotp{\vec{1}}{\vec{G}})
+	\widetilde{e}\tB &= \widetilde{a}\tB &&+ \ran{x}\widetilde{s}\tB &&+ 0 \\
+	\dotp{\vec{l}(x)}{\vec{G}} + \dotp{\vec{r}(x)}{\vec{H'}} + \widetilde{e}\tB &= A &&+ \ran{x}S &&+ (\dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}}{\vec{H'}} - \ran{z}\dotp{\vec{1}}{\vec{G}})
 }
 
 From here, using the same argument as above $\P$ sends $\widetilde{e}$ to $\V$. This will be enough to convince $\V$ that $\vec{l}(x)$ and $\vec{r}(x)$ are correctly constructed and that $t(x) = \dotp{\vec{l}(x)}{\vec{r}(x)}$ and together with the previous commitments to $\V$, $\P$ will be able to successfully convince $\V$ that $v$ lies in the range $[0, 2^n)$.
@@ -732,7 +732,7 @@ In summary the \textit{transcript} between $\V$ and $\P$, will end up being the 
 	\V \rightarrow \P &: y, z \\
 	\P \rightarrow \V &: T_0, T_1 \\
 	\V \rightarrow \P &: x \\
-	\P \rightarrow \V &: t(x)B, \widetilde{t}(x)\widetilde{B} \hspace*{1cm}\text{(both evaluated at x)}\\
+	\P \rightarrow \V &: t(x)B, \tt(x)\tB \hspace*{1cm}\text{(both evaluated at x)}\\
 	\P \rightarrow \V &: \widetilde{e}
 }
 
@@ -746,8 +746,8 @@ $\V$ has access to the following values:
 	y, z, x, \widetilde{e} &\in \Z_p \\
 	\vec{L}, \vec{R} &\in \G_p^{k} \\
 	\vec{G}, \vec{H}, \vec{H'} &\in \G^n \\
-	V, A, B, T_0, T_1, B, \widetilde{B} &\in \G \\
-	t(x)B, \widetilde{t}(x)\widetilde{B} &\in \G \hspace*{1cm} \text{(evaluated at x)}
+	V, A, B, T_0, T_1, B, \tB &\in \G \\
+	t(x)B, \widetilde{t}(x)\tB &\in \G \hspace*{1cm} \text{(evaluated at x)}
 }
 
 $\V$ needs to make a check to see 
@@ -755,14 +755,14 @@ $\V$ needs to make a check to see
 who can then check if the following equation holds:
 
 \eq{
-	t(x)B + \widetilde{t}(x)\widetilde{B} \stackrel{?}{=} \ran{z^2} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
+	t(x)B + \tt(x)\tB \stackrel{?}{=} \ran{z^2} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
 }
 
 And if it does then that will convince the verifier that $t(x) = \ran{z^2}v + \delta(\ran{y},\ran{z}) + t_1x + t_2\ran{x^2}$ due to the column-sums seen above.
 
 \eq{
-	P &= -\widetilde{e}\widetilde{B} &&+ A &&+ xS &&+ \dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}}{\vec{H'}} &&- \ran{z}\dotp{\vec{1}}{\vec{\vec{G}}} \\
-	&= -\widetilde{e}\widetilde{B} &&+ A &&+ xS &&+ \dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}\circ\vecran{y^{-n}}}{\vec{H}} &&- \ran{z}\dotp{\vec{1}}{\vec{G}}
+	P &= -\widetilde{e}\tB &&+ A &&+ xS &&+ \dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}}{\vec{H'}} &&- \ran{z}\dotp{\vec{1}}{\vec{\vec{G}}} \\
+	&= -\widetilde{e}\tB &&+ A &&+ xS &&+ \dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}\circ\vecran{y^{-n}}}{\vec{H}} &&- \ran{z}\dotp{\vec{1}}{\vec{G}}
 }
 
 from the definition of the column-sum argument we can deduce that $P = \dotp{\vec{l}(x)}{\vec{G}} + \dotp{\vec{r}(x)}{\vec{H'}}$ assuming an honest prover. Thus the verifier can use $t(x)$ and $P$ as inputs into the innerproduct protocol to prove that $ t(x) = \dotp{\vec{l}(x)}{\vec{r}(x)}$. And if this proof is verified then the prover has done their range-proof and successfully convinced the verifier that $v\in [0,2^n)$ without revealing any additional information about $v$, thus it has done so in zero-knowledge.
