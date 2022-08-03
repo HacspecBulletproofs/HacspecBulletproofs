@@ -49,7 +49,7 @@
 \newcommand{\G}{\mathbb{G}}
 \newcommand{\Z}{\mathbb{Z}}
 
-\newcommand\doubleplus{\mathbin{+\mkern-10mu+}} % concat-symbol
+\newcommand\concat{\mathbin{+\mkern-10mu+}} % concat-symbol
 \newcommand{\dotp}[2]{\langle #1, #2 \rangle}
 \newcommand{\opn}[1]{\operatorname{#1}}
 \newcommand{\veclo}[1]{\vec{#1_{\opn{lo}}}}
@@ -992,24 +992,24 @@ A table of notation used throughout this report:
 
 \begin{center}
 \begin{tabular}{ c l }
-	$a$                       & A scalar \\
-	$\vec{a}$                 & A vector \\
-	$A$                       & A curve point \\
-	$\vec{A}$                 & A vector of curve points \\
-	$\ran{a}$                 & A scalar random variable \\
-	$\vecran{a}$              & A vector of scalar random variables \\
-	$\vecran{A}$              & A vector of random curve points \\
-	$\veclo{a}$               & The first half of vector $\vec{a}$, ($\veclo{a} = [a_{1}, \cdots, a_{n/2}]$) \\
-	$\vechi{a}$               & The second half of vector $\vec{a}$, ($\vechi{a} = [a_{n/2+1}, \cdots, a_{n}]$) \\
-	$\vec{x^n}$ 			  & A vector of scalars which are made up of
-								powers of x i.e. $[1,x,x^2... x^{n-1}]$\\
-	$\vec{x} || \vec{y}$	  & A vector, $\vec{y}$, extending another
-								vector, $\vec{x}$\\
-	$\mathbb{A}$              & A set \\
-	$\mathbb{A}^n$            & A vector space of dimension $n$ \\ 
-	$\mathbb{A}_n$            & A set whose elements are mod $n$ \\ 
-	$\dotp{\vec{a}}{\vec{b}}$ & Dot product of $\vec{a}$ and $\vec{b}$ \\
-	$\dotp{\vec{a}}{\vec{A}}$ & The sum of scalar-point products of $\vec{a}$ and $\vec{A}$ ($\dotp{\vec{a}}{\vec{A}} = a_1 A_1 + a_2 A_2 + \cdots + a_n A_n$) \\
+	$a$                         & A scalar \\
+	$\vec{a}$                   & A vector \\
+	$A$                         & A curve point \\
+	$\vec{A}$                   & A vector of curve points \\
+	$\ran{a}$                   & A scalar random variable \\
+	$\vecran{a}$                & A vector of scalar random variables \\
+	$\vecran{A}$                & A vector of random curve points \\
+	$\veclo{a}$                 & The first half of vector $\vec{a}$, ($\veclo{a} = [a_{1}, \cdots, a_{n/2}]$) \\
+	$\vechi{a}$                 & The second half of vector $\vec{a}$, ($\vechi{a} = [a_{n/2+1}, \cdots, a_{n}]$) \\
+	$\vec{a^n}$                 & A vector of scalars which are made up of powers of $a$ i.e. $[1,a,a^2... a^{n-1}]$\\
+	$\vec{a} \concat \vec{b}$   & A vector, $\vec{a}$, concatinated with another vector, $\vec{b}$\\
+	$\mathbb{A}$                & A set \\
+	$\mathbb{A}^n$              & A vector space of dimension $n$ \\ 
+	$\mathbb{A}_n$              & A set whose elements are mod $n$ \\ 
+	$a(x)$                      & A function mapping integers mod p to integers mod p: $\Z_p \rightarrow \Z_p$ \\
+	$\vec{a}(x)$                & A function mapping integers mod p to vectors containing integers mod p: $\Z_p \rightarrow \Z^n_p$ \\
+	$\dotp{\vec{a}}{\vec{b}}$   & Dot product of $\vec{a}$ and $\vec{b}$ \\
+	$\dotp{\vec{a}}{\vec{A}}$   & The sum of scalar-point products of $\vec{a}$ and $\vec{A}$ ($\dotp{\vec{a}}{\vec{A}} = a_1 A_1 + a_2 A_2 + \cdots + a_n A_n$) \\
 \end{tabular}
 \end{center}
 
