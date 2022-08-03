@@ -545,9 +545,11 @@ $\dotp{\vec{a}}{\vec{b}} = c$:
 
 \subsubsection{Range Proofs:}\label{range-proofs}
 
+\paragraph{Prover's Algorithm}
+
 A range-proof is a zero-knowledge proof which seeks to prove that for some value $v$, $v$ lies within the range of $[0,2^n)$ without revealing $v$ or any additional information about $v$, thus zero-knowledge. We wish to express this property of $v$ in a single inner product to be able to use an innerproduct proof as described above. 
 
-Before we attempt to prove anything to the verifier we first commit to $v$ using a Pedersen commitment $V$ and send this to the verifier. This will be used later.
+To start the prover, $\P$, commits a value $v$ using a Pedersen commitment, $V$, to the verifier, $\V$, as well commiting to the desired range n, which is not blinded. These will be used later.
 
 If we let $\vec{a}$ be $v$ expressed in bits then we know the following:
 
@@ -555,11 +557,11 @@ If we let $\vec{a}$ be $v$ expressed in bits then we know the following:
 	\dotp{\vec{a}}{\vec{2^n}} = v
 }
 
-However this is not enough as we also need a guarantee that $a$ consists entirely of bits i.e. $\forall a_i\in a: a_i\in \{0,1\}$. This can be proven by the following property: 
+However this is not enough as we also need a guarantee that $\vec{a}$ consists entirely of bits i.e. $\forall a_i\in a: a_i\in \{0,1\}$. This can be proven by the following property:
 
 \eq{\vec{a}\circ (\vec{a} - \vec{1}) = \vec{0}}
 
-This property will only hold if $\vec{a}$ has entries that are either 0 or 1. Additionally due to needing to commit to both $\vec{a}$ and $\vec{a} - \vec{1}$ we will rename these to $\vecl{a}$ and $\vecr{a}$ respectively and add another property to show the relationship between these two which gives us the following final innerproducts:
+This property will only hold if $\vec{a}$ has entries that are either 0 or 1. Additionally due to needing to commit to both $\vec{a}$ and $\vec{a} - \vec{1}$ we will rename these to $\vecl{a}$ and $\vecr{a}$ respectively and add another property to show the relationship between these two which gives us the following final properties:
 
 \eq{
 	\dotp{\vecl{a}}{\vec{2^n}} = v \\
@@ -567,7 +569,7 @@ This property will only hold if $\vec{a}$ has entries that are either 0 or 1. Ad
 	(\vecl{a} - \vec{1}) - \vecr{a} = \vec{0}
 }
 
-We wish to combine these properties into a single statement which we can manipulate into the kind of inner product which $\P$ will then prove to $\V$. To do this we observe that $\vec{a} = \vec{0} \iff \forall y\in\mathbb{Z}: \dotp{\vec{a}}{\vec{y^n}} = \vec{0}$. So $\P$ lets $\V$ chose a random scalar $\ran{y}$ and using $\ran{y}$ we get a new set of statements:
+We wish to combine these properties into a single innerproduct which $\P$ will then prove to $\V$. To do this we observe that $\vec{a} = \vec{0} \iff \forall y\in\mathbb{Z}: \dotp{\vec{a}}{\vec{y^n}} = \vec{0}$. So $\P$ lets $\V$ chose a random scalar $\ran{y}$ and using $\ran{y}$ we get a new set of properties:
 
 \eq{
 	\dotp{\vecl{a}}{\vec{2^n}} = v \\
@@ -575,7 +577,7 @@ We wish to combine these properties into a single statement which we can manipul
 	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y^n}} = 0
 }
 
-Next $\P$ ALSO lets $\V$ chose another random scalar $\ran{z}$, and using this we can combine the three statements above to the following single statement: 
+Next $\P$ lets $\V$ chose another random scalar $\ran{z}$, and using this we can combine the three properties above to the following single statement: 
 
 \eq{
 	\ran{z^2}v = 
@@ -584,7 +586,7 @@ Next $\P$ ALSO lets $\V$ chose another random scalar $\ran{z}$, and using this w
 	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y^n}}
 }
 
-With this we have condensed the properties we wish to describe into a single statement. However this is not enough. We wish to express this as a single inner product where $\vecl{a}$ appears only on the left-side of the inner product and $\vecr{a}$ appears only on the right side and all non-secret terms are factored out.
+With this we have condensed the properties we wish to describe into a single statement. We wish to rewrite this as a single inner product where $\vecl{a}$ appears only in the first argument of the inner product and $\vecr{a}$ appears only in the second argument and all non-secret terms are factored out.
 
 First we can rewrite the middle term:
 
@@ -728,6 +730,8 @@ $\V$ has access to the following values:
 	V, A, B, T_0, T_1, B, \widetilde{B} &\in \G \\
 	t(x)B, \widetilde{t}(x)\widetilde{B} &\in \G \hspace*{1cm} \text{(evaluated at x)}
 }
+
+$\V$ needs to make a check to see 
 
 who can then check if the following equation holds:
 
