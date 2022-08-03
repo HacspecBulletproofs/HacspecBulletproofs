@@ -369,9 +369,9 @@ properties in equation \ref{def2} as invariants.
 	\vec{H}^{(k-1)} &= \veclo{H^{\text{(k)}}} &&\cdot \ran{u}_k      &&+ \ran{u}^{-1}_k &&\cdot \vechi{H^{\text{(k)}}} \\
 }
 
-Notice, that these redefined vectors will have a length half of
-that of the original vectors, satisfying our requirement for more
-compact vectors. The random variable, $\ran{u}$, will be provided by $\V$
+Notice, that these redefined vectors will have a length half of that
+of the original vectors, satisfying our requirement for more compact
+vectors. The random variable, $\ran{u}$, will be provided by $\V$
 to ensure that it is indeed random. From these new vectors we will
 define a new compressed $P^{(k-1)}$ and isolate the variable $\ran{u}$:
 
@@ -421,7 +421,7 @@ And group the terms:
 	u^{-2}_k \dotp{\vechi{a}}{\vechi{b}}) \cdot Q
 }
 
-Then, we define variables $L_k$ and $R_k$ to further simplify: 
+We can see that this compressed $P^{(k-1)}$ contains $c = (\dotp{\veclo{a}}{\veclo{b}} + \dotp{\vechi{a}}{\vechi{b}})$. We can simplify further by defining variables $L_k$ and $R_k$: 
 
 \eq{
 	&P^{(k-1)} &&= P_k + u^2_k \cdot L_k + u^{-2}_k \cdot R_k \\
@@ -443,9 +443,9 @@ until we get the final $P$, $P^{(0)}$:
 	P^{(0)} &= P^{(k)} + \sum^k_{i=1}(L_i u^2_i + u^{-2}_i R_i)
 }
 
-$\P$ finally sends $a^{(0)}$, $b^{(0)}$, $\vec{L}$ and $\vec{R}$
+$\P$ finally sends $(a^{(0)}, b^{(0)})$ to $\V$.
 
-Formally, the entirety of the dialogue between $\V$ and $\P$,
+To summarize, the entirety of the dialogue between $\V$ and $\P$,
 the so called \textit{transcript}, will end up being the following:
 
 \eq{
@@ -498,13 +498,15 @@ defined as:
 	\end{cases}
 }
 
-Some text here\footnote{Note that in the code we zero-index so $j_{\text{code}} = j+1$.}
+We define $b(i,j)$\footnote{Note that in the code we zero-index so $j_{\text{code}} = j+1$.} to be -1 if $G_i$ appears in the left half of $\vec{G}^{(j)}$, and 1 if $G_i$ appears in the right half of $\vec{G}^{(j)}$. Because $G_i$ appears in the $(i \text{ mod } 2^j)$-th entry of $\vec{G}^{j}$....
 
 We make a similar argument for $H^{(0)}$. We want to define a vector
 $\vec{s'}$ such that $\dotp{\vec{s'}}{\vec{H}} = H^{(0)}$:
 \eqn{H0}{
-	\vec{H}^{(k-1)} = \veclo{H^\textit{(k)}} u^{-1}_j + \vechi{H^\textit{(j)}} u^{-1}_j
+	\vec{H}^{(k-1)} = \veclo{H^\textit{(k)}} u^{1}_j + \vechi{H^\textit{(j)}} u^{-1}_j
 }
+
+To construct $s'$:
 
 \eq{
 	&s_i' = u^{b'(i,k)}_k \cdots u^{b'(i,1)}_1 \\
@@ -522,11 +524,11 @@ But this is indeed just:
 	s' = \frac{1}{s'_1}, \frac{1}{s'_2}, \cdots \frac{1}{s'_n}
 }
 
-Now we can define:
+Leading us to our desired $G^{(0)}, H^{(0)}$:
 
 \eq{
-	\vec{G}^{(0)}_0 &= \dotp{\vec{s}}{\vec{G}} \\
-	\vec{H}^{(0)}_0 &= \dotp{\vec{s'}}{\vec{H}}
+	G^{(0)} &= \dotp{\vec{s}}{\vec{G}} \\
+	H^{(0)} &= \dotp{\vec{s'}}{\vec{H}}
 }
 
 Now $\V$ can simply check if $P^{(k)} \stackrel{?}{=} P^{\V}$,
@@ -535,11 +537,9 @@ $\dotp{\vec{a}}{\vec{b}} = c$:
 
 \eq{
 	P^{(k)} &\stackrel{?}{=} P^{\V} \\
-	        &\stackrel{?}{=} aG + bH + abQ - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i) \\
+	        &\stackrel{?}{=} a^{(0)}G^{(0)} + b^{(0)}H^{(0)} + a^{(0)}b^{(0)}Q - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i) \\
 	        &\stackrel{?}{=} \dotp{a\vec{s}}{\vec{G}} + \dotp{b\vec{s'}}{\vec{H}} + abQ - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i)
 }
-
-Some intuition here...
 
 \subsubsection{Zero Knowledge Proofs:}\label{zero-knowledge}
 
@@ -856,47 +856,6 @@ proof-checked, leading to better guarantees about our implementation.
 This is however not in the scope of this paper and is left to future
 work. % mere her
 
-\subsection{Ristretto:} \label{ristretto}
-
-Ristretto is a specification of elliptic curve cryptography, created for
-the specific purpose of eliminating unwanted co-factors. This was done
-in order to circumvent the double-spending vulnerability. This is done
-using a so-called quotient group. Also appropriately called a Factor
-Group, a Quotient Group is a type of group, which takes elements from a
-larger group and, using an equivalence relation, maps elements that are
-'similar' to the same element in the quotient group, while preserving
-most of the group structure. The remaining elements are factored out,
-leaving a group with the same operations, but fewer elements. What
-this means for Ristretto is that it takes points on an elliptic curve
-and eliminates the co-factor by simply mapping them down to their
-'equivalent' elements. This is the reason for Ristretto's somewhat
-unorthodox method of doing operations, as it must ensure that each
-element is computed to the proper element in the quotient group. This is
-also done, in part, to allow the user to use points that are NOT in the
-quotient group without worry as any computation done with these points
-is automatically mapped to their proper element, thus eliminating the
-rather computationally expensive operation of checking if a point is
-on the proper curve.
-
-Additionally the internal representation of the Montgomery curve we wish
-to eliminate the co-factor for, is its equivalent Twisted Edwards Curve,
-which is done to more easily factor points from the original curve into
-the quotient group. Additionally Ristretto's equality method ensures
-that equivalent representations of points on the curve are equal, even
-if they are not factored into the quotient group yet. Additionally
-from its encoding and decoding methods, equivalent points are encoded
-to the same bitstring, and are therefore decoded into their refactored
-quotient group element.
-
-The exposed functions that were implemented are the encoding and decoding
-functions, the equality function to compare points, the addition function
-over points, point negation, and the derived functions from these,
-namely point doubling, point subtraction and scalar multiplication. And
-the final function is the One Way Map function. This function is not
-entirely necessary for our purposes, but having it allows outside users
-to more easily generate points from simple byte sequences, and 
-also makes generating random points for testing much easier.
-
 \section{Contributions:}
 
 \subsection{Linear Algebra Library Specification:}
@@ -1049,5 +1008,45 @@ A table of notation used throughout this report:
 	$\dotp{\vec{a}}{\vec{A}}$ & The sum of scalar-point products of $\vec{a}$ and $\vec{A}$ ($\dotp{\vec{a}}{\vec{A}} = a_1 A_1 + a_2 A_2 + \cdots + a_n A_n$) \\
 \end{tabular}
 \end{center}
+
+\section{Appendix B: Ristretto:} \label{ristretto}
+Ristretto is a specification of elliptic curve cryptography, created for
+the specific purpose of eliminating unwanted co-factors. This was done
+in order to circumvent the double-spending vulnerability. This is done
+using a so-called quotient group. Also appropriately called a Factor
+Group, a Quotient Group is a type of group, which takes elements from a
+larger group and, using an equivalence relation, maps elements that are
+'similar' to the same element in the quotient group, while preserving
+most of the group structure. The remaining elements are factored out,
+leaving a group with the same operations, but fewer elements. What
+this means for Ristretto is that it takes points on an elliptic curve
+and eliminates the co-factor by simply mapping them down to their
+'equivalent' elements. This is the reason for Ristretto's somewhat
+unorthodox method of doing operations, as it must ensure that each
+element is computed to the proper element in the quotient group. This is
+also done, in part, to allow the user to use points that are NOT in the
+quotient group without worry as any computation done with these points
+is automatically mapped to their proper element, thus eliminating the
+rather computationally expensive operation of checking if a point is
+on the proper curve.
+
+Additionally the internal representation of the Montgomery curve we wish
+to eliminate the co-factor for, is its equivalent Twisted Edwards Curve,
+which is done to more easily factor points from the original curve into
+the quotient group. Additionally Ristretto's equality method ensures
+that equivalent representations of points on the curve are equal, even
+if they are not factored into the quotient group yet. Additionally
+from its encoding and decoding methods, equivalent points are encoded
+to the same bitstring, and are therefore decoded into their refactored
+quotient group element.
+
+The exposed functions that were implemented are the encoding and decoding
+functions, the equality function to compare points, the addition function
+over points, point negation, and the derived functions from these,
+namely point doubling, point subtraction and scalar multiplication. And
+the final function is the One Way Map function. This function is not
+entirely necessary for our purposes, but having it allows outside users
+to more easily generate points from simple byte sequences, and 
+also makes generating random points for testing much easier.
 
 \end{document}
