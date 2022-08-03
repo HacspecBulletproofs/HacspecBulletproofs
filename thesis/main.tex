@@ -325,13 +325,13 @@ Expanding on the \textit{Vector Pedersen Commitment}:
 \end{definition}
 
 \subsubsection{Inner Product Proof:}
-We have a prover, $\P$, and a verifier, $\V$. $\P$ wants to prove
-to $\V$ that he has knowledge of two vectors $\vec{a}$, $\vec{b}$
-and know their inner product $\dotp{\vec{a}}{\vec{b}} = c$. The prover
-could simply send the verifier $\vec{a}$, $\vec{b}$ and $c$ but this
-would take up $O(n)$ bandwidth and time to verify, instead we will use
-a compression technique included in the bulletproofs paper allowing
-for just $O(log_2(n))$ bandwidth and time to verify.
+A prover, $\P$, wants to prove to a verifier, $\V$, that he has knowledge
+of two vectors $\vec{a}$, $\vec{b}$ and know their inner product
+$\dotp{\vec{a}}{\vec{b}} = c$. The prover could simply send the verifier
+$\vec{a}, \vec{b}, c$ but this would take up $O(n)$ bandwidth and
+time to verify, instead we will use a compression technique included
+in the bulletproofs paper allowing for just $O(log_2(n))$ bandwidth
+and time to verify.
 
 \paragraph{Provers Algorithm:}
 $\P$ is given values with the following definitions:
