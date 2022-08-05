@@ -550,11 +550,24 @@ $\dotp{\vec{a}}{\vec{b}} = c$:
 
 \subsubsection{Range Proofs:}\label{range-proofs}
 
-\paragraph{Prover's Algorithm}\label{prover-range-proofs}
-
 A range-proof is a zero-knowledge proof which seeks to prove that for some value $v$, $v$ lies within the range of $[0,2^n)$ without revealing $v$ or any additional information about $v$, thus zero-knowledge. We wish to express this property of $v$ in a single inner product to be able to use an inner product proof as described above. 
 
-To start the prover, $\P$, commits a value $v$ using a Pedersen commitment, $V$, to the verifier, $\V$, as well commiting to the desired range n, which is not blinded. With the Pedersen-commitment having base-point $B$ and blinding point $\tB$:
+\paragraph{Prover's Algorithm}\label{prover-range-proofs}
+
+
+
+To start, the prover, $\P$, is given the following values:
+
+\eqn{def1}{
+	v &\in \Z_p \\
+	n &\in \Z\\
+	B, \tB &\in \G\\
+	\vec{G}, \vec{H} &\in \G^n \\
+}
+
+$\P$ wishes to convince the verifer, $\V$ that the value, $v$ lies within the range $[0,2^n)$.
+
+The first step towards this is for $\P$ to commit to $v$ using a Pedersen commitment $V$, and sending this to the $\V$, as well commiting to the desired range n, which is not blinded. With the Pedersen-commitment having base-point $B$ and blinding point $\tB$:
 
 \eq{
 	V = vB + \tv \tB
@@ -644,28 +657,22 @@ From here on we will refer to the first argument of the inner product as $\vec{l
 	\ran{z^2}v + \delta(\ran{y},\ran{z}) = \dotp{\vec{l_0}}{\vec{r_0}}
 }
 
-If the goal was simply to construct a single inner product which would prove that $v$ lies in $[0,2^n)$, then $\P$ could simply send these values to $\V$ and be done. However, we wish for the proof to be zero-knowledge and therefore this inner product needs to be blinded. To do this, $\P$ constructs a polynomial $t(x)$. (rewrite to be more clear what the goal is!) This polynomial will be constructed in a way that allows us to change our objective to proving something about $t(x)$ instead of this inner product proof.
+If the goal was simply to construct a single inner product which would prove that $v$ lies in $[0,2^n)$, then $\P$ could simply send these values to $\V$ and be done. However, we wish for the proof to be zero-knowledge and therefore this inner product needs to be blinded. To do this, $\P$ constructs a polynomial $t(x)$. This polynomial will be constructed using $l_0$ and $r_0$ in a way that blinds them, while allowing $\P$ to prove certain properties of $t(x)$ in order to convince $\V$ that $v$ lies in $[0,2^n)$.
 
 First $\P$ chooses random blinding factors $\vecran{s_L}$ and $\vecran{s_R}$ such that $\vecl{s},\vecr{s}\in \Z^n_p$. Using these $\P$ can costruct two vector-function $\vec{l}(x)$ and $\vec{r}(x)$ in the following way:
-(Hvad er l1 og r1)
-\eq{
-	\vec{l}(x) &= \vec{l_0} + \vec{l_1}x &&= (\vecl{a} + \vecl{s}x) - z\vec{1}\\
-	\vec{r}(x) &= \vec{r_0} + \vec{r_1}x &&= \ran{z^2}\vec{2^n} + ((\vecr{a} + \vecr{s}x) + \ran{z}\vec{1})\circ\vecran{y^n}
-}
-(Omskriv dette til at passe med tidligere omskrivinger)
-Here $\vec{l_0}$ and $\vec{r_0}$ represent the zero-degree polynomial meaning that they are simply the unblinded versions of $\vec{l}(x)$ and $\vec{r}(x)$. This means that:
 
 \eq{
-	\dotp{\vec{l_0}}{\vec{r_0}} = \ran{z^2}v + \delta(\ran{y},\ran{z})
+	\vec{l}(x) &= \vec{l_0} + \vec{l_1}x \\ &= (\vecl{a} - \ran{z}\vec{1}) + \vecl{s}x \\ &= (\vecl{a} + \vecl{s}x) - \ran{z}\vec{1}\\&\\
+	\vec{r}(x) &= \vec{r_0} + \vec{r_1}x \\ &= (\ran{z^2}\vec{2^n} + (\vecr{a} + \ran{z}\vec{1})\circ\vecran{y^n}) + \vecr{s}x\circ\vecran{y^n} \\ &= ((\vecr{a} + \vecr{s}x) + \ran{z}\vec{1}) \circ \vecran{y^n} + \ran{z}^2\vec{2^n}
 }
 
-We will make use of this property later. Now $\P$ can construct $t(x)$ as follows:
+Now $\P$ can construct $t(x)$ as follows:
 
 \eq{
 	t(x) = \dotp{\vec{l}(x)}{\vec{r}(x)} = t_0 + t_1\ran{x} + t_2\ran{x^2}
 }
 
-We construct $t_0, t_1, t_2$ using Karatsuba's method:
+With $t_0, t_1, t_2$ being constructed using Karatsuba's method:
 
 \eq{
 	t_0 &= \dotp{\vec{l_0}}{\vec{r_0}}\\
@@ -676,7 +683,7 @@ We construct $t_0, t_1, t_2$ using Karatsuba's method:
 Now $\P$ wishes to prove to $\V$ that $t_0$ and $t(x)$ are correctly
 constructed. So, $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$, and $t(x)
 = \dotp{\vec{l}(x)}{\vec{r}(x)}$ such that, $\vec{l}(x) = \vec{l_0}
-+ \vec{l_1}x$, and, $\vec{r}(x) = \vec{l_0} + \vec{l_1}x$.
++ \vec{l_1}x$, and, $\vec{r}(x) = \vec{r_0} + \vec{r_1}x$.
 
 First $\P$ wants to show that $t_0$ is correctly constructed. $\P$
 starts by making commitments to each of the coefficients of $t(x)$. Here
