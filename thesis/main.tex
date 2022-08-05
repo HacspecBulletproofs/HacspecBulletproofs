@@ -553,6 +553,39 @@ $\dotp{\vec{a}}{\vec{b}} = c$:
 
 \subsubsection{Zero Knowledge Proofs:}\label{zero-knowledge}
 
+A zero-knowledge proof is a cryptographical concept in which a prover, $\P$, will convince a verifier, $\V$, that a certain property holds, usually in the form of a mathematical equation, and $\P$ will do so without $\V$ gaining any additional information. To exemplify this we will show the simplest example of a Zero-knowledge proof, using the so-called Schnorr Identity Protocol.
+
+This crux of the Schnorr Identity Protocol is for $\P$ to show that they know the secret value x. This secret value has the following relation to the public elliptic curve points $X$ and $G$:
+
+\eq{
+	X = xG
+}
+
+$\V$ knows both $X$ and $G$ but not $x$. $\P$ wishes to show $\V$ without simply revealing $x$ directly. 
+
+The first step $\P$ takes is choosing a random value $k$ and commiting to this value by sending $K$, such that $K = kG$, to $\V$. $\V$ then chooses a random value $e$ and sends it to $\P$. Finally $\P$ sends $s$ such that $s = k + ex$. Written out as a transcript this would be:
+
+\eq{
+	\P \rightarrow \V &: K \\
+	\V \rightarrow \P &: e \\
+	\P \rightarrow \V &: s \\
+}
+
+From here $\V$ can do a simple check to see if $\P$ truly knows $x$:
+
+\eq{
+	sG \stackrel{?}{=} K + eX
+}
+
+This is because:
+
+\eq{
+	(k + ex)G &= kG + e(xG) \\
+	&= (k + ex)G
+}
+
+However this is not entirely zero-knowled
+
 \subsubsection{Range Proofs:}\label{range-proofs}
 
 A range-proof is a zero-knowledge proof which seeks to prove that for some value $v$, $v$ lies within the range of $[0,2^n)$ without revealing $v$ or any additional information about $v$, thus zero-knowledge. We wish to express this property of $v$ in a single inner product to be able to use an inner product proof as described above. 
@@ -753,9 +786,9 @@ In summary the transcript between $\V$ and $\P$, will end up being the following
 
 \eq{
 	\P \rightarrow \V &: V, n, A, S \\
-	\V \rightarrow \P &: y, z \\
+	\V \rightarrow \P &: \ran{y}, \ran{z} \\
 	\P \rightarrow \V &: T_0, T_1 \\
-	\V \rightarrow \P &: x \\
+	\V \rightarrow \P &: \ran{x} \\
 	\P \rightarrow \V &: t(\ran{x})B, \tt(\ran{x})\tB \hspace*{1cm}\text{(both evaluated at $\ran{x}$)}\\
 	\P \rightarrow \V &: \widetilde{e}
 }
