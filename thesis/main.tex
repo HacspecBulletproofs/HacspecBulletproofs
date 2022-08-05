@@ -236,8 +236,7 @@ For our implementation of bulletproofs, seeing as we needed to test it
 against an existing implementation we made use of the same elliptic
 curve, as well as gained an understanding of the basics of elliptic
 curve cryptography. The elliptic curve in question is Curve25519, which
-is widely used in encryption as is the case here. Curve25519, henceforth
-shortened to 25519, is defined by the following formula:
+is widely used in encryption as is the case here. Curve25519, is defined by the following formula:
 
 $$y^2 = x^3 + 48662x^2 + x$$
 
@@ -253,7 +252,7 @@ this by eliminating the co-factor. For more detail see \ref{ristretto}
 
 The ultimate goal of this project has been to implement bulletproofs in
 Hacspec, using property-based testing to ensure it is equivalent to the
-implementation done in Rust, using 25519. A bulletproof is a
+implementation done in Rust, using Curve25519. A bulletproof is a
 non-interactive aggregation of rangeproofs using Pedersen commitments.
 The following section will describe each of these terms in greater detail
 on a theoretic level.
@@ -263,79 +262,54 @@ on a theoretic level.
 A Pedersen commitment is a commitment scheme defined by a certain
 property we will go into a little later. For our purposes we redefine
 the scheme to work with commitments to elliptic curve points rather than
-a value. First a single point $G$ on the chosen elliptic curve, in this
-case 25519, is chosen. This point will be the so-called generator. For
-25519 we use the point we previously defined as the base point with x =
+a value. First a single point $B$ on an elliptic curve, is chosen. This point will be the so-called generator. For
+Curve25519 we use the point we previously defined as the base point with x =
 9 and positive $y$.
-
-Our adaptation of the Pedersen commitment scheme will involve point
-addition on the elliptic curve, rather than multiplication. This will
-have the desired effect of perfect hiding for Pedersen commitments. The
-points that we will add together to hide our commitment works using
-some amount of randomness which ensures the hiding property while
-also allowing for a decent binding property. Not perfect, as this is
-impossible alongside perfect hiding.
 
 \begin{definition}[Pedersen Commitment]
 	A Pedersen commitment, to some message, $a$, with a randomly chosen
-	integer, $r$, is defined as:
+	integer, $\widetilde{a}$, is defined as:
 
-	$$rH + aG$$
+	$$aB + \widetilde{a}\tB$$
 
-	where $G$ is a canonical generator for the curve and $H$
-	is a curve point where no one knows $q$ such that $H = qG$.
+	where $B$ is a canonical generator for the curve and $\tB$
+	is a curve point where no one knows $q$ such that $\tB = qB$.
 \end{definition}
 
-Here $r$ serves as our perfect hiding, $G$ is our generator for the
-curve and $H$ is another curve point where no one knows $q$ such that
-$H = qG$. This ensures perfect hiding as there is a nearly infinite
+Here $\widetilde{a}$ serves as our perfect hiding. The construction of $\tB$ ensures perfect hiding as there is a nearly infinite
 amount of possible combinations of two points that can add to any given
 point. However while that is true, it does not provide perfect binding by
 definition of binding and hiding. From here on we will refer to a
-commitment to a message, $a$, with random value, $r$, as $C(a,r)$.
+commitment to a message, $a$, with random value, $\widetilde{a}$, as $C(a,\widetilde{a})$.
 
 The most important property of Pedersen commitments however is
 that pedersen commitments have the property of \textit{Additive
 Homomorphism}:
 
 \begin{definition}[Additive Homomorphism]
-	For any two Pedersen commitments $C(a_1,r_1), C(a_2,r_2)$ we have:
-	$$ C(a_1,r_1) + C(a_2,r_2) = C(a_1 + a_2, r_1 + r_2)$$
+	For any two Pedersen commitments $C(a_1,\widetilde{a}_1), C(a_2,\widetilde{a}_2)$ we have:
+	$$ C(a_1,\widetilde{a}_1) + C(a_2,\widetilde{a}_2) = C(a_1 + a_2, \widetilde{a}_1 + \widetilde{a}_2)$$
 \end{definition}
 
-This is simple to show by simply applying the definition of Pedersen
+This is simple to show by applying the definition of Pedersen
 commitments: 
 
 \eq{
-	C(a_1,r_1) + C(a_2,r_2) &= r_1H + a_1G  + r_2H + a_2G \\
-	                        &= (r_1 + r_2)H + (a_1 + a_2)G \\
-	                        &= C(a_1+a_2,r_1+r_2)
+	C(a_1,\widetilde{a}_1) + C(a_2,\widetilde{a}_2) &= \widetilde{a}_1\tB + a_1B  + \widetilde{a}_2\tB + a_2B \\
+	                        &= (\widetilde{a}_1 + \widetilde{a}_2)\tB + (a_1 + a_2)B \\
+	                        &= C(a_1+a_2,\widetilde{a}_1+\widetilde{a}_2)
 }
 
 Which ensures a homomorphism between the sum of commitments and the
-commitment to the sum. This property will become vital when proving zero
-knowledgeness later. 
-
-Expanding on the \textit{Vector Pedersen Commitment}:
-\begin{definition}[Vector Pedersen Commitment]
-	A Vector Pedersen Commitment, to some vector of messages,
-	$\textbf{v}$, with a randomly chosen integer, $r$,
-	is defined as:
-
-	$$rH + \textbf{vG}$$
-
-	where $\textbf{G}$ is a vector of canonical generators for
-	the curve and $H$ is still a curve point where no one knows
-	q such that $H = qG$.
-\end{definition}
+commitment to the sum.
 
 \subsubsection{Inner Product Proof:}
 A prover, $\P$, wants to prove to a verifier, $\V$, that he has knowledge
 of two vectors $\vec{a}$, $\vec{b}$ and know their inner product
 $\dotp{\vec{a}}{\vec{b}} = c$. The prover could simply send the verifier
 $\vec{a}, \vec{b}, c$ but this would take up $O(n)$ bandwidth and
-time to verify, instead we will use a compression technique included
-in the bulletproofs paper allowing for just $O(log_2(n))$ bandwidth
+time to verify. Instead we will use a compression technique included
+in the bulletproofs paper which allows for just $O(log_2(n))$ bandwidth
 and time to verify.
 
 \paragraph{Provers Algorithm:}
@@ -350,9 +324,9 @@ $\P$ is given values with the following definitions:
 	c &= \dotp{\vec{a}}{\vec{b}} \\
 }
 
-Here $P$ is a Pedersen Commitment but crucially \textit{there is no
-blinding}, this blinding will be introduced later on in the range
-proofs section (\ref{range-proofs}). We will introduce a combined form
+Here $P$ is similar to a Pedersen Commitment with the crucial difference that \textit{there is no
+blinding}. The blinding will be introduced later on in the range
+proofs section. (\ref{range-proofs}) We will introduce a combined form
 of $P$ and $c$ in the form of $P^{(k)}$, The parenthesised superscript,
 denotes that it's a new variable, it does \textit{not} refer to exponentiation:
 
@@ -973,7 +947,7 @@ No generalized standard for Linear Algebra Specification.
 
 \subsection{Implementing Ristretto:} \label{implementing-ristretto}
 
-For our Ristretto implementation on 25519 there
+For our Ristretto implementation on Curve25519 there
 exists an IETF-standard specification of exactly
 this, which was used as a guide for our implementation.
 \footnote{\url{https://www.ietf.org/archive/id/draft-irtf-cfrg-ristretto255-00.html}}
@@ -997,7 +971,7 @@ of 25519.
 
 Each internal point representation is composed of four field elements
 $(X : Y : Z :T)$. Field-elements, as defined by the standard are values
-modulo p, with p being the prime field for 25519, $2^{255} - 19$. This
+modulo p, with p being the prime field for Curve25519, $2^{255} - 19$. This
 was achieved using the \texttt{public\_nat\_mod!} macro which defines
 fields over certain values which just so happen to accept hex values as
 modulo values, which was very convenient. With this we are now able to
