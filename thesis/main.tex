@@ -713,7 +713,9 @@ would prove that $v$ lies in $[0,2^n)$, then $\P$ could simply send
 these values to $\V$ and be done. However, we wish for the proof to be
 zero-knowledge and therefore this inner product needs to be blinded. To
 do this, $\P$ constructs a polynomial $t(x)$. This polynomial will
-be constructed using $\vec{l_0}$ and $\vec{r_0}$ in a way that blinds them, while still allowing $\P$ to prove to $\V$ that $v$ lies in $[0,2^n)$.
+be constructed using $\vec{l_0}$ and $\vec{r_0}$ in a way that blinds
+them, while still allowing $\P$ to prove to $\V$ that $v$ lies in
+$[0,2^n)$.
 
 First $\P$ chooses random blinding factors $\vecran{s_L}$ and
 $\vecran{s_R}$ such that $\vecl{s},\vecr{s}\in \Z^n_p$. Using these
@@ -728,15 +730,17 @@ in the following way:
 Now $\P$ can construct $t(x)$ as follows:
 
 \eq{
-	t(x) = \dotp{\vec{l}(x)}{\vec{r}(x)} = t_0 + t_1\ran{x} + t_2\ran{x^2}
+	t(x) = \dotp{\vec{l}(x)}{\vec{r}(x)}
 }
 
-With $t_0, t_1, t_2$ being constructed using Karatsuba's method:
+We group $x$ to get:
 
 \eq{
-	t_0 &= \dotp{\vec{l_0}}{\vec{r_0}}\\
-	t_2 &= \dotp{\vec{l_1}}{\vec{r_1}}\\
-	t_1 &= \dotp{\vec{l_0}+\vec{l_1}}{\vec{r_0} + \vec{r_1}} - t_0 - t_2
+	&t(x) = t_0 + t_1x + t_2x^2 \\
+	&\textbf{where:} \\
+	&t_0 = \dotp{\vec{l_0}}{\vec{r_0}}\\
+	&t_2 = \dotp{\vec{l_1}}{\vec{r_1}}\\
+	&t_1 = \dotp{\vec{l_0}+\vec{l_1}}{\vec{r_0} + \vec{r_1}} - t_0 - t_2
 }
 
 Now $\P$ wishes to prove to $\V$ that $t_0$ and $t(x)$ are correctly
@@ -810,8 +814,7 @@ In summary the transcript between $\V$ and $\P$, will end up being the following
 	\V \rightarrow \P &: \ran{y}, \ran{z} \\
 	\P \rightarrow \V &: T_0, T_1 \\
 	\V \rightarrow \P &: \ran{x} \\
-	\P \rightarrow \V &: t(\ran{x})B, \tt(\ran{x})\tB \hspace*{1cm}\text{(both evaluated at $\ran{x}$)}\\
-	\P \rightarrow \V &: \widetilde{e}
+	\P \rightarrow \V &: t(\ran{x})B, \tt(\ran{x})\tB, \widetilde{e} \hspace*{1cm}\text{($t(x)$ evaluated with challenge $\ran{x}$)}\\
 }
 
 Just as with the inner product the Fiat-Shamir Heuristic (\ref{fiat-shamir-heuristic}) can be used to make this process non-interactive.
