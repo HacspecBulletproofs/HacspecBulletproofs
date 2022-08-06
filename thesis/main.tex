@@ -698,9 +698,7 @@ would prove that $v$ lies in $[0,2^n)$, then $\P$ could simply send
 these values to $\V$ and be done. However, we wish for the proof to be
 zero-knowledge and therefore this inner product needs to be blinded. To
 do this, $\P$ constructs a polynomial $t(x)$. This polynomial will
-be constructed using $\vec{l_0}$ and $\vec{r_0}$ in a way that blinds them, while
-allowing $\P$ to prove certain properties of $t(x)$ in order to convince
-$\V$ that $v$ lies in $[0,2^n)$.
+be constructed using $\vec{l_0}$ and $\vec{r_0}$ in a way that blinds them, while still allowing $\P$ to prove to $\V$ that $v$ lies in $[0,2^n)$.
 
 First $\P$ chooses random blinding factors $\vecran{s_L}$ and
 $\vecran{s_R}$ such that $\vecl{s},\vecr{s}\in \Z^n_p$. Using these
@@ -752,7 +750,7 @@ equal to the bottom coefficient of that column. To convince $\V$, $\P$
 sends $t(\ran{x})B$ and $\tt(\ran{x})\tB$, evaluated at $\ran{x}$
 to $\V$. This is enough to convince $\V$ that $t_0 = \ran{z^2}v +
 \delta(\ran{y},\ran{z})$, which is seen in The Verifier Algorithm.
-(\ref{Verifier-range-proof})
+(\ref{verifier-range-proof})
 
 Next $\P$ wishes to convince $\V$ that $\vec{l}(x)$ and
 $\vec{r}(x)$ are both constructed correctly and that $t(x) =
@@ -982,6 +980,14 @@ No generalized standard for Linear Algebra Specification.
 
 \subsection{Implementing Ristretto:} \label{implementing-ristretto}
 
+why Ristretto? 
+
+Why did THEY chose ristretto?
+
+What is Ristretto?
+
+Implementation problems/eases?
+
 For the Ristretto implementation on Curve25519 there
 exists an IETF-standard specification of exactly
 this, which was used as a guide for our implementation.
@@ -990,70 +996,21 @@ This specification was very helpful and after inspecting the code we
 are testing against closely, it is clear that they used this standard
 as well.
 
-The most important things to note about this standard, outside the
-explicit formulas used for its various methods are which functions and
-internal representations we are allowed to expose to the outside. Namely
-that the only functions we may expose were encoding of points, decoding
-of encoded points, the map which is used for creating points, point
-addition, point negation, point subtraction, scalar multiplication. The
-last two were allowed purely from being derivable from repeated
-application of point addition and/or negation. Some things that were not
-allowed to be exposed under any circumstances, are the internal
-representations of either points or its field elements or any functions
-that are not the ones mentioned above, which is as expected for something
-that is meant to be a thin layer of abstraction beneath an implementation
-of 25519.
+Ristretto is, in essence, a prime-order subgroup of a non-prime-order Edwards curve which has a co-factor of 4 or 8. The subgroup formed under Ristretto is constructed in such a way that it elimates this co-factor, which is useful to avoid additional checks and also avoids the risk of leaving in exploitable vulnerabilities which utilize the co-factor. Ristretto elimates all of these checks and potential vulnerabilities by automatically mapping all points on the curve directly into the subset of the curve in the operations themselves. Additionally Ristretto defines equality such that equivalent representations of the same point are considered equal. In the same vein the encoding function for points, encodes equivalent points to the same encoding and by proxy the decoding function decodes those points to the same point.
 
-Each internal point representation is composed of four field elements
-$(X : Y : Z :T)$. Field-elements, as defined by the standard are values
-modulo p, with p being the prime field for Curve25519, $2^{255} - 19$. This
-was achieved using the \texttt{public\_nat\_mod!} macro which defines
-fields over certain values which just so happen to accept hex values as
-modulo values, which was very convenient. With this we are now able to
-create field elements using various functions and properties that are
-native to the type created by \texttt{public\_nat\_mod!}. Most of the
-standard integer operators like addition, subtraction and multiplication
-are implemented for these field elements for example. An important thing
-to note is that the internal calculations for division is done using
-integer arithmetic rather than finite field arithmetic, however the
-few times where division is used directly it is ensured that the result
-in finite field arithmetic is equal to the integer arithmetic solution.
+Each internal point representation is composed of four field elements $(X : Y : Z : T)$. Field-elements, as defined by the standard are values modulo p, with p being the prime field for Curve25519, $2^{255} - 19$. 
 
-Additionally the standard, specified a series of constants. These
-constants were too large to be implemented as integers. Additionally
-hacspec did not allow for us to simply use the \texttt{from\_hex()}
-method. As such, after converting each of these constants into their
-corresponding hex-values, we built them as byte sequences for which
-we had an equivalent \texttt{from\_byte\_seq\_be} which created the
-correct field elements we wanted.
+This was achieved using the \texttt{public\_nat\_mod!} macro which defines fields over certain values which just so happen to accept hex values as modulo values, which was very convenient. Most of the standard integer operators like addition, subtraction and multiplication are implemented for these field elements for example. An important thing to note is that the internal calculations for division is done using integer arithmetic rather than finite field arithmetic, however the few times where division is used directly it is ensured that the result in finite field arithmetic is equal to the integer arithmetic solution.
 
-While it is impossible for a legal point to be encoded and then have the
-decoding on its encoding fail, the decoding method has several checks
-that ensure that the input given is legal. The primary reason for this
-is that decoding is a method available to the client and as such there is
-no guarantee that the byte-strings they want to decode are necessarily
-legal points that they first encoded properly, but could be artificially
-constructed byte-strings. We want to avoid this and thus the standard has
-a list of properties the byte-string input must satisfy for the decoding
-to be canonical and thus give a proper point as a result. 
+Additionally the standard, specified a series of constants. These constants were too large to be implemented as integers. Additionally hacspec did not allow for us to simply use the \texttt{from\_hex()} method. As such, after converting each of these constants into their corresponding hex-values, we built them as byte sequences for which we had an equivalent \texttt{from\_byte\_seq\_be} which created the correct field elements we wanted.
+
+While it is impossible for a legal point to be encoded and then have the decoding on its encoding fail, the decoding method has several checks that ensure that the input given is legal. The primary reason for this is that decoding is a method available to the client and as such there is no guarantee that the byte-strings they want to decode are necessarily legal points that they first encoded properly, but could be artificially constructed byte-strings. We want to avoid this and thus the standard has a list of properties the byte-string input must satisfy for the decoding to be canonical and thus give a proper point as a result. 
 
 \subsection{Implementing Bulletproofs:}
 
-Our bulletproofs implementation was implemented on the foundation of our
-implementations of Linear Algebra and Ristretto. The first and simplest
-step was implementing Pedersen commitments to single values as well as to
-vectors. From our implementation of Ristretto we can easily add points to
-each other and multiply points by a scalar. This is essentially the only
-thing a Pedersen commitment is. Additionally we needed it to support
-vector commitments. From our implementation of Linear Algebra we could
-easily adapt this into the code. This implementation was nearly trivial
-given the base we built it upon.
+Our bulletproofs implementation was implemented on the foundation of our implementations of Linear Algebra and Ristretto. The first and simplest step was implementing Pedersen commitments to single values as well as to vectors. From our implementation of Ristretto we can easily add points to each other and multiply points by a scalar. This is essentially the only thing a Pedersen commitment is. Additionally we needed it to support vector commitments. From our implementation of Linear Algebra we could easily adapt this into the code. This implementation was nearly trivial given the base we built it upon.
 
-The next step in the process towards implementing Bulletproofs is the
-inner product proof. The implementation of which does not lean itself
-against our Ristretto implementation as our implementation of Pedersen
-commitments did, however it does utilize said Pedersen commitments. 
-
+The next step in the process towards implementing Bulletproofs is the inner product proof. The implementation of which does not lean itself against our Ristretto implementation as our implementation of Pedersen commitments did, however it does utilize said Pedersen commitments. 
 
 The final part was implementing the bulletproof methods themselves. 
 
