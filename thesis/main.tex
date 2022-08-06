@@ -350,7 +350,7 @@ properties in equation \ref{def2} as invariants.
 
 Notice, that these redefined vectors will have a length half of that
 of the original vectors, satisfying our requirement for more compact
-vectors. The random variable, $\ran{u}$, will be provided by $\V$
+vectors. The random variable, $\ran{u_k}$, will be provided by $\V$
 to ensure that it is indeed random. From these new vectors we will
 define a new compressed $P^{(k-1)}$ and isolate the variable $\ran{u}$:
 
@@ -422,10 +422,10 @@ until we get the final $P$, $P^{(0)}$:
 	P^{(0)} &= P^{(k)} + \sum^k_{i=1}(L_i u^2_i + u^{-2}_i R_i)
 }
 
-$\P$ finally sends $(a^{(0)}, b^{(0)})$ to $\V$.
+Finally $\P$ sends $(a^{(0)}, b^{(0)})$ to $\V$.
 
-To summarize, the entirety of the dialogue between $\V$ and $\P$,
-the so called \textit{transcript}, will end up being the following:
+The entirety of the dialogue between $\V$ and $\P$,
+the so called \textit{transcript}, can be summarized as the following:
 
 \eq{
 	\P \rightarrow \V &: L_k, R_k \\
@@ -490,7 +490,7 @@ $\vec{s'}$ such that $\dotp{\vec{s'}}{\vec{H}} = H^{(0)}$:
 	\vec{H}^{(k-1)} = \veclo{H^\textit{(k)}} u^{1}_j + \vechi{H^\textit{(j)}} u^{-1}_j
 }
 
-To construct $s'$:
+To construct $\vec{s'}$:
 
 \eq{
 	&s_i' = u^{b'(i,k)}_k \cdots u^{b'(i,1)}_1 \\
@@ -505,7 +505,7 @@ To construct $s'$:
 But this is indeed just:
 
 \eq{
-	s' = \frac{1}{s'_1}, \frac{1}{s'_2}, \cdots \frac{1}{s'_n}
+	\vec{s'} = \frac{1}{s_1}, \frac{1}{s_2}, \cdots \frac{1}{s_n}
 }
 
 Leading us to our desired $G^{(0)}, H^{(0)}$:
@@ -769,7 +769,7 @@ In summary the transcript between $\V$ and $\P$, will end up being the following
 
 Just as with the inner product the Fiat-Shamir Heuristic (\ref{fiat-shamir-heuristic}) can be used to make this process non-interactive.
 
-\paragraph{Verifier's Algorithm:} \label{Verifier-range-proof}
+\paragraph{Verifier's Algorithm:} \label{verifier-range-proof}
 
 $\V$ has access to the following values:
 
@@ -798,11 +798,13 @@ Similarly to become convinced of the second property $\V$ checks if this equatio
 	&= -\widetilde{e}\tB &&+ A &&+ xS &&+ \dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}\circ\vecran{y^{-n}}}{\vec{H}} &&- \ran{z}\dotp{\vec{1}}{\vec{G}}
 }
 
-From the column-sum argument we can deduce that $P = \dotp{\vec{l}(x)}{\vec{G}} + \dotp{\vec{r}(x)}{\vec{H'}}$ assuming an honest $\P$. Thus $\V$ can use $t(x)$ and $P$ as inputs into the inner product protocol to prove that $ t(x) = \dotp{\vec{l}(x)}{\vec{r}(x)}$. And if this proof is verified then $\V$ is now convinced that $v\in [0,2^n)$ without knowing any other properties of $v$, thus the range-proof is zero-knowledge.
+From the column-sum argument we can deduce that $P = \dotp{\vec{l}(x)}{\vec{G}} + \dotp{\vec{r}(x)}{\vec{H'}}$ assuming an honest $\P$. Thus $\V$ can use $t(x)$ and $P$ as inputs into the inner product protocol to prove that $ t(x) = \dotp{\vec{l}(x)}{\vec{r}(x)}$. And if this proof is verified then $\V$ is now convinced that $v\in [0,2^n)$ without knowing any other properties of $v$, thus the range-proof is sound.
+
+But the proof being sound does not necessarily mean it is zero-knowledge. The proof also needs to be Zero-knowledge. If we look at all the values availible to $\V$ we can see that it has only two of these values have any direct relation to $v$, these being $V$ and $t(\ran{x})B$. It is trivial to see that $\V$ cannot learn anything about $v$ from $V$ without knowledge of $\tv$ which $\V$ does not know. If we look at the definition of $t(\ran{x})B$ we can see that it DOES use v in the calculation directly. However the definition of $t(x)$ uses $t_2$, which is blinded using $\vecran{s_L}$ and $\vecran{s_R}$ neither of which $\V$ has any way to access. Additionally $t_1$ also uses the definition of $t_2$ and thus is ALSO cannot be infered. Thus there is no amount of calculations that $\V$ can do to figure out anything about $v$ and thus the proof is also zero-knowledge.
 
 \subsubsection{Aggregation of rangeproofs:}
 
-In the most basic terms a Bulletproof is a zero-knowledge aggregated range-proof which proves that one or most likely more values lie within a certain range: $[0,2^n)$ for some integer n. This is done by aggregating range-proofs for each individual value into a single proof which, if verified proves that each value given lies within the range while giving away no more information about any of the values. This is done by using a multi-party protocol where a 'party' is created for each value that needs to be proven and each party will converse with the so-called 'dealer' who is responsible for collecting the various commitments from the parties and generating challenges which is used by all parties. At the very end the dealer will then collect all the individual rangeproofs for each value and aggregate them. 
+An aggregated range-proof is a rangeproof which proves that one or most likely more values lie within a certain range: $[0,2^n)$ for some integer n. This is done by aggregating range-proofs for each individual value into a single proof which, if verified, proves that each value given lies within the range while giving away no more information about any of the values. This is done by using a multi-party protocol where a 'party' is created for each value that needs to be proven and each party will converse with the so-called 'dealer' who is responsible for collecting the various commitments from the parties and generating challenges which is used by all parties. At the very end the dealer will then collect all the individual rangeproofs for each value and aggregate them. 
 
 The steps used to do this are the same steps used in the construction of a rangeproof with a few additional steps which aggregate the proofs into a single rangeproof. 
 
@@ -815,16 +817,16 @@ To start with a number of parties are created, one for each value that $\P$ wish
 
 the evaluation point $\ran{x}$ is the same for all parties. The choice of $\ran{y}, \ran{z}$ and $\ran{x}$ is done where it would ordinarily be done, but only once $\V$ has received the needed values from ALL parties. Once again, this can also be done using the Fiat-Shamir Heuristic. (\ref{fiat-shamir-heuristic}) 
 
-After each party has created $t(x)_{(j)} = \dotp{\vec{l_{(j)}(x)}}{\vec{r_{(j)}(x)}}$ it is sufficient to perform the proving steps from \ref{range-proofs} for each party. However sending all of the created values to $\V$ will require $\V$ to make $m$ checks to see if all of these values prove that each v lies within the range. However $\P$ can do a few more computations to create a singular proof which requires a single check from $\V$ to see that ALL $v$ lie within the range.
+After each party has created $t_{(j)}(x) = \dotp{\vec{l_{(j)}(x)}}{\vec{r_{(j)}(x)}}$ it would be sufficient to perform the proving steps from \ref{range-proofs} for each party. However sending all of the created values to $\V$ will require $\V$ to make $m$ checks to see if all of these values prove that each $v_j$ lies within the range. However $\P$ can do a few more computations to create a singular proof which requires a single check from $\V$ to see that ALL $v$ lie within the range.
 
-To prove that a single $t_{(j)}$ is correct means proving that $\vec{l_{(j)}(x)}$ and $\vec{r_{(j)}(x)}$ are created correctly and that $t_{(j), 0} = \dotp{\vec{l_{(j)}(x)}}{r_{(j)}(x)}$. But $\P$ can combine some of these statements into one single statement as follows: 
+To prove that a single $t_{(j)}(x)$ is correct means proving that $\vec{l_{(j)}(x)}$ and $\vec{r_{(j)}(x)}$ are created correctly and that $t_{(j), 0} = \dotp{\vec{l_{(j)}(x)}}{r_{(j)}(x)}$. But $\P$ can combine some of these statements into one single statement as follows: 
 
 \eq{
 	t(x) &= \sum^{m-1}_{j = 0} t_{j}(x)\\
 	\widetilde{t}(x) &= \sum^{m-1}_{j = 0} \widetilde{t}_{j}(x)
 }
 
-Now $\P$ sends $t(x)$ and $\widetilde{t}(x)$ alongside all the values each party would send individually to $\V$ as before and $\V$ can convince themselves that this is correct by computing:
+Now $\P$ sends $t(x)$ and $\widetilde{t}(x)$ alongside all the values each party would send individually to $\V$, those being $T_{1,(j)}$ and $T_{2,(j)}$, and $\V$ can convince themselves that ALL $t_{0,(j)} = \dotp{\vec{l_{0,(j)}(x)}}{\vec{r_{0,(j)}(x)}} = z^{j+2}v + \delta_{(j)}(\ran{y}, \ran{z})$ by computing:
 
 \eq{
 	T_1 &= \sum^{m-1}_{j = 0} T_{1,(j)}\\
@@ -832,7 +834,7 @@ Now $\P$ sends $t(x)$ and $\widetilde{t}(x)$ alongside all the values each party
 	\delta(y,z) &= \sum^{m-1}_{j = 0} \delta_{(j)}(y,z)
 }
 
-and from here the following check is used by $\V$ to convince them that $t_{0, (j)} = \dotp{\vec{l_{(j)}(x)}}{\vec{r_{(j)}(x)}}$ for all j values:
+and from here $\V$ can perform the following check to become convinced: 
 
 \eq{
 	t(x)B + \widetilde{t}(x)\widetilde{B} \stackrel{?}{=} \ran{z^2}\sum^{m-1}_{j = 0} \ran{z_{(j)}}*V_{(j)} + \delta(y,z)B + \ran{x}T_1 + \ran{x^2}T_2
@@ -846,22 +848,22 @@ we know that $z_{(j)} = z^j$ we can make a small rewrite:
 
 And this check will then convince the verifier that all $t_{0,(j)}$ are correct.
 
-And once again we wish to show that each $\vec{l_{(j)}(x)}$ and $\vec{r_{(j)}(x)}$ are constructed correctly by all parties. This is done in a similar manner as proving $t_{(j)}(x)$ are all correct. Proving this property the jth party would be proving the following:
+Just as with a singular rangeproof $\P$ also wishes to prove that each $\vec{l_{(j)}(x)}$ and $\vec{r_{(j)}(x)}$ are constructed correctly for all parties. This is done in a similar manner as proving $t_{0,(j)}$ are all correct. Proving this property the jth party would be proving the following:
 
 \eq{
-	\dotp{l_{(j)}(x)}{\vec{G_{(j)}}} + \dotp{r_{(j)}(x)}{\vec{H'_{(j)}}} = -\widetilde{e}_{(j)}\widetilde{B} + A_{(j)} + \ran{x}S_{(j)} &&+ (\dotp{\ran{z}\vecran{y^n_{(j)}} + \ran{z^2}\ran{z_{(j)}}\vec{2^n}}{H'_{(j)}} - \ran{z}\dotp{\vec{1}}{\vec{G_{(j)}}})
+	\dotp{l_{(j)}(x)}{\vec{G_{(j)}}} + \dotp{r_{(j)}(x)}{\vec{H'_{(j)}}} \stackrel{?}{=} -\widetilde{e}_{(j)}\widetilde{B} + A_{(j)} + \ran{x}S_{(j)} &&+ (\dotp{\ran{z}\vecran{y^n_{(j)}} + \ran{z^2}\ran{z_{(j)}}\vec{2^n}}{H'_{(j)}} - \ran{z}\dotp{\vec{1}}{\vec{G_{(j)}}})
 }
 
 $\P$ can then combine the variables in the following way:
 
 \eq{
-	\vec{l}(x) &= \vec{l_0}(x) &&|| \vec{l_1}(x) &&|| \dots &&|| \vec{l_{m-1}}(x)\\
-	\vec{r}(x) &= \vec{r_0}(x) &&|| \vec{r_1}(x) &&|| \dots &&|| \vec{r_{m-1}}(x)\\
-	\vec{G} &= \vec{G_0} &&|| \vec{G_1} &&|| \dots &&|| \vec{G_{m-1}}\\
-	\vec{H'} &= \vec{H'_0} &&|| \vec{H'_1} &&|| \dots &&|| \vec{H'_{m-1}}
+	\vec{l}(x) &= \vec{l_0}(x) &&\concat \vec{l_1}(x) &&\concat \dots &&\concat \vec{l_{m-1}}(x)\\
+	\vec{r}(x) &= \vec{r_0}(x) &&\concat \vec{r_1}(x) &&\concat \dots &&\concat \vec{r_{m-1}}(x)\\
+	\vec{G} &= \vec{G_0} &&\concat \vec{G_1} &&\concat \dots &&\concat \vec{G_{m-1}}\\
+	\vec{H'} &= \vec{H'_0} &&\concat \vec{H'_1} &&\concat \dots &&\concat \vec{H'_{m-1}}
 }
 
-And send $\dotp{\vec{l}(x)}{\vec{G}}$ and $\dotp{\vec{r}(x)}{\vec{H'}}$ to $\V$, along with all the values from the parties it needs, as per \ref*{range-proofs}. From here $\V$ can then construct:
+And send $\dotp{\vec{l}(x)}{\vec{G}}$ and $\dotp{\vec{r}(x)}{\vec{H'}}$ to $\V$, along with each party's $\widetilde{e}_{(j)}$. From here $\V$ can then construct:
 
 \eq{
 	\vecran{y^n_{(j)}} &= y^{n*m}[j*n : (j+1)*n]\\
@@ -871,14 +873,13 @@ And send $\dotp{\vec{l}(x)}{\vec{G}}$ and $\dotp{\vec{r}(x)}{\vec{H'}}$ to $\V$,
 	S &= \sum^{m-1}_{j = 0} S_{(j)}
 }
 
-and then use the following check to convince itself that all $\vec{l_{(j)}}(x)$ and $\vec{r_{(j)}}(x)$ are correctly constructed:
+Note that is has already recieved $A_{(j)}$ and $S_{(j)}$ from the first step of the transcript. $\V$ can then use the following check to convince itself that all $\vec{l_{(j)}}(x)$ and $\vec{r_{(j)}}(x)$ are correctly constructed:
 
 \eq{
 	\vec{l_{(j)}}(x) + \vec{r_{(j)}}(x) \stackrel{?}{=} -\widetilde{e}\widetilde{B} + A + \ran{x}S - \ran{z}\dotp{\vec{1}}{\vec{G}} + \ran{z}\dotp{\vecran{y^{n*m}}}{\vec{H'}} + \sum^{m-1}_{j = 0}\dotp{\ran{z^{j+2}}*\vec{2^n}}{\vec{H'}[j*n: (j+1)*n]}
 }
 
-And if this holds then $\V$ is convinced that $\vec{l_{(j)}}(x)$ and $\vec{r_{(j)}}(x)$ are correctly constructed and with the previous part on top it is now convinced that all the given v are within the range $[0,2^n)$.
-
+And if this holds then $\V$ is convinced that $\vec{l_{(j)}}(x)$ and $\vec{r_{(j)}}(x)$ are correctly constructed and with the previous part on top it is now convinced that all the given v are within the range $[0,2^n)$ and thus the proof is sound. Additionally, using the same argument as in \ref{verifier-range-proof} for each individual party, this is also zero-knowledge.
 
 %\section{State of the art:}
 
@@ -947,7 +948,7 @@ No generalized standard for Linear Algebra Specification.
 
 \subsection{Implementing Ristretto:} \label{implementing-ristretto}
 
-For our Ristretto implementation on Curve25519 there
+For the Ristretto implementation on Curve25519 there
 exists an IETF-standard specification of exactly
 this, which was used as a guide for our implementation.
 \footnote{\url{https://www.ietf.org/archive/id/draft-irtf-cfrg-ristretto255-00.html}}
