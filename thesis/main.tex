@@ -577,9 +577,13 @@ To start, the prover, $\P$, is given the following values:
 	\vec{G}, \vec{H} &\in \G^n \\
 }
 
-$\P$ wishes to convince the verifer, $\V$ that the value, $v$ lies within the range $[0,2^n)$.
+$\P$ wishes to convince the verifer, $\V$ that the value, $v$ lies
+within the range $[0,2^n)$.
 
-The first step towards this is for $\P$ to commit to $v$ using a Pedersen commitment $V$, and sending this to the $\V$, as well commiting to the desired range n, which is not blinded. With the Pedersen-commitment having base-point $B$ and blinding point $\tB$:
+The first step towards this is for $\P$ to commit to $v$ using
+a Pedersen commitment $V$, and sending this to the $\V$, as well
+commiting to the desired range $n$, which is not blinded. With the
+Pedersen-commitment having base-point $B$ and blinding point $\tB$:
 
 \eq{
 	V = vB + \tv \tB
@@ -591,11 +595,18 @@ If we let $\vec{a}$ be $v$ expressed in bits then we know the following:
 	\dotp{\vec{a}}{\vec{2^n}} = v
 }
 
-However this is not enough as we also need a guarantee that $\vec{a}$ consists entirely of bits i.e. $\forall a_i\in a: a_i\in \{0,1\}$. This can be proven by the following property:
+Additionally, as we also need a guarantee that $\vec{a}$ consists
+entirely of bits i.e. $\vec{a} \in \{0,1\}^n$. This can be
+proven by the following property:
 
 \eq{\vec{a}\circ (\vec{a} - \vec{1}) = \vec{0}}
 
-This property will only hold if $\vec{a}$ has entries that are either 0 or 1. Additionally due to needing to commit to both $\vec{a}$ and $\vec{a} - \vec{1}$ we will rename these to $\vecl{a}$ and $\vecr{a}$ respectively and add another property to show the relationship between these two which gives us the following final properties:
+This property will only hold if $\vec{a}$ has entries that are either
+0 or 1. Due to needing to commit to both $\vec{a}$ and $\vec{a}
+- \vec{1}$, they will henceforth be referred to as $\vecl{a}$
+and $\vecr{a}$ respectively and add another property to show the
+relationship between these two which gives us the following final
+properties:
 
 \eq{
 	\dotp{\vecl{a}}{\vec{2^n}} = v \\
@@ -603,7 +614,11 @@ This property will only hold if $\vec{a}$ has entries that are either 0 or 1. Ad
 	(\vecl{a} - \vec{1}) - \vecr{a} = \vec{0}
 }
 
-We wish to combine these properties into a single inner product which $\P$ will then prove to $\V$. To do this we observe that $\vec{a} = \vec{0} \iff \forall y\in\mathbb{Z}: \dotp{\vec{a}}{\vec{y^n}} = \vec{0}$. So $\P$ lets $\V$ chose a random scalar $\ran{y}$ and using $\ran{y}$ we get a new set of properties:
+We wish to combine these properties into a single inner product which
+$\P$ will then prove to $\V$. To do this we observe that $\vec{a}
+= \vec{0} \iff \forall y\in\mathbb{Z}: \dotp{\vec{a}}{\vec{y^n}} =
+\vec{0}$. So $\P$ lets $\V$ chose a random scalar $\ran{y}$ and using
+$\ran{y}$ we get a new set of properties:
 
 \eq{
 	\dotp{\vecl{a}}{\vec{2^n}} = v \\
@@ -611,7 +626,9 @@ We wish to combine these properties into a single inner product which $\P$ will 
 	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y^n}} = 0
 }
 
-Next $\P$ lets $\V$ chose another random scalar $\ran{z}$, and using this we can combine the three properties above to the following single statement: 
+Next $\P$ lets $\V$ chose another random scalar $\ran{z}$, and using
+this we can combine the three properties above to the following single
+statement:
 
 \eq{
 	\ran{z^2}v = 
@@ -620,7 +637,11 @@ Next $\P$ lets $\V$ chose another random scalar $\ran{z}$, and using this we can
 	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y^n}}
 }
 
-With this we have condensed the properties we wish to describe into a single statement. We wish to rewrite this as a single inner product where $\vecl{a}$ appears only in the first argument of the inner product and $\vecr{a}$ appears only in the second argument and all non-secret terms are factored out.
+With this we have condensed the properties we wish to describe into
+a single statement. We wish to rewrite this as a single inner product
+where $\vecl{a}$ appears only in the first argument of the inner product
+and $\vecr{a}$ appears only in the second argument and all non-secret
+terms are factored out.
 
 First we can rewrite the middle term:
 
@@ -646,7 +667,9 @@ First we can rewrite the middle term:
 	\dotp{-\ran{z}\vec{1}}{\vecr{a}\circ\vecran{y^n}}
 }
 
-For the final step towards combining all the conditions into a single inner product we add $\dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n}}$ to both sides and simplify again:
+For the final step towards combining all the conditions into a single
+inner product we add $\dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} +
+\ran{z}\vecran{y^n}}$ to both sides and simplify again:
 
 \eq{
 	&\ran{z^2}v + \ran{z}\dotp{\vec{1}}{\vecran{y^n}} + \dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n}}
@@ -657,10 +680,11 @@ For the final step towards combining all the conditions into a single inner prod
 	&\ran{z^2}v + (\ran{z} - \ran{z^2})\dotp{\vec{1}}{\vecran{y^n}} - \ran{z^3}\dotp{\vec{1}}{\vec{2^n}} &&= \dotp{\vecl{a}- \ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n} + \vecr{a}\circ \vecran{y^n}}
 }
 
-We define a function $\delta(y,z) = (z - z^2)\dotp{\vec{1}}{\vec{y^n}} - z^3\dotp{\vec{1}}{\vec{2^n}}$ and finish simplifying:
+We define a function $\delta(y,z) = (z - z^2)\dotp{\vec{1}}{\vec{y^n}}
+- z^3\dotp{\vec{1}}{\vec{2^n}}$ and finish simplifying:
 
 \eq{
-	\ran{z^2}v + \delta(\ran{y},\ran{z}) = \dotp{\vecl{a}- \ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + (\vecr{a} + \ran{z}\vec{1})\circ\vecran{y^n}}
+	\ran{z^2}v + \delta(\ran{y},\ran{z}) = \dotp{\vecl{a} - \ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + (\vecr{a} + \ran{z}\vec{1})\circ\vecran{y^n}}
 }
 
 From here on we will refer to the first argument of the inner product as $\vec{l_0}$ and the second argument as $\vec{r_0}$:
@@ -669,9 +693,19 @@ From here on we will refer to the first argument of the inner product as $\vec{l
 	\ran{z^2}v + \delta(\ran{y},\ran{z}) = \dotp{\vec{l_0}}{\vec{r_0}}
 }
 
-If the goal was simply to construct a single inner product which would prove that $v$ lies in $[0,2^n)$, then $\P$ could simply send these values to $\V$ and be done. However, we wish for the proof to be zero-knowledge and therefore this inner product needs to be blinded. To do this, $\P$ constructs a polynomial $t(x)$. This polynomial will be constructed using $l_0$ and $r_0$ in a way that blinds them, while allowing $\P$ to prove certain properties of $t(x)$ in order to convince $\V$ that $v$ lies in $[0,2^n)$.
+If the goal was simply to construct a single inner product which
+would prove that $v$ lies in $[0,2^n)$, then $\P$ could simply send
+these values to $\V$ and be done. However, we wish for the proof to be
+zero-knowledge and therefore this inner product needs to be blinded. To
+do this, $\P$ constructs a polynomial $t(x)$. This polynomial will
+be constructed using $\vec{l_0}$ and $\vec{r_0}$ in a way that blinds them, while
+allowing $\P$ to prove certain properties of $t(x)$ in order to convince
+$\V$ that $v$ lies in $[0,2^n)$.
 
-First $\P$ chooses random blinding factors $\vecran{s_L}$ and $\vecran{s_R}$ such that $\vecl{s},\vecr{s}\in \Z^n_p$. Using these $\P$ can costruct two vector-function $\vec{l}(x)$ and $\vec{r}(x)$ in the following way:
+First $\P$ chooses random blinding factors $\vecran{s_L}$ and
+$\vecran{s_R}$ such that $\vecl{s},\vecr{s}\in \Z^n_p$. Using these
+$\P$ can costruct two vector-function $\vec{l}(x)$ and $\vec{r}(x)$
+in the following way:
 
 \eq{
 	\vec{l}(x) &= \vec{l_0} + \vec{l_1}x \\ &= (\vecl{a} - \ran{z}\vec{1}) + \vecl{s}x \\ &= (\vecl{a} + \vecl{s}x) - \ran{z}\vec{1}\\&\\
@@ -700,12 +734,12 @@ constructed. So, $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$, and $t(x)
 First $\P$ wants to show that $t_0$ is correctly constructed. $\P$
 starts by making commitments to each of the coefficients of $t(x)$. Here
 we make note of the fact that $\P$ has already commited $t_0$. Namely,
-commitment, $V$, made at the very start, is also a commitment
-to $t_0$ as per the construction of $t_0$. $\P$ makes
-commitments to $T_1 = C(t_1, \tt_1)$ and $T_2 = C(t_2, \tt_2)$. After
-commiting these values to $\V$, $\V$ sends back a challenge scalar
-$\ran{x}$. We know from the definitions of $V, T_1, T_2$
-that these commitments relate in the following manner:
+commitment, $V$, made at the very start, is also a commitment to $t_0$
+as per the construction of $t_0$. $\P$ makes commitments to $T_1 =
+C(t_1, \tt_1)$ and $T_2 = C(t_2, \tt_2)$. After commiting these values
+to $\V$, $\V$ sends back a challenge scalar $\ran{x}$. We know from
+the definitions of $V, T_1, T_2$ that these commitments relate in the
+following manner:
 
 \eq{
 	t(\ran{x})B                   &= \ran{z^2}vB      &&+ \delta(\ran{y},\ran{z})B &&+ \ran{x}t_1B       &&+ \ran{x^2}t_2B \\
