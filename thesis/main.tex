@@ -551,14 +551,31 @@ From here $\V$ can do a simple check to see if $\P$ truly knows $x$:
 	sG \stackrel{?}{=} K + eX
 }
 
-This is because:
+
+\textbf{Completeness:}
+
+For a proof to be 'complete' it means that an honest $\P$ will convince an honest $\V$ that the statement they wish to prove holds. This proof is complete because of the following:
 
 \eq{
-	(k + ex)G &= kG + e(xG) \\
-	&= (k + ex)G
+	sG &= K + eX \\
+	&= kG + e(xG) \\
+	&= (k + ex)G \\
+	&= sG
 }
 
-This shows that the proof is \textit{sound}, but not that it is zero-knowledge, meaning $\V$ did not gain any additional information. To see this we look at the transcript and see that $K$ does not include $x$ in its calculations, but $s$ does. However $s$ is blinded by $k$ meaning that $\V$ cannot infer $x$ without knowing $k$. And $\V$ cannot infer $k$ from $K$ any easier than it can infer $x$ from $X$, thus this proof is also zero-knowledge. 
+\textbf{Soundness:}
+
+For a proof to be sound it means that a DIShonest $\P$ cannot convince an honest $\V$ that their statement is true. In this case it means that if $\P$ does not know $x$ but wishes to convince $\V$ that it does, this is not possible. For this to be the case $\P$ must create a $K$ and $s$ such that $sG = K + eX$ without knowing $x$, which is used in the creation of $s$. This COULD be done if $\P$ had knowledge of $e$ by constructing $K$ as follows: 
+
+\eq{
+	K = s(G - eX)
+}
+
+and then choose a random value $s$. If the verifier then did the check they would find that it holds. However this is NOT a possibility because $\P$ must commit to a $K$ before they are given $e$. There is a small probability that $\P$ could randomly guess $e$ correctly, but this is miniscule.
+
+\textbf{Zero-knowledge:}
+
+For a proof to be zero-knowledge it must hold that $\V$ did not gain any additional information. To see this we look at the transcript and see that $K$ does not include $x$ in its calculations, but $s$ does. However $s$ is blinded by $k$ meaning that $\V$ cannot infer $x$ without knowing $k$. And $\V$ cannot infer $k$ from $K$ any easier than it can infer $x$ from $X$, thus this proof is also zero-knowledge. 
 
 \subsubsection{Range Proofs:}\label{range-proofs}
 
