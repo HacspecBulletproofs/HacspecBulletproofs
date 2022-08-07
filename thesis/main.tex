@@ -232,22 +232,6 @@ curves. Our implementation, as well as the implementation we test against
 utilize this aspect in their internal representations of points on the
 curve.
 
-For our implementation of bulletproofs, seeing as we needed to test it
-against an existing implementation we made use of the same elliptic
-curve, as well as gained an understanding of the basics of elliptic
-curve cryptography. The elliptic curve in question is Curve25519, which
-is widely used in encryption as is the case here. Curve25519, is defined by the following formula:
-
-$$y^2 = x^3 + 48662x^2 + x$$
-
-This curve is defined over the prime field $K = 2^{255} - 19$ and base
-point defined at $x = 9$ with the positive $y$ value. This results in a
-sub-group of order $2^{252} + 2774231777737235353585$, which has a
-co-factor of $8$. This co-factor would make cryptocurrencies that use
-Curve25519 elliptic curves vulnerable to the so-called 'Double Spending
-Vulnerability'. However the implementation known as Ristretto circumvents
-this by eliminating the co-factor. For more detail see \ref{ristretto}
-
 \subsection{Bulletproofs:}\label{Bulletproofs}
 
 The ultimate goal of this project has been to implement bulletproofs in
@@ -1015,6 +999,21 @@ Each internal point representation is composed of four field elements $(X : Y : 
 Additionally the standard, specified a series of constants. These constants were too large to be implemented as integers and hacspec did not allow for the use \texttt{from\_hex()} method. As such, after converting each of these constants into their corresponding hex-values, we built them as byte sequences for which we had an equivalent \texttt{from\_byte\_seq\_be} which created the correct constants.
 
 While it is impossible for a legal point to be encoded and then have the decoding on its encoding fail, the decoding method has several checks that ensure that the input given is legal. The primary reason for this is that decoding is a method available to the client and as such there is no guarantee that the byte-strings they want to decode are legal points that they first encoded properly, but could be artificially constructed byte-strings. We want to avoid this and thus the standard has a list of properties the byte-string input must satisfy for the decoding to be canonical and thus give a proper point as a result. 
+
+The IETF-standard was used for the implementation of nearly every operation implemented, however, scalar multiplication was not specified, however we used the specification from (Insert Reference to literature here). This proved to work perfectly, with the given tests and the IETF-standard methods. 
+
+For our implementation of bulletproofs, seeing as we needed to test it
+against an existing implementation, we made use of the same elliptic
+curve, as well as gained an understanding of the basics of elliptic
+curve cryptography. The elliptic curve in question is Curve25519, which
+is widely used in encryption as is the case here. Curve25519, is defined by the following formula:
+
+$$y^2 = x^3 + 48662x^2 + x$$
+
+This curve is defined over the prime field $K = 2^{255} - 19$ and base
+point defined at $x = 9$ with the positive $y$ value. This results in a
+sub-group of order $2^{252} + 2774231777737235353585$, which has a
+co-factor of $8$, thus meeting the criteria for using Ristretto to eliminate this co-factor.
 
 \subsection{Implementing Inner Product Proof:}
 
