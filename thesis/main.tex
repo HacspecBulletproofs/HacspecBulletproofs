@@ -8,7 +8,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage{listings,listings-rust}
 \usepackage{xcolor}
-\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+\usepackage[ruled, lined, linesnumbered, commentsnumbered, longend]{algorithm2e}
 \usepackage[backend=biber]{biblatex} % Imports biblatex package
 \usepackage{graphicx}
 \usepackage{hyperref}
@@ -872,7 +872,7 @@ In summary the transcript between $\V$ and $\P$, will end up being the following
 \eq{
 	\P \rightarrow \V &: V, n, A, S \\
 	\V \rightarrow \P &: \ran{y}, \ran{z} \\
-	\P \rightarrow \V &: T_0, T_1 \\
+	\P \rightarrow \V &: T_1, T_2 \\
 	\V \rightarrow \P &: \ran{x} \\
 	\P \rightarrow \V &: t(\ran{x})B, \tt(\ran{x})\tB, \widetilde{e} \hspace*{1cm}\text{($t(x)$ evaluated with challenge $\ran{x}$)}\\
 }
@@ -1183,7 +1183,14 @@ co-factor of $8$, thus meeting the criteria for using Ristretto to eliminate thi
 \begin{algorithm}[H]
 	\DontPrintSemicolon
 	\SetAlgoLined
+	\KwIn{stuff}
 	$\textbf{Initial checks}$\\
+	\SetKwFunction{createDealer}{create\_dealer()}
+	\SetKwFunction{createParty}{create\_Party()}
+	$dealer\_awaiting\_bit\_commitments := \createDealer$ \\
+	\For{$j \in [0: \vec{v}.len()]$}{
+		$party\_j\_awaiting\_bit\_challenge := \createParty$
+	}
 	$S$ := $\emptyset$, $T$ := $\emptyset$ \\
 	\For{$v \in V$}{
 		\eIf{$w(\{v\},S) > w(\{v\},T)$}{
