@@ -8,6 +8,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage{listings,listings-rust}
 \usepackage{xcolor}
+\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
 \usepackage[backend=biber]{biblatex} % Imports biblatex package
 \usepackage{graphicx}
 \usepackage{hyperref}
@@ -1177,6 +1178,23 @@ co-factor of $8$, thus meeting the criteria for using Ristretto to eliminate thi
 \subsection{Implementing Inner Product Proof:}
 
 \subsection{Implementing Bulletproofs:}
+
+
+\begin{algorithm}[H]
+	\DontPrintSemicolon
+	\SetAlgoLined
+	$\textbf{Initial checks}$\\
+	$S$ := $\emptyset$, $T$ := $\emptyset$ \\
+	\For{$v \in V$}{
+		\eIf{$w(\{v\},S) > w(\{v\},T)$}{
+			$T := T \cup \{v\}$ \\
+		}{
+			$S := S \cup \{v\}$ \\
+		}
+	}
+	\Return{$(S,T)$}
+	\caption{Bulletproof algorithm}
+	\end{algorithm}
 
 The final part of the project was the implementation of the Bulletproofs protocol. The code was heavily based on the code we were testing against as well as the mathematical formulas explained in \ref*{Bulletproofs}. This implementation had X major roadblocks.
 

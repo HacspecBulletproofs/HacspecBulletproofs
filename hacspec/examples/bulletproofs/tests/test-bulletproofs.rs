@@ -194,7 +194,7 @@ fn test_bulletproofs(number_of_values: usize, n: usize) {
     let (t2_blindings_hac, t2_blindings_rust) = generate_random_scalars(number_of_values);
 
 
-    let (proof_rust, committed_values_rust) = RangeProof::prove_multiple(
+    let (proof_rust, committed_values_rust) = RangeProof::prove_multiple_with_rng(
         &bp_gens_rust,
         &pc_gens_rust,
         &mut transcript_rust,
@@ -239,7 +239,7 @@ fn test_bulletproofs(number_of_values: usize, n: usize) {
         c_hac
     );
 
-    let verified_rust = proof_rust.verify_multiple(
+    let verified_rust = proof_rust.verify_multiple_with_rng(
         &bp_gens_rust,
         &pc_gens_rust,
         &mut verify_transcript_rust,
