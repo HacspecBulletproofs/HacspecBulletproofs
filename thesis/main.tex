@@ -5,15 +5,17 @@
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \usepackage{amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage{listings,listings-rust}
+\usepackage{xcolor}
 \usepackage[backend=biber]{biblatex} % Imports biblatex package
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage[margin=1in]{geometry}
 \usepackage{parskip} % Make space between subsubsections instead of indent
 \usepackage[style=iso]{datetime2} % ISO style dates
-\usepackage[utf8]{inputenc}
 
-\addbibresource{sample.bib} % Import the bibliography file
+\addbibresource{references.bib} % Import the bibliography file
 
 % === Paragraphing === %
 
@@ -63,6 +65,35 @@
 \newcommand{\vechih}[2]{\vec{#1^{\textit{#2}}_{\opn{hi}}}}
 \newcommand{\vecl}[1]{\vec{#1_{\opn{L}}}}
 \newcommand{\vecr}[1]{\vec{#1_{\opn{R}}}}
+
+% Code style
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{rust}{
+	language=Rust,
+	backgroundcolor=\color{backcolour},
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\ttfamily\footnotesize,
+	breakatwhitespace=false,
+	breaklines=true,
+	captionpos=b,
+	keepspaces=true,
+	numbers=left,
+	numbersep=5pt,
+	showspaces=false,
+	showstringspaces=false,
+	showtabs=false,
+	tabsize=2
+}
+
+\lstset{style=rust}
 
 % === Header === %
 
@@ -968,84 +999,114 @@ And if this holds then $\V$ is convinced that $\vec{l_{(j)}}(x)$ and $\vec{r_{(j
 
 \subsection{Hacspec:} \label{Hacspec}
 
-Hacspec is a subset of the programming language of Rust, designed in a
-way that makes it easy to compile into theorem solvers such as Coq or F*.
-The cost for having this property is a reduction in certain conventions
-available in Rust not being present in Hacspec. This is a double edged
-sword, both making the language simple, but also making it harder to
-express certain abstract ideas. The language however is still in
-development, balancing and adding features to the language.
+Hacspec is a subset of the programming language of Rust. It's purpose is
+to be a specification language for cryptographic algorithms, with the
+special properties that it is executable (since it is valid rust code),
+but also that it is defined such that it can easily be transpiled
+into theorem solvers, namely Coq and F*. The cost for having this
+property is certain syntactic enhancements that are available in Rust
+are not defined in Hacspec. This makes the language simpler, but it
+also makes it harder to simply express some concepts due to the lack
+of syntactic sugar. The language however is still in development,
+balancing and adding features.
 
 All code written for this project was written to be Hacspec
-compliant.  Our implementation is a specification meant to
-be simply understood compared to a more obfuscated, but highly
+compliant. Our implementation is a specification meant to be
+simply understood compared to a more obfuscated, but highly
 optimized implementation. We will use property based testing with
 QuickCheck\footnote{\url{https://github.com/BurntSushi/quickcheck}}
-to check our Bulletproofs implementation against the Dalek-Cryptography
-Bulletproofs\footnote{\url{https://github.com/dalek-cryptography/bulletproofs}}.
-We have also created a minimal linear algebra library, in hacspec,
-since it was needed for the bulletproofs implementation. Property
-based testing using QuickCheck is also used for this library, testing
-it against the nalgebra\footnote{\url{https://nalgebra.org/}}.
-
-At a later time our implementation could to be compiled to Coq or F* and
-proof-checked, leading to better guarantees about our implementation.
-This is however not in the scope of this paper and is left to future
-work. % mere her
+where possible and convienient and test our Bulletproofs
+implementation against the Dalek-Cryptography group's Bulletproofs Rust
+implementation\footnote{\url{https://github.com/dalek-cryptography/bulletproofs}}.
+We have also created a minimal linear algebra library,
+in hacspec, as it was thought that it could help with the
+implementation while also creating a library to be used with
+other cryptographic algorithms.
 
 \subsection{Linear Algebra Library Specification:}
 \begin{itemize}
 	\item Vectors vs Matrices 
-	\item Describe formulas, with sources (Dot product) 
 	\item Generics :(
 	\item Cloning
 	\item Double indexing
 	\item QuickCheck
 \end{itemize} 
 
-It was decided that the specification should of course consist of what we
-need, but also of some general linear algebra functions that could be
-used for others who might want to use it. The following functions was
-decided to be part of the specification:
+It was decided that the specification should of course consist of what
+we need, but also of some general linear algebra functions that could
+be used by other specifications. The implemented operations included
+matrix instantiation, slicing, transposition, scalar multiplication,
+addition, subtraction, hadamard product and matrix multiplication.
 
-\begin{itemize}
-	\item Instantiate matrix
-	\item Instantiate zero filled matrix
-	\item (Instantiate one filled matrix)
-	\item Instantiate identity matrix
-	\item Transposition
-	\item Slicing
-	\item (Scalar Multiplication)
-	\item Addition
-	\item Subtraction
-	\item Hadamard product
-	\item Matrix Multiplication
-\end{itemize}
+Since we were not able to find any general linear algebra
+specification, we simply implemented the desired functionality,
+consulting \cite{linear-algebra} when necessary. All functions were
+only defined over matrices, because any vector operation can also
+be performed if modelling the vector as a matrix. This simplified
+our library somewhat. These matrices consisted of a pair of number
+representing dimension and a list of scalars:
 
-No generalized standard for Linear Algebra Specification.
+\begin{lstlisting}
+pub type DimType = usize;
+pub type Scalar = u128;
+pub type Dims = (DimType, DimType);
+pub type Matrix = (Dims, Seq<Scalar>);
+\end{lstlisting}
+
+And some abbreviations for Result types:
+
+\begin{lstlisting}
+pub type Matrix<T> = (Dims, Seq<T>);
+\end{lstlisting}
+
+We model matrices as a \texttt{Seq<Scalar>} instead of a
+\texttt{Seq<Seq<Scalar>>} since we had problems with the hacspec type
+checker when double indexing (\texttt{list[i][j]}), and it is more
+efficient. Since this part was intended to be a library we wanted
+to generalize over the \texttt{Scalar} type. This turned out to
+be a problem though, as Hacspec does not support generics. Luckily,
+generics is on the roadmap and after discussion with the Hacspec Team,
+it was decided that we would generalize our library with generics such
+that the Hacspec developers can use it as an example of how generics
+might be needed:
+
+So take following function:
+
+\begin{lstlisting}
+pub fn new(rows: DimType, cols: DimType, seq: Seq<Scalar>) -> Result<Matrix, ()>
+\end{lstlisting}
+
+It would be rewritten as:
+\begin{lstlisting}
+pub fn new<T>(rows: DimType, cols: DimType, seq: Seq<T>) -> MatRes<T>
+where
+    T: hacspec_lib::Integer,
+\end{lstlisting}
 
 \subsection{Implementing Ristretto:} \label{implementing-ristretto}
 
-For the Ristretto implementation on Curve25519 we used an IETF-standard specification and the paper 
-of exactly this, which was used as a guide for our
+For the Ristretto implementation on Curve25519
+we used an IETF-standard specification and the
+paper of exactly this, which was used as a guide for our
 implementation.\footnote{\url{https://www.ietf.org/archive/id/draft-irtf-cfrg-ristretto255-00.html}}
 This specification was very helpful when implemting, as it clearly
 defined the types and functionalities needed to implement Ristretto
 securely. However there was one operation that needed to be implemented, which did \textit{not} have a standard forumla for its implementation. This method was scalar multiplication. For this we used the specification from (Insert Reference to literature here). This proved to work perfectly, with the given tests and the IETF-standard methods. 
 
 Ristretto is, in essence, a prime-order subgroup of a non-prime-order
-Edwards curve which has a co-factor of 4 or 8. The subgroup formed
-under Ristretto is constructed in such a way that it elimates this
-co-factor, which is useful to avoid additional checks and also
-avoids the risk of leaving in exploitable vulnerabilities which
-utilize the co-factor. One such vulnerability was found that affects all CryptoNote based cryptocurrencies\footnote{\url{https://www.getmonero.org/2017/05/17/disclosure-of-a-major-bug-in-cryptonote-based-currencies.html}}. Ristretto elimates all of these checks and
-potential vulnerabilities by automatically mapping all points on
-the curve directly into the subset of the curve in the operations
-themselves. Additionally Ristretto defines equality such that equivalent
-representations of the same point are considered equal. In the same
-vein the encoding function for points, encodes equivalent points to
-the same encoding and by proxy the decoding function decodes those
-points to the same point.
+Edwards curve which has a co-factor of 4 or 8. The subgroup formed under
+Ristretto is constructed in such a way that it elimates this co-factor,
+which is useful to avoid additional checks and also avoids the risk of
+leaving in exploitable vulnerabilities which utilize the co-factor. One
+such vulnerability was found that affects all CryptoNote based
+cryptocurrencies\footnote{\url{https://www.getmonero.org/2017/05/17/disclosure-of-a-major-bug-in-cryptonote-based-currencies.html}}.
+Ristretto elimates all of these checks and potential vulnerabilities
+by automatically mapping all points on the curve directly into the
+subset of the curve in the operations themselves. Additionally Ristretto
+defines equality such that equivalent representations of the same point
+are considered equal. In the same vein the encoding function for points,
+encodes equivalent points to the same encoding and by proxy the decoding
+function decodes those points to the same point.
 
 For our implementation of bulletproofs, seeing as we needed to test it
 against an existing implementation, we made use of the same elliptic
@@ -1093,6 +1154,24 @@ points that they first encoded properly, but could be artificially
 constructed byte-strings. We want to avoid this and thus the standard
 has a list of properties the byte-string input must satisfy for the
 decoding to be canonical and thus give a proper point as a result.
+
+The IETF-standard was used for the implementation of nearly every
+operation implemented, however, scalar multiplication was not specified,
+however we used the specification from \cite{elliptic-curves}. This proved to work perfectly, with the given tests and the
+IETF-standard methods.
+
+For our implementation of bulletproofs, seeing as we needed to test it
+against an existing implementation, we made use of the same elliptic
+curve, as well as gained an understanding of the basics of elliptic
+curve cryptography. The elliptic curve in question is Curve25519, which
+is widely used in encryption as is the case here. Curve25519, is defined by the following formula:
+
+$$y^2 = x^3 + 48662x^2 + x$$
+
+This curve is defined over the prime field $K = 2^{255} - 19$ and base
+point defined at $x = 9$ with the positive $y$ value. This results in a
+sub-group of order $2^{252} + 2774231777737235353585$, which has a
+co-factor of $8$, thus meeting the criteria for using Ristretto to eliminate this co-factor.
 
 \subsection{Implementing Inner Product Proof:}
 
@@ -1146,45 +1225,5 @@ A table of notation used throughout this report:
 	$\dotp{\vec{a}}{\vec{A}}$   & The sum of scalar-point products of $\vec{a}$ and $\vec{A}$ ($\dotp{\vec{a}}{\vec{A}} = a_1 A_1 + a_2 A_2 + \cdots + a_n A_n$) \\
 \end{tabular}
 \end{center}
-
-\section{Appendix B: Ristretto:} \label{ristretto}
-Ristretto is a specification of elliptic curve cryptography, created for
-the specific purpose of eliminating unwanted co-factors. This was done
-in order to circumvent the double-spending vulnerability. This is done
-using a so-called quotient group. Also appropriately called a Factor
-Group, a Quotient Group is a type of group, which takes elements from a
-larger group and, using an equivalence relation, maps elements that are
-'similar' to the same element in the quotient group, while preserving
-most of the group structure. The remaining elements are factored out,
-leaving a group with the same operations, but fewer elements. What
-this means for Ristretto is that it takes points on an elliptic curve
-and eliminates the co-factor by simply mapping them down to their
-'equivalent' elements. This is the reason for Ristretto's somewhat
-unorthodox method of doing operations, as it must ensure that each
-element is computed to the proper element in the quotient group. This is
-also done, in part, to allow the user to use points that are NOT in the
-quotient group without worry as any computation done with these points
-is automatically mapped to their proper element, thus eliminating the
-rather computationally expensive operation of checking if a point is
-on the proper curve.
-
-Additionally the internal representation of the Montgomery curve we wish
-to eliminate the co-factor for, is its equivalent Twisted Edwards Curve,
-which is done to more easily factor points from the original curve into
-the quotient group. Additionally Ristretto's equality method ensures
-that equivalent representations of points on the curve are equal, even
-if they are not factored into the quotient group yet. Additionally
-from its encoding and decoding methods, equivalent points are encoded
-to the same bitstring, and are therefore decoded into their refactored
-quotient group element.
-
-The exposed functions that were implemented are the encoding and decoding
-functions, the equality function to compare points, the addition function
-over points, point negation, and the derived functions from these,
-namely point doubling, point subtraction and scalar multiplication. And
-the final function is the One Way Map function. This function is not
-entirely necessary for our purposes, but having it allows outside users
-to more easily generate points from simple byte sequences, and 
-also makes generating random points for testing much easier.
 
 \end{document}
