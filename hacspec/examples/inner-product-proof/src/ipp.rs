@@ -189,12 +189,12 @@ pub fn verification_scalars(
 
         let mut u_inv = Seq::<Scalar>::new(lg_n);
         for i in 0..lg_n {
-            u_inv[i] = u_inv[i].inv();
+            u_inv[i] = u[i].inv();
         }
 
         //3. Compute s values
 
-        let mut s = Seq::<Scalar>::with_capacity(n);
+        let mut s = Seq::<Scalar>::new(n);
         for i in 0..n {
             let mut s_i = Scalar::ONE();
             for j in 0..lg_n {
@@ -204,9 +204,8 @@ pub fn verification_scalars(
                     s_i = s_i * u[lg_n - j - 1];
                 }
             }
-            s = s.push(&s_i);
+            s[i] = s_i;
         }
-        let s = s;
 
         // 4. Compute u_i^2 and (1/u_i)^2
 
