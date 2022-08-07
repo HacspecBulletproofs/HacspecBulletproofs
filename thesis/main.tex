@@ -9,7 +9,7 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage[margin=1in]{geometry}
-\usepackage{parskip} % Make space between paragraphs instead of indent
+\usepackage{parskip} % Make space between subsubsections instead of indent
 \usepackage[style=iso]{datetime2} % ISO style dates
 \usepackage[utf8]{inputenc}
 
@@ -232,16 +232,23 @@ curves. Our implementation, as well as the implementation we test against
 utilize this aspect in their internal representations of points on the
 curve.
 
-\subsection{Bulletproofs:}\label{Bulletproofs}
+For our implementation of bulletproofs, seeing as we needed to test it
+against an existing implementation we made use of the same elliptic
+curve, as well as gained an understanding of the basics of elliptic
+curve cryptography. The elliptic curve in question is Curve25519, which
+is widely used in encryption as is the case here. Curve25519, is defined by the following formula:
 
-The ultimate goal of this project has been to implement bulletproofs in
-Hacspec, using property-based testing to ensure it is equivalent to the
-implementation done in Rust, using Curve25519. A bulletproof is a
-non-interactive aggregation of rangeproofs using Pedersen commitments.
-The following section will describe each of these terms in greater detail
-on a theoretic level.
+$$y^2 = x^3 + 48662x^2 + x$$
 
-\subsubsection{Pedersen Commitment:}
+This curve is defined over the prime field $K = 2^{255} - 19$ and base
+point defined at $x = 9$ with the positive $y$ value. This results in a
+sub-group of order $2^{252} + 2774231777737235353585$, which has a
+co-factor of $8$. This co-factor would make cryptocurrencies that use
+Curve25519 elliptic curves vulnerable to the so-called 'Double Spending
+Vulnerability'. However the implementation known as Ristretto circumvents
+this by eliminating the co-factor. For more detail see \ref{ristretto}
+
+\subsection{Pedersen Commitment:}
 
 A Pedersen commitment is a commitment scheme defined by a certain
 property we will go into a little later. For our purposes we redefine
@@ -287,7 +294,91 @@ commitments:
 Which ensures a homomorphism between the sum of commitments and the
 commitment to the sum.
 
-\subsubsection{Inner Product Proof:}
+\subsection{Zero Knowledge Proofs:}\label{zero-knowledge}
+
+A zero-knowledge proof is a cryptographical concept in which a prover,
+$\P$, will convince a verifier, $\V$, that a certain property holds,
+usually in the form of a mathematical equation, and $\P$ will do so
+without $\V$ gaining any additional information. To exemplify this we
+will show the simplest example of a Zero-knowledge proof, using the
+so-called Schnorr Identity Protocol.
+
+This crux of the Schnorr Identity Protocol is for $\P$ to show that
+they know the secret value x. This secret value has the following
+relation to the public elliptic curve points $X$ and $G$:
+
+\eq{
+	X = xG
+}
+
+$\V$ knows both $X$ and $G$ but not $x$. $\P$ wishes to show $\V$
+without simply revealing $x$ directly.
+
+The first step $\P$ takes is choosing a random value $k$ and commiting
+to this value by sending $K$, such that $K = kG$, to $\V$. $\V$ then
+chooses a random value $e$ and sends it to $\P$. Finally $\P$ sends $s$
+such that $s = k + ex$. Written out as a transcript this would be:
+
+\eq{
+	\P \rightarrow \V &: K \\
+	\V \rightarrow \P &: e \\
+	\P \rightarrow \V &: s \\
+}
+
+From here $\V$ can do a simple check to see if $\P$ truly knows $x$:
+
+\eq{
+	sG \stackrel{?}{=} K + eX
+}
+
+
+\textbf{Completeness:}
+
+For a proof to be 'complete' it means that an honest $\P$ will convince
+an honest $\V$ that the statement they wish to prove holds. This proof
+is complete because of the following:
+
+\eq{
+	sG &= K + eX \\
+	   &= kG + e(xG) \\
+	   &= (k + ex)G \\
+	   &= sG
+}
+
+\textbf{Soundness:}
+
+For a proof to be sound it means that a \textit{dishonest} $\P$
+cannot convince an honest $\V$ that their statement is true. In this
+case it means that if $\P$ does not know $x$ but wishes to convince
+$\V$ that it does, this is not possible. For this to be the case $\P$
+must create a $K$ and $s$ such that $sG = K + eX$ without knowing $x$,
+which is used in the creation of $s$. This \textit{could} be done if
+$\P$ had knowledge of $e$ by constructing $K$ as follows:
+
+\eq{
+	K = s(G - eX)
+}
+
+and then choose a random value $s$. If the verifier then did the check
+they would find that it holds. However this is NOT a possibility
+because $\P$ must commit to a $K$ before they are given $e$. There
+is a small probability that $\P$ could randomly guess $e$ correctly,
+but this is miniscule.
+
+\textbf{Zero-knowledge:}
+
+For a proof to be zero-knowledge it must hold that $\V$ did not gain any additional information. To see this we look at the transcript and see that $K$ does not include $x$ in its calculations, but $s$ does. However $s$ is blinded by $k$ meaning that $\V$ cannot infer $x$ without knowing $k$. And $\V$ cannot infer $k$ from $K$ any easier than it can infer $x$ from $X$, thus this proof is also zero-knowledge. 
+
+\section{The Bulletproofs protocol}
+
+The ultimate goal of this project has been to implement bulletproofs in
+Hacspec, using property-based testing to ensure it is equivalent to the
+implementation done in Rust, using Curve25519. A bulletproof is a
+non-interactive aggregation of rangeproofs using Pedersen commitments.
+The following section will describe each of these terms in greater detail
+on a theoretic level.
+
+\subsection{Inner Product Proof:}
 A prover, $\P$, wants to prove to a verifier, $\V$, that he has knowledge
 of two vectors $\vec{a}$, $\vec{b}$ and know their inner product
 $\dotp{\vec{a}}{\vec{b}} = c$. The prover could simply send the verifier
@@ -296,7 +387,7 @@ time to verify. Instead we will use a compression technique included
 in the bulletproofs paper which allows for just $O(log_2(n))$ bandwidth
 and time to verify.
 
-\paragraph{Provers Algorithm:}
+\subsubsection{Provers Algorithm:}
 $\P$ is given values with the following definitions:
 
 \eqn{def1}{
@@ -428,7 +519,7 @@ the so called \textit{transcript}, can be summarized as the following:
 To make the inner product proof \textit{non-interactive}, the
 Fiat-Shamir Heuristic (\ref{fiat-shamir-heuristic}) can be used.
 
-\paragraph{Verifiers Algorithm}
+\subsubsection{Verifiers Algorithm}
 $\V$ has knowledge of the following values:
 \eqn{def1-ver}{
 	a^{(0)}, b^{(0)} &\in \Z_p \\
@@ -512,86 +603,13 @@ $\dotp{\vec{a}}{\vec{b}} = c$:
 	        &\stackrel{?}{=} \dotp{a\vec{s}}{\vec{G}} + \dotp{b\vec{s'}}{\vec{H}} + abQ - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i)
 }
 
-\subsubsection{Zero Knowledge Proofs:}\label{zero-knowledge}
+\subsubsection{The Algorithm}
 
-A zero-knowledge proof is a cryptographical concept in which a prover,
-$\P$, will convince a verifier, $\V$, that a certain property holds,
-usually in the form of a mathematical equation, and $\P$ will do so
-without $\V$ gaining any additional information. To exemplify this we
-will show the simplest example of a Zero-knowledge proof, using the
-so-called Schnorr Identity Protocol.
-
-This crux of the Schnorr Identity Protocol is for $\P$ to show that
-they know the secret value x. This secret value has the following
-relation to the public elliptic curve points $X$ and $G$:
-
-\eq{
-	X = xG
-}
-
-$\V$ knows both $X$ and $G$ but not $x$. $\P$ wishes to show $\V$
-without simply revealing $x$ directly.
-
-The first step $\P$ takes is choosing a random value $k$ and commiting
-to this value by sending $K$, such that $K = kG$, to $\V$. $\V$ then
-chooses a random value $e$ and sends it to $\P$. Finally $\P$ sends $s$
-such that $s = k + ex$. Written out as a transcript this would be:
-
-\eq{
-	\P \rightarrow \V &: K \\
-	\V \rightarrow \P &: e \\
-	\P \rightarrow \V &: s \\
-}
-
-From here $\V$ can do a simple check to see if $\P$ truly knows $x$:
-
-\eq{
-	sG \stackrel{?}{=} K + eX
-}
-
-
-\textbf{Completeness:}
-
-For a proof to be 'complete' it means that an honest $\P$ will convince
-an honest $\V$ that the statement they wish to prove holds. This proof
-is complete because of the following:
-
-\eq{
-	sG &= K + eX \\
-	   &= kG + e(xG) \\
-	   &= (k + ex)G \\
-	   &= sG
-}
-
-\textbf{Soundness:}
-
-For a proof to be sound it means that a \textit{dishonest} $\P$
-cannot convince an honest $\V$ that their statement is true. In this
-case it means that if $\P$ does not know $x$ but wishes to convince
-$\V$ that it does, this is not possible. For this to be the case $\P$
-must create a $K$ and $s$ such that $sG = K + eX$ without knowing $x$,
-which is used in the creation of $s$. This \textit{could} be done if
-$\P$ had knowledge of $e$ by constructing $K$ as follows:
-
-\eq{
-	K = s(G - eX)
-}
-
-and then choose a random value $s$. If the verifier then did the check
-they would find that it holds. However this is NOT a possibility
-because $\P$ must commit to a $K$ before they are given $e$. There
-is a small probability that $\P$ could randomly guess $e$ correctly,
-but this is miniscule.
-
-\textbf{Zero-knowledge:}
-
-For a proof to be zero-knowledge it must hold that $\V$ did not gain any additional information. To see this we look at the transcript and see that $K$ does not include $x$ in its calculations, but $s$ does. However $s$ is blinded by $k$ meaning that $\V$ cannot infer $x$ without knowing $k$. And $\V$ cannot infer $k$ from $K$ any easier than it can infer $x$ from $X$, thus this proof is also zero-knowledge. 
-
-\subsubsection{Range Proofs:}\label{range-proofs}
+\subsection{Range Proofs:}\label{range-proofs}
 
 A range-proof is a zero-knowledge proof which seeks to prove that for some value $v$, $v$ lies within the range of $[0,2^n)$ without revealing $v$ or any additional information about $v$, thus zero-knowledge. We wish to express this property of $v$ in a single inner product to be able to use an inner product proof as described above. 
 
-\paragraph{Prover's Algorithm}\label{prover-range-proofs}
+\subsubsection{Prover's Algorithm}\label{prover-range-proofs}
 
 To start, the prover, $\P$, is given the following values:
 
@@ -668,10 +686,9 @@ where $\vecl{a}$ appears only in the first argument of the inner product
 and $\vecr{a}$ appears only in the second argument and all non-secret
 terms are factored out.
 
-First we can rewrite the middle term:
+\subsubsection{The Algorithm}First we 
 
 \eq{	
-	&\ran{z^2}v &&= 
 	\ran{z^2}\dotp{\vecl{a}}{\vec{2^n}} +
 	\ran{z}\dotp{\vecl{a}}{\vecran{y^n}} -
 	\ran{z}\dotp{\vec{1}}{\vecran{y^n}} -
@@ -829,7 +846,7 @@ In summary the transcript between $\V$ and $\P$, will end up being the following
 
 Just as with the inner product the Fiat-Shamir Heuristic (\ref{fiat-shamir-heuristic}) can be used to make this process non-interactive.
 
-\paragraph{Verifier's Algorithm:} \label{verifier-range-proof}
+\subsubsection{Verifier's Algorithm:} \label{verifier-range-proof}
 
 $\V$ has access to the following values:
 
@@ -864,7 +881,7 @@ Additionally by looking at the trancript one can deduce that that the only way f
 
 But the proof being sound does not necessarily mean it is zero-knowledge. The proof also needs to be Zero-knowledge. If we look at all the values availible to $\V$ we can see that it has only two of these values have any direct relation to $v$, these being $V$ and $t(\ran{x})B$. It is trivial to see that $\V$ cannot learn anything about $v$ from $V$ without knowledge of $\tv$ which $\V$ does not know. If we look at the definition of $t(\ran{x})B$ we can see that it DOES use v in the calculation directly. However the definition of $t(x)$ uses $t_2$, which is blinded using $\vecran{s_L}$ and $\vecran{s_R}$ neither of which $\V$ has any way to access. Additionally $t_1$ also uses the definition of $t_2$ and thus is ALSO cannot be infered. Thus there is no amount of calculations that $\V$ can do to figure out anything about $v$ and thus the proof is also zero-knowledge.
 
-\subsubsection{Aggregation of rangeproofs:}
+\subsection{Aggregation of rangeproofs:}
 
 An aggregated range-proof is a rangeproof which proves that one or most likely more values lie within a certain range: $[0,2^n)$ for some integer n. This is done by aggregating range-proofs for each individual value into a single proof which, if verified, proves that each value given lies within the range while giving away no more information about any of the values. This is done by using a multi-party protocol where a 'party' is created for each value that needs to be proven and each party will converse with the so-called 'dealer' who is responsible for collecting the various commitments from the parties and generating challenges which is used by all parties. At the very end the dealer will then collect all the individual rangeproofs for each value and aggregate them. 
 
@@ -943,10 +960,11 @@ Note that is has already recieved $A_{(j)}$ and $S_{(j)}$ from the first step of
 
 And if this holds then $\V$ is convinced that $\vec{l_{(j)}}(x)$ and $\vec{r_{(j)}}(x)$ are correctly constructed and with the previous part on top it is now convinced that all the given v are within the range $[0,2^n)$ and thus the proof is sound. Additionally, using the same argument as in \ref{verifier-range-proof} for each individual party, this is also zero-knowledge.
 
-%\section{State of the art:}
+\subsubsection{The Algorithm}
 
-\subsubsection{Fiat-Shamir Heuristic}\label{fiat-shamir-heuristic}
-% Include the recently found vulnerability
+\subsection{Fiat-Shamir Heuristic}\label{fiat-shamir-heuristic}
+
+\section{Our Contributions:}
 
 \subsection{Hacspec:} \label{Hacspec}
 
@@ -974,8 +992,6 @@ At a later time our implementation could to be compiled to Coq or F* and
 proof-checked, leading to better guarantees about our implementation.
 This is however not in the scope of this paper and is left to future
 work. % mere her
-
-\section{Contributions:}
 
 \subsection{Linear Algebra Library Specification:}
 \begin{itemize}
