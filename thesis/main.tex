@@ -916,13 +916,13 @@ Each party sends their $T_{1,(j)}$ and $T_{2,(j)}$, to $\V$ and $\V$ can then co
 and from here $\V$ can will send back the challenge $\ran{x}$ and $\P$ will return $t(\ran{x})B$ and $\tt(\ran{x})\tB$. From here $\V$ can then convince themselves that for ALL $t_{0,(j)}$ are correct by performing the following check: 
 
 \eq{
-	t(x)B + \widetilde{t}(x)\widetilde{B} \stackrel{?}{=} \ran{z^2}\sum^{m-1}_{j = 0} \ran{z_{(j)}}*V_{(j)} + \delta(y,z)B + \ran{x}T_1 + \ran{x^2}T_2
+	t(\ran{x})B + \widetilde{t}(\ran{x})\widetilde{B} \stackrel{?}{=} \ran{z^2}\sum^{m-1}_{j = 0} \ran{z_{(j)}}*V_{(j)} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
 }
 
 we know that $z_{(j)} = z^j$ we can make a small rewrite:
 
 \eq{
-	t(x)B + \widetilde{t}(x)\widetilde{B} \stackrel{?}{=} \sum^{m-1}_{j = 0} \ran{z^{j+2}}*V_{(j)} + \delta(y,z)B + \ran{x}T_1 + \ran{x^2}T_2
+	t(\ran{x})B + \widetilde{t}(\ran{x})\widetilde{B} \stackrel{?}{=} \sum^{m-1}_{j = 0} \ran{z^{j+2}}*V_{(j)} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
 }
 
 And this check will then convince the verifier that all $t_{0,(j)}$ are correct.
@@ -930,7 +930,7 @@ And this check will then convince the verifier that all $t_{0,(j)}$ are correct.
 Just as with a singular rangeproof $\P$ also wishes to prove that each $\vec{l_{(j)}(x)}$ and $\vec{r_{(j)}(x)}$ are constructed correctly for all parties. This is done in a similar manner as proving $t_{0,(j)}$ are all correct. Proving this property the jth party would be proving the following:
 
 \eq{
-	\dotp{l_{(j)}(x)}{\vec{G_{(j)}}} + \dotp{r_{(j)}(x)}{\vec{H'_{(j)}}} \stackrel{?}{=} -\widetilde{e}_{(j)}\widetilde{B} + A_{(j)} + \ran{x}S_{(j)} &&+ (\dotp{\ran{z}\vecran{y^n_{(j)}} + \ran{z^2}\ran{z_{(j)}}\vec{2^n}}{H'_{(j)}} - \ran{z}\dotp{\vec{1}}{\vec{G_{(j)}}})
+	\dotp{l_{(j)}(\ran{x})}{\vec{G_{(j)}}} + \dotp{r_{(j)}(\ran{x})}{\vec{H'_{(j)}}} \stackrel{?}{=} -\widetilde{e}_{(j)}\widetilde{B} + A_{(j)} + \ran{x}S_{(j)} &&+ (\dotp{\ran{z}\vecran{y^n_{(j)}} + \ran{z^2}\ran{z_{(j)}}\vec{2^n}}{H'_{(j)}} - \ran{z}\dotp{\vec{1}}{\vec{G_{(j)}}})
 }
 
 $\P$ can then combine the variables in the following way:
@@ -942,11 +942,11 @@ $\P$ can then combine the variables in the following way:
 	\vec{H'} &= \vec{H'_0} &&\concat \vec{H'_1} &&\concat \dots &&\concat \vec{H'_{m-1}}
 }
 
-And send $\dotp{\vec{l}(x)}{\vec{G}}$ and $\dotp{\vec{r}(x)}{\vec{H'}}$ to $\V$, along with each party's $\widetilde{e}_{(j)}$. From here $\V$ can then construct:
+And send $\dotp{\vec{l}(\ran{x})}{\vec{G}}$ and $\dotp{\vec{r}(\ran{x})}{\vec{H'}}$ to $\V$, along with each party's $\widetilde{e}_{(j)}$. From here $\V$ can then construct:
 
 \eq{
-	\vecran{y^n_{(j)}} &= y^{n*m}[j*n : (j+1)*n]\\
-	\ran{z_{(j)}} &= z^j\\
+	\vecran{y^n_{(j)}} &= \ran{y^{n*m}}[j*n : (j+1)*n]\\
+	\ran{z_{(j)}} &= \ran{z^j}\\
 	\widetilde{e} &= \sum^{m-1}_{j = 0} \widetilde{e}_{(j)}\\
 	A &= \sum^{m-1}_{j = 0} A_{(j)}\\
 	S &= \sum^{m-1}_{j = 0} S_{(j)}
@@ -955,7 +955,7 @@ And send $\dotp{\vec{l}(x)}{\vec{G}}$ and $\dotp{\vec{r}(x)}{\vec{H'}}$ to $\V$,
 Note that is has already recieved $A_{(j)}$ and $S_{(j)}$ from the first step of the transcript. $\V$ can then use the following check to convince itself that all $\vec{l_{(j)}}(x)$ and $\vec{r_{(j)}}(x)$ are correctly constructed:
 
 \eq{
-	\vec{l_{(j)}}(x) + \vec{r_{(j)}}(x) \stackrel{?}{=} -\widetilde{e}\widetilde{B} + A + \ran{x}S - \ran{z}\dotp{\vec{1}}{\vec{G}} + \ran{z}\dotp{\vecran{y^{n*m}}}{\vec{H'}} + \sum^{m-1}_{j = 0}\dotp{\ran{z^{j+2}}*\vec{2^n}}{\vec{H'}[j*n: (j+1)*n]}
+	\vec{l_{(j)}}(\ran{x}) + \vec{r_{(j)}}(\ran{x}) \stackrel{?}{=} -\widetilde{e}\widetilde{B} + A + \ran{x}S - \ran{z}\dotp{\vec{1}}{\vec{G}} + \ran{z}\dotp{\vecran{y^{n*m}}}{\vec{H'}} + \sum^{m-1}_{j = 0}\dotp{\ran{z^{j+2}}*\vec{2^n}}{\vec{H'}[j*n: (j+1)*n]}
 }
 
 And if this holds then $\V$ is convinced that $\vec{l_{(j)}}(x)$ and $\vec{r_{(j)}}(x)$ are correctly constructed and with the previous part on top it is now convinced that all the given v are within the range $[0,2^n)$ and thus the proof is sound. Additionally, using the same argument as in \ref{verifier-range-proof} for each individual party, this is also zero-knowledge.
