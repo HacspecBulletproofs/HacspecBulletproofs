@@ -422,11 +422,11 @@ and time to verify.
 \subsubsection{Provers Algorithm:}
 $\P$ is given values with the following definitions:
 
-\eqn{def1}{
+\eqn{ipp-def1}{
 	\vec{a}, \vec{b} &\in \Z^n_p \\
 	\vec{G}, \vec{H} &\in \G^n \\
 }
-\eqn{def2}{
+\eqn{ipp-def2}{
 	P &= \dotp{\vec{a}}{\vec{G}} + \dotp{\vec{b}}{\vec{H}} \\
 	c &= \dotp{\vec{a}}{\vec{b}} \\
 }
@@ -1025,15 +1025,7 @@ in hacspec, as it was thought that it could help with the
 implementation while also creating a library to be used with
 other cryptographic algorithms.
 
-\subsection{Linear Algebra Library Specification:}
-\begin{itemize}
-	\item Vectors vs Matrices 
-	\item Generics :(
-	\item Cloning
-	\item Double indexing
-	\item QuickCheck
-\end{itemize} 
-
+\subsection{Linear Algebra Library:}
 It was decided that the specification should of course consist of what
 we need, but also of some general linear algebra functions that could
 be used by other specifications. The implemented operations included
@@ -1050,40 +1042,92 @@ representing dimension and a list of scalars:
 
 \begin{lstlisting}
 pub type DimType = usize;
-pub type Scalar = u128;
+pub type Scalar = i128;
 pub type Dims = (DimType, DimType);
 pub type Matrix = (Dims, Seq<Scalar>);
-\end{lstlisting}
-
-And some abbreviations for Result types:
-
-\begin{lstlisting}
-pub type Matrix<T> = (Dims, Seq<T>);
+pub type MatRes = Result<Matrix, u8>;
+pub type ScalRes = Result<Scalar, u8>;
 \end{lstlisting}
 
 We model matrices as a \texttt{Seq<Scalar>} instead of a
 \texttt{Seq<Seq<Scalar>>} since we had problems with the hacspec type
 checker when double indexing (\texttt{list[i][j]}), and it is more
 efficient. Since this part was intended to be a library we wanted
-to generalize over the \texttt{Scalar} type. This turned out to
+to generalize over the \texttt{Scalar} type. We wanted to at least have it be generalizable over any type that can be defined using hacspec macros, for example the following Scalar:
+
+\begin{lstlisting}
+public_nat_mod!(
+    type_name: Scalar,
+    type_of_canvas: ScalarCanvas,
+    bit_size_of_field: 256,
+    modulo_value: "1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed"
+);
+\end{lstlisting}
+
+This turned out to
 be a problem though, as Hacspec does not support generics. Luckily,
 generics is on the roadmap and after discussion with the Hacspec Team,
 it was decided that we would generalize our library with generics such
 that the Hacspec developers can use it as an example of how generics
-might be needed:
-
-So take following function:
+might be needed. Take following matrix initialization function:
 
 \begin{lstlisting}
-pub fn new(rows: DimType, cols: DimType, seq: Seq<Scalar>) -> Result<Matrix, ()>
+pub fn new(rows: DimType, cols: DimType, seq: Seq<Scalar>) -> MatRes {
+...
 \end{lstlisting}
 
 It would be rewritten as:
+
 \begin{lstlisting}
 pub fn new<T>(rows: DimType, cols: DimType, seq: Seq<T>) -> MatRes<T>
 where
-    T: hacspec_lib::Integer,
+    T: hacspec_lib::Integer, {
+...
 \end{lstlisting}
+
+With the following type aliases used instead:
+
+\begin{lstlisting}
+type DimType = usize;
+type Dims = (DimType, DimType);
+type MatRes<T> = Result<Matrix<T>, u8>;
+type ScalRes<T> = Result<T, u8>;
+\end{lstlisting}
+
+Which would allow anyone using the library to use matrices with their
+own defined hacspec types. Notice the \texttt{hacspec\_lib::Integer},
+this trait is implemented by all integers.
+
+\textbf{Testing:}
+
+We utilized quickcheck to do property based testing in order to ensure
+that our specification had the same functionality as Nalgebra. All
+the these tests followed the same standard pattern, where we create a
+helper function that does the following: Construct two random matrices
+of random dimensions, make sure no dimension is set to 0, run equivelent
+operations on them and finally assert that the operations had the same
+effect. A simple example is the \texttt{zeros} function:
+
+\begin{lstlisting}
+#[test] fn test_nalg_zeros() {
+    fn helper(n: u8, m: u8) -> TestResult {
+        let n = n as usize; let m = m as usize;
+
+        if n * m == 0 {
+            return TestResult::discard();
+        }
+
+        let hac = zeros(n, m); let ext = DMatrix::zeros(n, m);
+
+        TestResult::from_bool(assert_matrices(hac, ext))
+    } quickcheck(helper as fn(u8, u8) -> TestResult);
+}
+\end{lstlisting}
+
+Here the only operation that is performed is the construction of the
+vectors. The \texttt{assert\_matrices} function is simply a function
+that checks each element in the two vectors and assert them all to
+be equal.
 
 \subsection{Implementing Ristretto:} \label{implementing-ristretto}
 
