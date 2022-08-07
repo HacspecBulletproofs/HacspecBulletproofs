@@ -717,7 +717,7 @@ Now $\P$ can construct $t(x)$ as follows:
 	t(x) = \dotp{\vec{l}(x)}{\vec{r}(x)}
 }
 
-We group $x$ to get:
+We want to group $x$, so we can rewrite $t(x)$ into a quadratic equation:
 
 \eq{
 	&t(x) = t_0 + t_1x + t_2x^2 \\
@@ -984,15 +984,27 @@ No generalized standard for Linear Algebra Specification.
 
 \subsection{Implementing Ristretto:} \label{implementing-ristretto}
 
-For the Ristretto implementation on Curve25519 there
-exists an IETF-standard specification of exactly
-this, which was used as a guide for our implementation.
-\footnote{\url{https://www.ietf.org/archive/id/draft-irtf-cfrg-ristretto255-00.html}}
-This specification was very helpful and after inspecting the code we
-are testing against closely, it is clear that they used this standard
-as well.
+For the Ristretto implementation on Curve25519
+there exists an IETF-standard specification
+of exactly this, which was used as a guide for our
+implementation.\footnote{\url{https://www.ietf.org/archive/id/draft-irtf-cfrg-ristretto255-00.html}}
+This specification was very helpful when implemting, as it clearly
+defined the types and functionality needed to implement Ristretto
+securely.
 
-Ristretto is, in essence, a prime-order subgroup of a non-prime-order Edwards curve which has a co-factor of 4 or 8. The subgroup formed under Ristretto is constructed in such a way that it elimates this co-factor, which is useful to avoid additional checks and also avoids the risk of leaving in exploitable vulnerabilities which utilize the co-factor. Ristretto elimates all of these checks and potential vulnerabilities by automatically mapping all points on the curve directly into the subset of the curve in the operations themselves. Additionally Ristretto defines equality such that equivalent representations of the same point are considered equal. In the same vein the encoding function for points, encodes equivalent points to the same encoding and by proxy the decoding function decodes those points to the same point.
+Ristretto is, in essence, a prime-order subgroup of a non-prime-order
+Edwards curve which has a co-factor of 4 or 8. The subgroup formed
+under Ristretto is constructed in such a way that it elimates this
+co-factor, which is useful to avoid additional checks and also
+avoids the risk of leaving in exploitable vulnerabilities which
+utilize the co-factor. Ristretto elimates all of these checks and
+potential vulnerabilities by automatically mapping all points on
+the curve directly into the subset of the curve in the operations
+themselves. Additionally Ristretto defines equality such that equivalent
+representations of the same point are considered equal. In the same
+vein the encoding function for points, encodes equivalent points to
+the same encoding and by proxy the decoding function decodes those
+points to the same point.
 
 Each internal point representation is composed of four field elements $(X : Y : Z : T)$. Field-elements, as defined by the standard are values modulo p, with p being the prime field for Curve25519, $2^{255} - 19$. This was achieved using the \texttt{public\_nat\_mod!} macro which defines finite fields over a given modulo. Conveniently it accepts hex values as modulo values, which allowed us to easily make the modulo value $2^{255} - 19$. Most of the standard integer operators like addition, subtraction and multiplication are also implemented for these field elements. An important thing to note is that the internal calculations for division is done using integer arithmetic rather than finite field arithmetic, however the few times where division is used directly it is ensured that the result in finite field arithmetic is equal to the integer arithmetic solution.
 
