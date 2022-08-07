@@ -1014,13 +1014,15 @@ Additionally the standard, specified a series of constants. These constants were
 
 While it is impossible for a legal point to be encoded and then have the decoding on its encoding fail, the decoding method has several checks that ensure that the input given is legal. The primary reason for this is that decoding is a method available to the client and as such there is no guarantee that the byte-strings they want to decode are legal points that they first encoded properly, but could be artificially constructed byte-strings. We want to avoid this and thus the standard has a list of properties the byte-string input must satisfy for the decoding to be canonical and thus give a proper point as a result. 
 
+\subsection{Implementing Inner Product Proof:}
+
 \subsection{Implementing Bulletproofs:}
 
-Our bulletproofs implementation was implemented on the foundation of our implementations of Linear Algebra and Ristretto. The first and simplest step was implementing Pedersen commitments to single values as well as to vectors. From our implementation of Ristretto we can easily add points to each other and multiply points by a scalar. This is essentially the only thing a Pedersen commitment is. Additionally we needed it to support vector commitments. From our implementation of Linear Algebra we could easily adapt this into the code. This implementation was nearly trivial given the base we built it upon.
+The final part of the project was the implementation of the Bulletproofs protocol. The code was heavily based on the code we were testing against as well as the mathematical formulas explained in \ref*{Bulletproofs}. This implementation had X major roadblocks. 
 
-The next step in the process towards implementing Bulletproofs is the inner product proof. The implementation of which does not lean itself against our Ristretto implementation as our implementation of Pedersen commitments did, however it does utilize said Pedersen commitments. 
+The first big roadblock was the immense length it would have. This meant that writing any sort of test for the code would require it to be finished in nearly its entirety. This resulted in many tests being performed before the code was finished through the simple method of printing out every value on the screen and checking if they match what we are testing against, in order to ensure that our code was working correctly. But this in and of itself was an issue as the library we test against, naturally does not print all values on the screen. For this reason we forked their library and inserted the needed print statements. However yet another issue with this was the fact that their library has built-in randomness. This meant that our code had no way to utlize the exact same random values, something that is vital when testing to see if it works in the same way. Therefore we refactored all random values into inputs in their library. This in no way changes the functionality of their code, but instead it allows us to control the random values it uses, which we can then match to our own, and thus allowing us to test against it. 
 
-The final part was implementing the bulletproof methods themselves. 
+To keep our implementation as simple as possible we only implemented what would be equivalent to the \texttt{prove\_multiple\_with\_rng} method from the library we test against. We felt this was sufficient as the \texttt{prove\_multiple}, \texttt{prove\_single\_with\_rng} and \texttt{prove\_single} methods would all call \texttt{prove\_multiple\_with\_rng} in some way. 
 
 \subsection{Analysis of coding stuff:}
 
