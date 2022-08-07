@@ -717,9 +717,10 @@ where $\vecl{a}$ appears only in the first argument of the inner product
 and $\vecr{a}$ appears only in the second argument and all non-secret
 terms are factored out.
 
-\subsubsection{The Algorithm}First we 
+First we can rewrite the middle term:
 
 \eq{	
+	&\ran{z^2}v &&= 
 	\ran{z^2}\dotp{\vecl{a}}{\vec{2^n}} +
 	\ran{z}\dotp{\vecl{a}}{\vecran{y^n}} -
 	\ran{z}\dotp{\vec{1}}{\vecran{y^n}} -
@@ -791,7 +792,7 @@ Now $\P$ can construct $t(x)$ as follows:
 	t(x) = \dotp{\vec{l}(x)}{\vec{r}(x)}
 }
 
-We want to group $x$, so we can rewrite $t(x)$ into a quadratic equation:
+We group $x$ to get:
 
 \eq{
 	&t(x) = t_0 + t_1x + t_2x^2 \\
