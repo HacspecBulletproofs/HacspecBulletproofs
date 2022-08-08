@@ -137,9 +137,10 @@ to understand the results of the work in this project.
 
 \subsection{Finite Field Arithmetic:} \label{Finite Field Arithmetic}
 
-We start with \textit{fields} and the operations defined within
-them, as the operations we will later define that work on elliptic
-curves are built on fields. The definitions of this section is based on \cite{elliptic-curves}.
+We start with \textit{fields} and the operations defined within them,
+as the operations we will later define that work on elliptic curves
+are built on fields. The definitions of this section is based on
+\cite{elliptic-curves}.
 
 \begin{definition}[Field]
 	A field is a set $\F$, along with the \textit{addition} and
@@ -193,7 +194,8 @@ again in section \ref{implementing-ristretto} with regards to the code.
 
 \textbf{What is an elliptic curve?}
 
-The definitions of this section is based on \cite{elliptic-curves}. We start with a few definitions:
+The definitions of this section is based on \cite{elliptic-curves}. We
+start with a few definitions:
 
 \begin{definition}[Elliptic Curves]
 	An elliptic curve, $E$, is an algebraic curve defined over a prime field, $\F_p$, defined by the formula:
@@ -269,8 +271,9 @@ curve.
 For our implementation of bulletproofs, seeing as we needed to test it
 against an existing implementation we made use of the same elliptic
 curve, as well as gained an understanding of the basics of elliptic
-curve cryptography. The elliptic curve in question is Curve25519, which
-is widely used in encryption as is the case here. Curve25519, is defined by the following formula:
+curve cryptography. The elliptic curve in question is Curve25519,
+which is widely used in encryption as is the case here. Curve25519,
+is defined by the following formula:
 
 $$y^2 = x^3 + 48662x^2 + x$$
 
@@ -285,9 +288,10 @@ this by eliminating the co-factor. For more detail see \ref{ristretto}
 \subsection{Pedersen Commitment:}
 
 A Pedersen commitment is a commitment scheme defined by additive
-homomorpism (\ref{pedersen-additive-homomorphism}) which was originally pioneered by Torben Pryds Pedersen \cite{pedersen-commits}. For our purposes we
-redefine the scheme to work with commitments to elliptic curve points
-rather than a value. 
+homomorpism (\ref{pedersen-additive-homomorphism}) which was originally
+pioneered by Torben Pryds Pedersen \cite{pedersen-commits}. For our
+purposes we redefine the scheme to work with commitments to elliptic
+curve points rather than a value.
 
 \begin{definition}[Pedersen Commitment]
 	A Pedersen commitment, to some message, $a$, with a randomly chosen
@@ -402,7 +406,12 @@ but this is miniscule.
 
 \textbf{Zero-knowledge:}
 
-For a proof to be zero-knowledge it must hold that $\V$ did not gain any additional information. To see this we look at the transcript and see that $K$ does not include $x$ in its calculations, but $s$ does. However $s$ is blinded by $k$ meaning that $\V$ cannot infer $x$ without knowing $k$. And $\V$ cannot infer $k$ from $K$ any easier than it can infer $x$ from $X$, thus this proof is also zero-knowledge. 
+For a proof to be zero-knowledge it must hold that $\V$ did not gain
+any additional information. To see this we look at the transcript
+and see that $K$ does not include $x$ in its calculations, but $s$
+does. However $s$ is blinded by $k$ meaning that $\V$ cannot infer $x$
+without knowing $k$. And $\V$ cannot infer $k$ from $K$ any easier
+than it can infer $x$ from $X$, thus this proof is also zero-knowledge.
 
 \section{The Bulletproofs protocol} \label{Bulletproofs}
 
@@ -643,7 +652,11 @@ $\dotp{\vec{a}}{\vec{b}} = c$:
 
 \subsection{Range Proofs:}\label{range-proofs}
 
-A range-proof is a zero-knowledge proof which seeks to prove that for some value $v$, $v$ lies within the range of $[0,2^n)$ without revealing $v$ or any additional information about $v$, thus zero-knowledge. We wish to express this property of $v$ in a single inner product to be able to use an inner product proof as described above. 
+A range-proof is a zero-knowledge proof which seeks to prove that for
+some value $v$, $v$ lies within the range of $[0,2^n)$ without revealing
+$v$ or any additional information about $v$, thus zero-knowledge. We
+wish to express this property of $v$ in a single inner product to be
+able to use an inner product proof as described above.
 
 \subsubsection{Prover's Algorithm}\label{prover-range-proofs}
 
@@ -910,9 +923,11 @@ $\V$ has access to the following values:
 	t(\ran{x})B, \tt(\ran{x})\tB &\in \G \hspace*{1cm} \text{(evaluated at x)}
 }
 
-$\V$ needs to make a check for the two properties that $\P$ want to prove to it.
+$\V$ needs to make a check for the two properties that $\P$ want to
+prove to it.
 
-To check the first property $\V$ simply checks if the following equation holds:
+To check the first property $\V$ simply checks if the following
+equation holds:
 
 \eq{
 	t(\ran{x})B + \tt(\ran{x})\tB \stackrel{?}{=} \ran{z^2} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
@@ -922,7 +937,8 @@ And if it does then that will convince $\V$ that $t(x) = \ran{z^2}v +
 \delta(\ran{y},\ran{z}) + t_1x + t_2\ran{x^2}$ due to the column-sum
 argument made in the Prover's Algorithm. (\ref{prover-range-proofs})
 
-Similarly to become convinced of the second property $\V$ checks if this equation holds:
+Similarly to become convinced of the second property $\V$ checks if
+this equation holds:
 
 \eq{
 	P &= -\widetilde{e}\tB &&+ A &&+ \ran{x}S &&+ \dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}}{\vec{H'}} &&- \ran{z}\dotp{\vec{1}}{\vec{\vec{G}}} \\
@@ -961,8 +977,8 @@ anything about $v$ and thus the proof is also zero-knowledge.
 \subsection{Aggregation of rangeproofs:}
 
 An aggregated range-proof is a rangeproof which proves that one or
-most likely more values lie within a certain range: $[0,2^n)$ for some
-integer n. This is done by aggregating range-proofs for each individual
+more values $\vec{v}$ lie within a certain range: $[0,2^n)$ for some
+integer $n$. This is done by aggregating range-proofs for each individual
 value into a single proof which, if verified, proves that each value
 given lies within the range while giving away no more information about
 any of the values. This is done by using a multi-party protocol where
@@ -1117,12 +1133,12 @@ implementation \cite{dalek}.
 Since we need our implementation to work the same way as the Dalek
 implementation, we need to use the same kind of elliptic curve and
 Fiat-Shamir protocol as theirs. To this end we also implemented
-Ristretto \cite{ristretto}, an elliptic curve specification based on Curve25519, and
-Merlin \cite{merlin}, a STROBE-based transcript construction for zero-knowledge
-proofs.  We have also created a minimal linear algebra
-library, in hacspec, as it was thought that it could help with the
-implementation while also creating a library to be used with other
-cryptographic algorithms.
+Ristretto \cite{ristretto}, an elliptic curve specification based
+on Curve25519, and Merlin \cite{merlin}, a STROBE-based transcript
+construction for zero-knowledge proofs.  We have also created a minimal
+linear algebra library, in hacspec, as it was thought that it could
+help with the implementation while also creating a library to be used
+with other cryptographic algorithms.
 
 \subsection{Linear Algebra Library:}
 It was decided that the specification should of course consist of what
@@ -1151,8 +1167,10 @@ pub type ScalRes = Result<Scalar, u8>;
 We model matrices as a \texttt{Seq<Scalar>} instead of a
 \texttt{Seq<Seq<Scalar>>} since we had problems with the hacspec type
 checker when double indexing (\texttt{list[i][j]}), and it is more
-efficient. Since this part was intended to be a library we wanted
-to generalize over the \texttt{Scalar} type. We wanted to at least have it be generalizable over any type that can be defined using hacspec macros, for example the following Scalar:
+efficient. Since this part was intended to be a library we wanted to
+generalize over the \texttt{Scalar} type. We wanted to at least have
+it be generalizable over any type that can be defined using hacspec
+macros, for example the following Scalar:
 
 \begin{lstlisting}
 public_nat_mod!(
@@ -1210,7 +1228,8 @@ operations on them and finally assert that the operations had the same
 effect. A simple example is the \texttt{zeros} function:
 
 \begin{lstlisting}
-#[test] fn test_nalg_zeros() {
+#[test]
+fn test_nalg_zeros() {
     fn helper(n: u8, m: u8) -> TestResult {
         let n = n as usize; let m = m as usize;
 
@@ -1228,19 +1247,23 @@ effect. A simple example is the \texttt{zeros} function:
 Here the only operation that is performed is the construction of the
 vectors. The \texttt{assert\_matrices} function is simply a function
 that checks each element in the two vectors and assert them all to
-be equal.
+be equal. We also have basic unit tests that checks the functions
+manually derived results.
 
 \subsection{Implementing Merlin:}
 
 \subsection{Implementing Ristretto:} \label{implementing-ristretto}
 
-For the Ristretto implementation on Curve25519
-we used an IETF-standard specification and the
-paper of exactly this, which was used as a guide for our
-implementation.\cite{ristretto-ietf}
-This specification was very helpful when implemting, as it clearly
-defined the types and functionalities needed to implement Ristretto
-securely. However there was one operation that needed to be implemented, which did \textit{not} have a standard forumla for its implementation. This method was scalar multiplication. For this we used the specification from (Insert Reference to literature here). This proved to work perfectly, with the given tests and the IETF-standard methods. 
+For the Ristretto implementation on Curve25519 we used an IETF-standard
+specification and the paper of exactly this, which was used as a guide
+for our implementation.\cite{ristretto-ietf} This specification was
+very helpful when implemting, as it clearly defined the types and
+functionalities needed to implement Ristretto securely. However there
+was one operation that needed to be implemented, which did \textit{not}
+have a standard forumla for its implementation. This method was scalar
+multiplication. For this we used the specification from (Insert
+Reference to literature here). This proved to work perfectly, with
+the given tests and the IETF-standard methods.
 
 Ristretto is, in essence, a prime-order subgroup of a non-prime-order
 Edwards curve which has a co-factor of 4 or 8. The subgroup formed
@@ -1260,15 +1283,17 @@ those points to the same point.
 For our implementation of bulletproofs, seeing as we needed to test it
 against an existing implementation, we made use of the same elliptic
 curve, as well as gained an understanding of the basics of elliptic
-curve cryptography. The elliptic curve in question is Curve25519, which
-is widely used in encryption as is the case here. Curve25519, is defined by the following formula:
+curve cryptography. The elliptic curve in question is Curve25519,
+which is widely used in encryption as is the case here. Curve25519,
+is defined by the following formula:
 
 $$y^2 = x^3 + 48662x^2 + x$$
 
 This curve is defined over the prime field $p = 2^{255} - 19$ and base
-point defined at $x = 9$ with the positive $y$ value. This results in a
-sub-group of order $2^{252} + 2774231777737235353585$, which has a
-co-factor of $8$, thus meeting the criteria for using Ristretto to eliminate this co-factor.
+point defined at $x = 9$ with the positive $y$ value. This results
+in a sub-group of order $2^{252} + 2774231777737235353585$, which has
+a co-factor of $8$, thus meeting the criteria for using Ristretto to
+eliminate this co-factor.
 
 Each internal point representation is composed of four field elements
 $(X : Y : Z : T)$. Field-elements, as defined by the standard are
@@ -1306,21 +1331,24 @@ decoding to be canonical and thus give a proper point as a result.
 
 The IETF-standard was used for the implementation of nearly every
 operation implemented, however, scalar multiplication was not specified,
-however we used the specification from \cite{elliptic-curves}. This proved to work perfectly, with the given tests and the
-IETF-standard methods.
+however we used the specification from \cite{elliptic-curves}. This
+proved to work perfectly, with the given tests and the IETF-standard
+methods.
 
 For our implementation of bulletproofs, seeing as we needed to test it
 against an existing implementation, we made use of the same elliptic
 curve, as well as gained an understanding of the basics of elliptic
-curve cryptography. The elliptic curve in question is Curve25519, which
-is widely used in encryption as is the case here. Curve25519, is defined by the following formula:
+curve cryptography. The elliptic curve in question is Curve25519,
+which is widely used in encryption as is the case here. Curve25519,
+is defined by the following formula:
 
 $$y^2 = x^3 + 48662x^2 + x$$
 
 This curve is defined over the prime field $K = 2^{255} - 19$ and base
-point defined at $x = 9$ with the positive $y$ value. This results in a
-sub-group of order $2^{252} + 2774231777737235353585$, which has a
-co-factor of $8$, thus meeting the criteria for using Ristretto to eliminate this co-factor.
+point defined at $x = 9$ with the positive $y$ value. This results
+in a sub-group of order $2^{252} + 2774231777737235353585$, which has
+a co-factor of $8$, thus meeting the criteria for using Ristretto to
+eliminate this co-factor.
 
 \subsection{Implementing Inner Product Proof:}
 
@@ -1367,15 +1395,59 @@ co-factor of $8$, thus meeting the criteria for using Ristretto to eliminate thi
 	\caption{Bulletproof algorithm}
 	\end{algorithm}
 
-The final part of the project was the implementation of the Bulletproofs protocol. The code was heavily based on the code we were testing against as well as the mathematical formulas explained in \ref*{Bulletproofs}. This implementation had X major roadblocks.
+The final part of the project was the implementation of the
+Bulletproofs protocol. The code was heavily based on the code we were
+testing against as well as the mathematical formulas explained in
+\ref*{Bulletproofs}. This implementation had X major roadblocks.
 
-The first big roadblock was the immense length it would have. This meant that writing any sort of test for the code would require it to be finished in nearly its entirety. This resulted in many tests being performed before the code was finished through the simple method of printing out every value on the screen and checking if they match what we are testing against, in order to ensure that our code was working correctly. But this in and of itself was an issue as the library we test against, naturally does not print all values on the screen. For this reason we forked their library and inserted the needed print statements. However yet another issue with this was the fact that their library has built-in randomness. This meant that our code had no way to utlize the exact same random values, something that is vital when testing to see if it works in the same way. Therefore we refactored all random values into inputs in their library. This in no way changes the functionality of their code, but instead it allows us to control the random values it uses, which we can then match to our own, and thus allowing us to test against it. 
+The first big roadblock was the immense length it would have. This
+meant that writing any sort of test for the code would require it to
+be finished in nearly its entirety. This resulted in many tests being
+performed before the code was finished through the simple method of
+printing out every value on the screen and checking if they match what
+we are testing against, in order to ensure that our code was working
+correctly. But this in and of itself was an issue as the library we
+test against, naturally does not print all values on the screen. For
+this reason we forked their library and inserted the needed print
+statements. However yet another issue with this was the fact that their
+library has built-in randomness. This meant that our code had no way
+to utlize the exact same random values, something that is vital when
+testing to see if it works in the same way. Therefore we refactored all
+random values into inputs in their library. This in no way changes the
+functionality of their code, but instead it allows us to control the
+random values it uses, which we can then match to our own, and thus
+allowing us to test against it.
 
-To keep our implementation as simple as possible we only implemented what would be equivalent to the \texttt{prove\_multiple\_with\_rng} method from the library we test against. We felt this was sufficient as the \texttt{prove\_multiple}, \texttt{prove\_single\_with\_rng} and \texttt{prove\_single} methods would all call \texttt{prove\_multiple\_with\_rng} in some way.
+To keep our implementation as simple as possible we only implemented
+what would be equivalent to the \texttt{prove\_multiple\_with\_rng}
+method from the library we test against. We felt this was sufficient
+as the \texttt{prove\_multiple}, \texttt{prove\_single\_with\_rng}
+and \texttt{prove\_single} methods would all call
+\texttt{prove\_multiple\_with\_rng} in some way.
 
-Outside of a few indexing errors and wrong calculation occationally, the implementation of the methods in a way that worked correctly was not much of an issue outside of how long it took to fully implement. The biggest issue with our implementation itself was making it hacspec compliant. Specifically there were many problems involving \texttt{Seq} objects. Most cumbersome of which were the fact that a \texttt{Seq} could not be a part of a tuple, if said tuple was going to be unwrapped. This resulted in \texttt{prove()} being somewhat bloated with sequences, whenever a \texttt{party} method was going to be performed for each party. Ordinarily we would simply make a single \texttt{Seq} and store the tuple in this sequence, however this was not viable as the tuple would need to be unwrapped later, something Hacspec did not allow. Additionally there are many places in which \texttt{Seqs} objects contain other \texttt{Seq} objects where, whenever the outer sequence was indexed into the index needed to be cloned, before it could be used. 
+Outside of a few indexing errors and wrong calculation occationally,
+the implementation of the methods in a way that worked correctly was not
+much of an issue outside of how long it took to fully implement. The
+biggest issue with our implementation itself was making it hacspec
+compliant. Specifically there were many problems involving \texttt{Seq}
+objects. Most cumbersome of which were the fact that a \texttt{Seq}
+could not be a part of a tuple, if said tuple was going to be
+unwrapped. This resulted in \texttt{prove()} being somewhat bloated with
+sequences, whenever a \texttt{party} method was going to be performed
+for each party. Ordinarily we would simply make a single \texttt{Seq}
+and store the tuple in this sequence, however this was not viable as
+the tuple would need to be unwrapped later, something Hacspec did not
+allow. Additionally there are many places in which \texttt{Seqs} objects
+contain other \texttt{Seq} objects where, whenever the outer sequence
+was indexed into the index needed to be cloned, before it could be used.
 
-Additionally, while it is not actually much of an issue, Hacspec did not allow us to use iterators, and so we instead have an abundance of for-loops in our code. This results in our code being much slower than the library which we test against, which \textit{did} turn out to be somewhat of a problem when it came to testing correctness. While the code we test against could run in mere seconds, ours took several minutes to finish which made the checks bothersome. 
+Additionally, while it is not actually much of an issue, Hacspec did
+not allow us to use iterators, and so we instead have an abundance
+of for-loops in our code. This results in our code being much slower
+than the library which we test against, which \textit{did} turn out
+to be somewhat of a problem when it came to testing correctness. While
+the code we test against could run in mere seconds, ours took several
+minutes to finish which made the checks bothersome.
 
 \subsection{Conclusions on our work:}
 
