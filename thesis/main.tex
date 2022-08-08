@@ -1227,23 +1227,41 @@ co-factor of $8$, thus meeting the criteria for using Ristretto to eliminate thi
 \begin{algorithm}[H]
 	\DontPrintSemicolon
 	\SetAlgoLined
-	\KwIn{stuff}
-	$\textbf{Initial checks}$\\
-	\SetKwFunction{createDealer}{create\_dealer()}
-	\SetKwFunction{createParty}{create\_Party()}
-	$dealer\_awaiting\_bit\_commitments := \createDealer$ \\
-	\For{$j \in [0: \vec{v}.len()]$}{
-		$party\_j\_awaiting\_bit\_challenge := \createParty$
+	\KwIn{$n \in \Z, \vec{v}\in \Z^n_p, \vec{\tv} \in \Z^n_p, B\in\G, \tB\in\G, \vec{G}\in\G, \vec{H} \in\G$}
+	\SetKwFunction{len}{.len()}
+	\SetKwFunction{performChecks}{perform\_checks()}
+	\SetKwFunction{createDealer}{create\_dealer($B,\tB,\vec{G},\vec{H},n,m$)}
+	\SetKwFunction{createParty}{create\_Party($B,\tB,\vec{G},\vec{H},v,\tv,n$)}
+	\SetKwFunction{computeAS}{compute\_AS($party\_step1, j$)}
+	\SetKwFunction{firstaggregate}{aggregate\_and\_get\_YZ($dealer\_step1, \vec{V}, \vec{A},\vec{S}$)}
+	\SetKwFunction{computeTs}{compute\_T1T2($party_j\_step1, \ran{y},\ran{z}$)}
+	\SetKwFunction{secondaggregate}{aggregate\_and\_get\_X($dealer\_step2, \vec{T_1}, \vec{T_2}$)}
+	\SetKwFunction{computetxB}{compute\_txB\_and\_txB\_tilde($party_j\_step2,\ran{x}$)}
+	\SetKwFunction{thirdaggregate}{create\_aggregated\_rangeproof($dealer\_step3,\vec{t(\ran{x})B}, \vec{\vec{\tt(\ran{x})\tB}}$)}
+	$\performChecks$\\
+	$m := \vec{v}\len$\\
+	$dealer\_step1 := \createDealer$ \\
+	\For{$j \in [0 : m]$}{
+		$party_j\_step1, V_j := \createParty$\\
+		$A_j, S_j := \computeAS$
 	}
-	$S$ := $\emptyset$, $T$ := $\emptyset$ \\
-	\For{$v \in V$}{
-		\eIf{$w(\{v\},S) > w(\{v\},T)$}{
-			$T := T \cup \{v\}$ \\
-		}{
-			$S := S \cup \{v\}$ \\
-		}
+
+	$(dealer\_step2, \ran{y},\ran{z}) := \firstaggregate$\\
+
+	\For{$j \in [0 : m]$}{
+		$(party_j\_step2, T_{1,j}, T_{2,j}) := \computeTs$
 	}
-	\Return{$(S,T)$}
+
+	$(dealer\_step3, \ran{x}) := \secondaggregate$\\
+
+	\For{$j\in [0 : m]$}{
+		$t(\ran{x})_jB, \tt (\ran{x})_j\tB := \computetxB$ 
+	}
+
+	$aggregated\_rangeproof := \thirdaggregate$
+
+	\Return{$(\vec{V}, aggregated\_rangeproof)$}
+
 	\caption{Bulletproof algorithm}
 	\end{algorithm}
 
