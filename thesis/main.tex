@@ -9,6 +9,11 @@
 \usepackage{listings,listings-rust}
 \usepackage{xcolor}
 \usepackage[ruled, lined, linesnumbered, commentsnumbered, longend]{algorithm2e}
+
+%\usepackage{algorithm}% http://ctan.org/pkg/algorithms
+%\usepackage{algpseudocode}% http://ctan.org/pkg/algorithmicx
+%\MakeRobust{\Call}
+
 \usepackage[backend=biber]{biblatex} % Imports biblatex package
 \usepackage{graphicx}
 \usepackage{hyperref}
@@ -66,6 +71,8 @@
 \newcommand{\vechih}[2]{\vec{#1^{\textit{#2}}_{\opn{hi}}}}
 \newcommand{\vecl}[1]{\vec{#1_{\opn{L}}}}
 \newcommand{\vecr}[1]{\vec{#1_{\opn{R}}}}
+
+\newcommand{\len}[1]{\Call{len}{#1}}
 
 % Code style
 
@@ -411,13 +418,13 @@ The following section will describe each of these terms in greater detail
 on a theoretic level.
 
 \subsection{Inner Product Proof:}
-A prover, $\P$, wants to prove to a verifier, $\V$, that he has knowledge
-of two vectors $\vec{a}$, $\vec{b}$ and know their inner product
-$\dotp{\vec{a}}{\vec{b}} = c$. The prover could simply send the verifier
-$\vec{a}, \vec{b}, c$ but this would take up $O(n)$ bandwidth and
-time to verify. Instead we will use a compression technique included
-in the bulletproofs paper which allows for just $O(log_2(n))$ bandwidth
-and time to verify.
+A prover, $\P$, wants to prove to a verifier, $\V$, that he has
+knowledge of two vectors $\vec{a}$, $\vec{b}$ and know their inner
+product $\dotp{\vec{a}}{\vec{b}} = c$. The prover could simply send
+the verifier $\vec{a}, \vec{b}, c$ but this would take up $O(n)$
+bandwidth and time to verify. Instead we will use a compression
+technique included in the bulletproofs paper which allows for just
+$O(\log_2(n))$ bandwidth and time to verify.
 
 \subsubsection{Provers Algorithm:}
 $\P$ is given values with the following definitions:
@@ -524,7 +531,7 @@ simplify further by defining variables $L_k$ and $R_k$:
 }
 
 So, $\P$ calculates $L_k, R_k$ and sends it to $\V$. Afterwards,
-$\V$ responds with $u_k$. This is repeated $k = log_2(n)$ times,
+$\V$ responds with $u_k$. This is repeated $k = \log_2(n)$ times,
 until we get the final $P$, $P^{(0)}$:
 
 \eq{
@@ -1093,12 +1100,12 @@ public_nat_mod!(
 );
 \end{lstlisting}
 
-This turned out to
-be a problem though, as Hacspec does not support generics. Luckily,
-generics is on the roadmap and after discussion with the Hacspec Team,
-it was decided that we would generalize our library with generics such
-that the Hacspec developers can use it as an example of how generics
-might be needed. Take following matrix initialization function:
+This turned out to be a problem though, as Hacspec does not support
+generics. Luckily, generics is on the roadmap and after discussion
+with the Hacspec Team, it was decided that we would generalize our
+library with generics such that the Hacspec developers can use it
+as an example of how generics might be needed. Take following matrix
+initialization function:
 
 \begin{lstlisting}
 pub fn new(rows: DimType, cols: DimType, seq: Seq<Scalar>) -> MatRes {
@@ -1249,6 +1256,70 @@ sub-group of order $2^{252} + 2774231777737235353585$, which has a
 co-factor of $8$, thus meeting the criteria for using Ristretto to eliminate this co-factor.
 
 \subsection{Implementing Inner Product Proof:}
+\begin{algorithm}[H]
+	\caption{IPP: The Prover's Algorithm}
+
+	\SetKwFunction{len}{.len()}
+	\SetKwFunction{assertIsPowerOfTwo}{assert($n$.is\_power\_of\_two())}
+	\SetKwFunction{assertLengths}{assert($n = \vec{a}\len = \vec{b}\len = \vec{G}\len = \vec{H}\len$)}
+	\SetKwFunction{appendN}{transcript.append($n$)}
+	\SetKwFunction{appendL}{transcript.append($L$)}
+	\SetKwFunction{appendR}{transcript.append($R$)}
+	\SetKwFunction{challenge}{transcript.challenge\_scalar()}
+
+	\KwIn{$\vec{a}\in \Z^n_p, \vec{b} \in \Z^n_p, Q \in \G, \vec{G} \in \G^n, \vec{H} \in\G^n$}
+
+	$n := \vec{a}\len$ \\
+	$\assertIsPowerOfTwo$ \\
+	$\assertLengths$ \\
+	$\appendN$ \\
+	\For{$i_ \in [0 : \log_2(n)]$}{
+		$L = \dotp{\veclo{a}}{\vechi{G}} + \dotp{\vechi{b}}{\veclo{H}} + \dotp{\veclo{a}}{\vechi{b}}$ \\
+		$R = \dotp{\vechi{a}}{\veclo{G}} + \dotp{\veclo{b}}{\vechi{H}} + \dotp{\vechi{a}}{\veclo{b}}$ \\
+		\ \\
+		$\appendL$ \\
+		$\appendR$ \\
+		$u := \challenge$ \\
+		\ \\
+		$a := \veclo{a} \cdot u      + u^{-1} \cdot \vechi{a}$ \\
+		$b := \veclo{b} \cdot u^{-1} + u      \cdot \vechi{b}$ \\
+		$G := \veclo{G} \cdot u      + u^{-1} \cdot \vechi{G}$ \\
+		$H := \veclo{H} \cdot u^{-1} + u      \cdot \vechi{H}$ \\
+	}
+
+	\Return{$(a_1, b_1, \vec{L}, \vec{R})$}
+
+\end{algorithm}
+
+\begin{algorithm}[H]
+	\caption{IPP: The Verifiers's Algorithm}
+
+	\SetKwFunction{len}{.len()}
+	\SetKwFunction{assertIsPowerOfTwo}{assert($n$.is\_power\_of\_two())}
+	\SetKwFunction{assertLengths}{assert($n = \vec{a}\len = \vec{b}\len = \vec{G}\len = \vec{H}\len$)}
+	\SetKwFunction{appendN}{transcript.append($n$)}
+	\SetKwFunction{appendL}{transcript.append($L_i$)}
+	\SetKwFunction{appendR}{transcript.append($R_i$)}
+	\SetKwFunction{challenge}{transcript.challenge\_scalar()}
+
+	\KwIn{$a \in \Z_p, b \in \Z_p, n \in \Z, P' \in \G, Q \in \G, \vec{G} \in \G^n, \vec{H} \in\G^n$}
+
+	$k := \log_2(n)$ \\
+	\For{$i_ \in [0 : k]$}{
+		$\appendL$ \\
+		$\appendR$ \\
+		$u_i := \challenge$ \\
+	}
+	\For{$i_ \in [0 : n]$}{
+		$s_i  := u^{b(i,k)}_k \cdots u^{b(i,1)}_1$ \\
+		$s_i' := s_i^{-1}$
+	}
+
+	$\opn{Result} := P' \stackrel{?}{=} \dotp{a\vec{s}}{\vec{G}} + \dotp{b\vec{s'}}{\vec{H}} + abQ - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i)$
+
+	\Return{$\opn{Result}$}
+
+\end{algorithm}
 
 \subsection{Implementing Bulletproofs:}
 
@@ -1292,7 +1363,7 @@ co-factor of $8$, thus meeting the criteria for using Ristretto to eliminate thi
 	\Return{$(\vec{V}, aggregated\_rangeproof)$}
 
 	\caption{Bulletproof algorithm}
-	\end{algorithm}
+\end{algorithm}
 
 The final part of the project was the implementation of the Bulletproofs protocol. The code was heavily based on the code we were testing against as well as the mathematical formulas explained in \ref*{Bulletproofs}. This implementation had X major roadblocks.
 
