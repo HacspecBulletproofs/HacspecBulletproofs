@@ -929,9 +929,9 @@ To start with we refer to the number of parties as m. Each party is also assigne
 
 the evaluation point $\ran{x}$ is the same for all parties. The choice of $\ran{y}, \ran{z}$ and $\ran{x}$ is done where it would ordinarily be done, but only once the dealer has received the needed values from ALL parties. Once again, this can also be done using the Fiat-Shamir Heuristic. (\ref{fiat-shamir-heuristic}) 
 
-After each party has created $t_{(j)}(x) = \dotp{\vec{l_{(j)}(x)}}{\vec{r_{(j)}(x)}}$ it would be sufficient to perform the proving steps from \ref{range-proofs} for each party. However this will require the dealer to make $m$ checks to see if each $v_j$ lies within the range. However the dealer can do a few more computations to create a singular proof which requires a single check to see that ALL $v$ lie within the range.
+After each party has created $t_{(j)}(x) = \dotp{\vec{l}_{(j)}(x)}{\vec{r}_{(j)}(x)}$ it would be sufficient to perform the proving steps from \ref{range-proofs} for each party. However this will require the dealer to make $m$ checks to see if each $v_j$ lies within the range. However the dealer can do a few more computations to create a singular proof which requires a single check to see that ALL $v$ lie within the range.
 
-For the jth party to prove that its polynomial $t_{(j)}(x)$ is correct means proving that $\vec{l_{(j)}(x)}$ and $\vec{r_{(j)}(x)}$ are created correctly and that $t_{(j), 0} = \dotp{\vec{l}_{(j)}(x)}{\vec{r}_{(j)}(x)}$. 
+For the jth party to prove that its polynomial $t_{(j)}(x)$ is correct means proving that $\vec{l}_{(j)}(x)$ and $\vec{r}_{(j)}(x)$ are created correctly and that $t_{(j), 0} = \dotp{\vec{l}_{(j)}(x)}{\vec{r}_{(j)}(x)}$. 
 
 Each party sends their $T_{1,(j)}$ and $T_{2,(j)}$, to the dealer, which can then compute:
 \eq{
@@ -1228,7 +1228,7 @@ co-factor of $8$, thus meeting the criteria for using Ristretto to eliminate thi
 \begin{algorithm}[H]
 	\DontPrintSemicolon
 	\SetAlgoLined
-	\KwIn{$n \in \Z, \vec{v}\in \Z^n_p, \vec{\tv} \in \Z^n_p, B\in\G, \tB\in\G, \vec{G}\in\G, \vec{H} \in\G$}
+	\KwIn{$n \in \Z, \vec{v}\in \Z^n_p, \vec{\tv} \in \Z^n_p, B\in\G, \tB\in\G, \vec{G}\in\G^n, \vec{H} \in\G^n$}
 	\SetKwFunction{len}{.len()}
 	\SetKwFunction{performChecks}{perform\_checks()}
 	\SetKwFunction{createDealer}{create\_dealer($B,\tB,\vec{G},\vec{H},n,m$)}
