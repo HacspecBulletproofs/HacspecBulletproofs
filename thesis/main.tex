@@ -137,10 +137,9 @@ to understand the results of the work in this project.
 
 \subsection{Finite Field Arithmetic:} \label{Finite Field Arithmetic}
 
-We start with \textit{fields} and the operations defined within them,
-as the operations we will later define that work on elliptic curves
-are built on fields. The definitions of this section is based on
-\cite{elliptic-curves}.
+We start with \textit{fields} and the operations defined within
+them, as the operations we will later define that work on elliptic
+curves are built on fields.
 
 \begin{definition}[Field]
 	A field is a set $\F$, along with the \textit{addition} and
@@ -192,10 +191,7 @@ again in section \ref{implementing-ristretto} with regards to the code.
 
 \subsection{Elliptic Curve:}\label{elliptic-curves}
 
-\textbf{What is an elliptic curve?}
-
-The definitions of this section is based on \cite{elliptic-curves}. We
-start with a few definitions:
+To start our explanation of elliptic curves we add a few definitions:
 
 \begin{definition}[Elliptic Curves]
 	An elliptic curve, $E$, is an algebraic curve defined over a prime field, $\F_p$, defined by the formula:
@@ -271,9 +267,8 @@ curve.
 For our implementation of bulletproofs, seeing as we needed to test it
 against an existing implementation we made use of the same elliptic
 curve, as well as gained an understanding of the basics of elliptic
-curve cryptography. The elliptic curve in question is Curve25519,
-which is widely used in encryption as is the case here. Curve25519,
-is defined by the following formula:
+curve cryptography. The elliptic curve in question is Curve25519, which
+is widely used in encryption as is the case here. Curve25519, is defined by the following formula:
 
 $$y^2 = x^3 + 48662x^2 + x$$
 
@@ -287,11 +282,12 @@ this by eliminating the co-factor. For more detail see \ref{ristretto}
 
 \subsection{Pedersen Commitment:}
 
-A Pedersen commitment is a commitment scheme defined by additive
-homomorpism (\ref{pedersen-additive-homomorphism}) which was originally
-pioneered by Torben Pryds Pedersen \cite{pedersen-commits}. For our
-purposes we redefine the scheme to work with commitments to elliptic
-curve points rather than a value.
+A Pedersen commitment is a commitment scheme defined by a certain
+property we will go into a little later. For our purposes we redefine
+the scheme to work with commitments to elliptic curve points rather than
+a value. First a single point $B$ on an elliptic curve, is chosen. This point will be the so-called generator. For
+Curve25519 we use the point we previously defined as the base point with x =
+9 and positive $y$.
 
 \begin{definition}[Pedersen Commitment]
 	A Pedersen commitment, to some message, $a$, with a randomly chosen
@@ -303,20 +299,17 @@ curve points rather than a value.
 	is a curve point where no one knows $q$ such that $\tB = qB$.
 \end{definition}
 
-Here $\widetilde{a}$ serves as our perfect hiding. $B$ is a single point
-on an elliptic curve, which serves as the so-called generator. The
-construction of $\tB$ ensures perfect hiding as there is a nearly
-infinite amount of possible combinations of two points that can add
-to any given point. However while that is true, it does not provide
-perfect binding by definition of binding and hiding. From here on
-we will refer to a commitment to a message, $a$, with random value,
-$\widetilde{a}$, as $C(a,\widetilde{a})$.
+Here $\widetilde{a}$ serves as our perfect hiding. The construction of $\tB$ ensures perfect hiding as there is a nearly infinite
+amount of possible combinations of two points that can add to any given
+point. However while that is true, it does not provide perfect binding by
+definition of binding and hiding. From here on we will refer to a
+commitment to a message, $a$, with random value, $\widetilde{a}$, as $C(a,\widetilde{a})$.
 
 The most important property of Pedersen commitments however is
 that pedersen commitments have the property of \textit{Additive
 Homomorphism}:
 
-\begin{definition}[Additive Homomorphism] \label{pedersen-additive-homomorphism}
+\begin{definition}[Additive Homomorphism]
 	For any two Pedersen commitments $C(a_1,\widetilde{a}_1), C(a_2,\widetilde{a}_2)$ we have:
 	$$ C(a_1,\widetilde{a}_1) + C(a_2,\widetilde{a}_2) = C(a_1 + a_2, \widetilde{a}_1 + \widetilde{a}_2)$$
 \end{definition}
@@ -406,32 +399,25 @@ but this is miniscule.
 
 \textbf{Zero-knowledge:}
 
-For a proof to be zero-knowledge it must hold that $\V$ did not gain
-any additional information. To see this we look at the transcript
-and see that $K$ does not include $x$ in its calculations, but $s$
-does. However $s$ is blinded by $k$ meaning that $\V$ cannot infer $x$
-without knowing $k$. And $\V$ cannot infer $k$ from $K$ any easier
-than it can infer $x$ from $X$, thus this proof is also zero-knowledge.
+For a proof to be zero-knowledge it must hold that $\V$ did not gain any additional information. To see this we look at the transcript and see that $K$ does not include $x$ in its calculations, but $s$ does. However $s$ is blinded by $k$ meaning that $\V$ cannot infer $x$ without knowing $k$. And $\V$ cannot infer $k$ from $K$ any easier than it can infer $x$ from $X$, thus this proof is also zero-knowledge. 
 
 \section{The Bulletproofs protocol} \label{Bulletproofs}
 
-The ultimate goal of this project has been to implement bulletproofs
-in Hacspec, using property-based testing to ensure it is equivalent to
-the implementation done in Rust, using Curve25519. A bulletproof is a
+The ultimate goal of this project has been to implement bulletproofs in
+Hacspec, using property-based testing to ensure it is equivalent to the
+implementation done in Rust, using Curve25519. A bulletproof is a
 non-interactive aggregation of rangeproofs using Pedersen commitments.
-The following section will describe each of these terms in greater
-detail on a theoretic level. The mathematics of this section is
-based on the original bulletproofs paper \cite{bulletproofs} and the
-implementation notes of the Dalek-Cryptography team \cite{dalek-notes}.
+The following section will describe each of these terms in greater detail
+on a theoretic level.
 
 \subsection{Inner Product Proof:}
-A prover, $\P$, wants to prove to a verifier, $\V$, that he has
-knowledge of two vectors $\vec{a}$, $\vec{b}$ and know their inner
-product $\dotp{\vec{a}}{\vec{b}} = c$. The prover could simply send
-the verifier $\vec{a}, \vec{b}, c$ but this would take up $O(n)$
-bandwidth and time to verify. Instead we will use a compression
-technique included in the bulletproofs paper which allows for just
-$O(log_2(n))$ bandwidth and time to verify.
+A prover, $\P$, wants to prove to a verifier, $\V$, that he has knowledge
+of two vectors $\vec{a}$, $\vec{b}$ and know their inner product
+$\dotp{\vec{a}}{\vec{b}} = c$. The prover could simply send the verifier
+$\vec{a}, \vec{b}, c$ but this would take up $O(n)$ bandwidth and
+time to verify. Instead we will use a compression technique included
+in the bulletproofs paper which allows for just $O(log_2(n))$ bandwidth
+and time to verify.
 
 \subsubsection{Provers Algorithm:}
 $\P$ is given values with the following definitions:
@@ -649,14 +635,11 @@ $\dotp{\vec{a}}{\vec{b}} = c$:
 	        &\stackrel{?}{=} \dotp{a\vec{s}}{\vec{G}} + \dotp{b\vec{s'}}{\vec{H}} + abQ - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i)
 }
 
+\subsubsection{The Algorithm}
 
 \subsection{Range Proofs:}\label{range-proofs}
 
-A range-proof is a zero-knowledge proof which seeks to prove that for
-some value $v$, $v$ lies within the range of $[0,2^n)$ without revealing
-$v$ or any additional information about $v$, thus zero-knowledge. We
-wish to express this property of $v$ in a single inner product to be
-able to use an inner product proof as described above.
+A range-proof is a zero-knowledge proof which seeks to prove that for some value $v$, $v$ lies within the range of $[0,2^n)$ without revealing $v$ or any additional information about $v$, thus zero-knowledge. We wish to express this property of $v$ in a single inner product to be able to use an inner product proof as described above. 
 
 \subsubsection{Prover's Algorithm}\label{prover-range-proofs}
 
@@ -859,11 +842,7 @@ $\V$ to relate $\vec{l}(x)$ and $\vec{r}(x)$ to $\vecl{a}, \vecl{s},
 	\vec{r}(x) = \ran{z^2}\vec{2^n} + ((\vecr{a} + \vecr{s}x) + \ran{z}\vec{1})\circ\vecran{y^n}
 }
 
-This means we want $\P$ to make commitments to $\vec{y^n}\circ
-\vecr{a}$ and $\vec{y^n}\circ\vecr{s}$. This is a problem as these
-commitments need to be made and sent to $\V$ BEFORE $\P$ gets the
-challenge $\ran{y}$ from $\V$. To fix this issue $\P$ will make a
-special commitment to $\vecl{a}$ and $\vecr{a}$ as follows:
+This means we want $\P$ to make commitments to $\vec{y^n}\circ \vecr{a}$ and $\vec{y^n}\circ\vecr{s}$. This is a problem as these commitments need to be made and sent to $\V$ BEFORE $\P$ gets the challenge $\ran{y}$ from $\V$. To fix this issue $\P$ will make a special commitment to $\vecl{a}$ and $\vecr{a}$ as follows:
 
 \eq{
 	C(\vecl{a}, \vecr{a}, \widetilde{a}) = \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecr{a}}{\vec{H}} + \widetilde{a}\tB
@@ -877,10 +856,7 @@ This same construction is used for the commitment to $C(\vecl{s},
 	&= \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecran{y^n}\circ \vecr{a}}{\vecran{y^{-n}}\circ \vec{H}} + \widetilde{a}\tB
 }
 
-We define $\vec{H'} = \vecran{y^{-n}}\circ\vec{H}$, $A =
-C(\vecl{a},\vecr{a}, \widetilde{a})$ and $S = C(\vecl{s}, \vecr{s},
-\widetilde{s})$ and can now construct our argument similarly to what
-was done in the previous segment:
+We define $\vec{H'} = \vecran{y^{-n}}\circ\vec{H}$, $A = C(\vecl{a},\vecr{a}, \widetilde{a})$ and $S = C(\vecl{s}, \vecr{s}, \widetilde{s})$ and can now construct our argument similarly to what was done in the previous segment:
 
 \eq{
 	\dotp{\vec{l}(\ran{x})}{\vec{G}} &= \dotp{\vecl{a}}{\vec{G}} &&+ \ran{x}\dotp{\vecl{s}}{\vec{G}} &&+ \dotp{-\ran{z}\vec{1}}{\vec{G}} \\
@@ -889,15 +865,9 @@ was done in the previous segment:
 	\dotp{\vec{l}(\ran{x})}{\vec{G}} + \dotp{\vec{r}(\ran{x})}{\vec{H'}} + \widetilde{e}\tB &= A &&+ \ran{x}S &&+ (\dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}}{\vec{H'}} - \ran{z}\dotp{\vec{1}}{\vec{G}})
 }
 
-From here, using the same argument as above $\P$ sends $\widetilde{e}$
-to $\V$. This will be enough to convince $\V$ that $\vec{l}(x)$
-and $\vec{r}(x)$ are correctly constructed and that $t(x) =
-\dotp{\vec{l}(x)}{\vec{r}(x)}$ and together with the previous
-commitments to $\V$, $\P$ will be able to successfully convince $\V$
-that $v$ lies in the range $[0, 2^n)$.
+From here, using the same argument as above $\P$ sends $\widetilde{e}$ to $\V$. This will be enough to convince $\V$ that $\vec{l}(x)$ and $\vec{r}(x)$ are correctly constructed and that $t(x) = \dotp{\vec{l}(x)}{\vec{r}(x)}$ and together with the previous commitments to $\V$, $\P$ will be able to successfully convince $\V$ that $v$ lies in the range $[0, 2^n)$.
 
-In summary the transcript between $\V$ and $\P$, will end up being
-the following:
+In summary the transcript between $\V$ and $\P$, will end up being the following:
 
 \eq{
 	\P \rightarrow \V &: V, n, A, S \\
@@ -907,9 +877,7 @@ the following:
 	\P \rightarrow \V &: t(\ran{x})B, \tt(\ran{x})\tB, \widetilde{e} \hspace*{1cm}\text{($t(x)$ evaluated with challenge $\ran{x}$)}\\
 }
 
-Just as with the inner product the Fiat-Shamir Heuristic
-(\ref{fiat-shamir-heuristic}) can be used to make this process
-non-interactive.
+Just as with the inner product the Fiat-Shamir Heuristic (\ref{fiat-shamir-heuristic}) can be used to make this process non-interactive.
 
 \subsubsection{Verifier's Algorithm:} \label{verifier-range-proof}
 
@@ -923,128 +891,63 @@ $\V$ has access to the following values:
 	t(\ran{x})B, \tt(\ran{x})\tB &\in \G \hspace*{1cm} \text{(evaluated at x)}
 }
 
-$\V$ needs to make a check for the two properties that $\P$ want to
-prove to it.
+$\V$ needs to make a check for the two properties that $\P$ want to prove to it.
 
-To check the first property $\V$ simply checks if the following
-equation holds:
+To check the first property $\V$ simply checks if the following equation holds:
 
 \eq{
 	t(\ran{x})B + \tt(\ran{x})\tB \stackrel{?}{=} \ran{z^2} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
 }
 
-And if it does then that will convince $\V$ that $t(x) = \ran{z^2}v +
-\delta(\ran{y},\ran{z}) + t_1x + t_2\ran{x^2}$ due to the column-sum
-argument made in the Prover's Algorithm. (\ref{prover-range-proofs})
+And if it does then that will convince $\V$ that $t(x) = \ran{z^2}v + \delta(\ran{y},\ran{z}) + t_1x + t_2\ran{x^2}$ due to the column-sum argument made in the Prover's Algorithm. (\ref{prover-range-proofs})
 
-Similarly to become convinced of the second property $\V$ checks if
-this equation holds:
+Similarly to become convinced of the second property $\V$ checks if this equation holds:
 
 \eq{
 	P &= -\widetilde{e}\tB &&+ A &&+ \ran{x}S &&+ \dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}}{\vec{H'}} &&- \ran{z}\dotp{\vec{1}}{\vec{\vec{G}}} \\
 	&= -\widetilde{e}\tB &&+ A &&+ \ran{x}S &&+ \dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}\circ\vecran{y^{-n}}}{\vec{H}} &&- \ran{z}\dotp{\vec{1}}{\vec{G}}
 }
 
-From the column-sum argument we can deduce that $P =
-\dotp{\vec{l}(x)}{\vec{G}} + \dotp{\vec{r}(x)}{\vec{H'}}$
-assuming an honest $\P$. Thus $\V$ can use $t(x)$ and $P$ as
-inputs into the inner product protocol to prove that $ t(x) =
-\dotp{\vec{l}(x)}{\vec{r}(x)}$. And if this proof is verified then
-$\V$ is now convinced that $v\in [0,2^n)$ without knowing any other
-properties of $v$, thus the range-proof is complete.
+From the column-sum argument we can deduce that $P = \dotp{\vec{l}(x)}{\vec{G}} + \dotp{\vec{r}(x)}{\vec{H'}}$ assuming an honest $\P$. Thus $\V$ can use $t(x)$ and $P$ as inputs into the inner product protocol to prove that $ t(x) = \dotp{\vec{l}(x)}{\vec{r}(x)}$. And if this proof is verified then $\V$ is now convinced that $v\in [0,2^n)$ without knowing any other properties of $v$, thus the range-proof is complete.
 
-Additionally by looking at the trancript one can deduce that that the
-only way for $\P$ to construct $A$ and $V$ such that they can convince
-$\V$ that v lies in the range, would be if they can correctly guess
-\textit{all} three challenge scalars, $\ran{y}, \ran{z}$ and $\ran{x}$
-in order to 'cheat'. This happens with a probability so small it is
-entirely neglegable and thus the proof is also sound.
+Additionally by looking at the trancript one can deduce that that the only way for $\P$ to construct $A$ and $V$ such that they can convince $\V$ that v lies in the range, would be if they can correctly guess \textit{all} three challenge scalars, $\ran{y}, \ran{z}$ and $\ran{x}$ in order to 'cheat'. This happens with a probability so small it is entirely neglegable and thus the proof is also sound.
 
-But the proof being sound does not necessarily mean it is
-zero-knowledge. The proof also needs to be Zero-knowledge. If we look
-at all the values availible to $\V$ we can see that it has only two
-of these values have any direct relation to $v$, these being $V$ and
-$t(\ran{x})B$. It is trivial to see that $\V$ cannot learn anything
-about $v$ from $V$ without knowledge of $\tv$ which $\V$ does not
-know. If we look at the definition of $t(\ran{x})B$ we can see that it
-DOES use v in the calculation directly. However the definition of $t(x)$
-uses $t_2$, which is blinded using $\vecran{s_L}$ and $\vecran{s_R}$
-neither of which $\V$ has any way to access. Additionally $t_1$ also
-uses the definition of $t_2$ and thus is ALSO cannot be infered. Thus
-there is no amount of calculations that $\V$ can do to figure out
-anything about $v$ and thus the proof is also zero-knowledge.
+But the proof being sound does not necessarily mean it is zero-knowledge. The proof also needs to be Zero-knowledge. If we look at all the values availible to $\V$ we can see that it has only two of these values have any direct relation to $v$, these being $V$ and $t(\ran{x})B$. It is trivial to see that $\V$ cannot learn anything about $v$ from $V$ without knowledge of $\tv$ which $\V$ does not know. If we look at the definition of $t(\ran{x})B$ we can see that it DOES use v in the calculation directly. However the definition of $t(x)$ uses $t_2$, which is blinded using $\vecran{s_L}$ and $\vecran{s_R}$ neither of which $\V$ has any way to access. Additionally $t_1$ also uses the definition of $t_2$ and thus is ALSO cannot be infered. Thus there is no amount of calculations that $\V$ can do to figure out anything about $v$ and thus the proof is also zero-knowledge.
 
 \subsection{Aggregation of rangeproofs:}
 
-An aggregated range-proof is a rangeproof which proves that one or
-more values $\vec{v}$ lie within a certain range: $[0,2^n)$ for some
-integer $n$. This is done by aggregating range-proofs for each individual
-value into a single proof which, if verified, proves that each value
-given lies within the range while giving away no more information about
-any of the values. This is done by using a multi-party protocol where
-a 'party' is created for each value that needs to be proven and each
-party will converse with the so-called 'dealer' who is responsible for
-collecting the various commitments from the parties and generating
-challenges which is used by all parties. At the very end the dealer
-will then collect all the individual rangeproofs for each value and
-aggregate them.
+An aggregated range-proof is a rangeproof which proves that one or most likely more values lie within a certain range: $[0,2^n)$ for some integer n. This is done by aggregating range-proofs for each individual value into a single proof which, if verified, proves that each value given lies within the range while giving away no more information about any of the values. This is done by using a multi-party protocol where each party, takes on the role of an independant $\P$, meaning it has a value it needs to prove and each party will converse with the so-called dealer, who takes on the role of $\V$, thus being responsible for collecting the various commitments from the parties and generating challenges which will be used by all parties. At the very end the dealer will then collect all the individual rangeproofs for each value and aggregate them. It is important to note here that all parties are in agreement over a specific $n$.
 
-The steps used to do this are the same steps used in the construction
-of a rangeproof with a few additional steps which aggregate the proofs
-into a single rangeproof.
+The steps used to do this are the same steps used in the construction of a rangeproof with a few additional steps which aggregate the proofs into a single rangeproof. 
 
-To start with a number of parties are created, one for each value
-that $\P$ wishes to prove. We call this number m. These parties each
-create the needed values that $\P$ needs to send to $\V$ in order to
-convince them that each of these values lie within the range, with
-one key difference. Namely that the so-called dealer is in charge
-of generating the needed challenges $\ran{y}, \ran{z}$ and $\ran{x}$
-and uses an offset for each party to ensure the order matters. This
-offset is defined as such for the jth party:
+To start with we refer to the number of parties as m. Each party is also assigned a 'position' $j$. Each party will individually commit the needed values to the dealer in order to convince them that their value lie within the range, with one key difference. Each party uses an offset to ensure the order matters to the dealer, preventing the parties from working together to 'cheat'. This offset is defined as such for the jth party:
 
 \eq{
 	z_{(j)} &= z^j * \vec{y^n_{(j)}}\\
 	y^n_{(j)} &= y^{n*m}[j*n:(j+1)*n]
 }
 
-the evaluation point $\ran{x}$ is the same for all parties. The choice
-of $\ran{y}, \ran{z}$ and $\ran{x}$ is done where it would ordinarily
-be done, but only once $\V$ has received the needed values from ALL
-parties. Once again, this can also be done using the Fiat-Shamir
-Heuristic. (\ref{fiat-shamir-heuristic})
+the evaluation point $\ran{x}$ is the same for all parties. The choice of $\ran{y}, \ran{z}$ and $\ran{x}$ is done where it would ordinarily be done, but only once the dealer has received the needed values from ALL parties. Once again, this can also be done using the Fiat-Shamir Heuristic. (\ref{fiat-shamir-heuristic}) 
 
-After each party has created $t_{(j)}(x) =
-\dotp{\vec{l_{(j)}(x)}}{\vec{r_{(j)}(x)}}$ it would be sufficient
-to perform the proving steps from \ref{range-proofs} for each
-party. However sending all of the created values to $\V$ will require
-$\V$ to make $m$ checks to see if all of these values prove that each
-$v_j$ lies within the range. However $\P$ can do a few more computations
-to create a singular proof which requires a single check from $\V$
-to see that ALL $v$ lie within the range.
+After each party has created $t_{(j)}(x) = \dotp{\vec{l_{(j)}(x)}}{\vec{r_{(j)}(x)}}$ it would be sufficient to perform the proving steps from \ref{range-proofs} for each party. However this will require the dealer to make $m$ checks to see if each $v_j$ lies within the range. However the dealer can do a few more computations to create a singular proof which requires a single check to see that ALL $v$ lie within the range.
 
-To prove that a single $t_{(j)}(x)$ is correct means proving that
-$\vec{l_{(j)}(x)}$ and $\vec{r_{(j)}(x)}$ are created correctly and
-that $t_{(j), 0} = \dotp{\vec{l_{(j)}(x)}}{r_{(j)}(x)}$. But $\P$ can
-combine some of these statements into one single statement as follows:
+For the jth party to prove that its polynomial $t_{(j)}(x)$ is correct means proving that $\vec{l_{(j)}(x)}$ and $\vec{r_{(j)}(x)}$ are created correctly and that $t_{(j), 0} = \dotp{\vec{l}_{(j)}(x)}{\vec{r}_{(j)}(x)}$. 
 
-\eq{
-	t(x) &= \sum^{m-1}_{j = 0} t_{j}(x)\\
-	\widetilde{t}(x) &= \sum^{m-1}_{j = 0} \widetilde{t}_{j}(x)
-}
-
-Each party sends their $T_{1,(j)}$ and $T_{2,(j)}$, to $\V$ and $\V$
-can then compute:
-
+Each party sends their $T_{1,(j)}$ and $T_{2,(j)}$, to the dealer, which can then compute:
 \eq{
 	T_1 &= \sum^{m-1}_{j = 0} T_{1,(j)}\\
 	T_2 &= \sum^{m-1}_{j = 0} T_{2,(j)}\\
 	\delta(y,z) &= \sum^{m-1}_{j = 0} \delta_{(j)}(y,z)
 }
 
-and from here $\V$ can will send back the challenge $\ran{x}$ and
-$\P$ will return $t(\ran{x})B$ and $\tt(\ran{x})\tB$. From here $\V$
-can then convince themselves that for ALL $t_{0,(j)}$ are correct by
-performing the following check:
+and from here the dealer can will send back the challenge $\ran{x}$ and each party will return $t_{(j)}(\ran{x})B$ and $\tt_{(j)}(\ran{x})\tB$. From here the dealer can then sum these together as well:
+
+\eq{
+t(x)B &= \sum^{m-1}_{j = 0} t_{j}(x)B\\
+\tt(x)\tB &= \sum^{m-1}_{j = 0} \tt_{j}(x)\tB
+}
+
+And finally convince themselves that for ALL $t_{0,(j)}$ are correct by performing the following check: 
 
 \eq{
 	t(\ran{x})B + \widetilde{t}(\ran{x})\widetilde{B} \stackrel{?}{=} \ran{z^2}\sum^{m-1}_{j = 0} \ran{z_{(j)}}*V_{(j)} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
@@ -1056,31 +959,24 @@ we know that $z_{(j)} = z^j$ we can make a small rewrite:
 	t(\ran{x})B + \widetilde{t}(\ran{x})\widetilde{B} \stackrel{?}{=} \sum^{m-1}_{j = 0} \ran{z^{j+2}}*V_{(j)} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
 }
 
-And this check will then convince the verifier that all $t_{0,(j)}$
-are correct.
+And this check will then convince the dealer that all $t_{0,(j)}$ are correct.
 
-Just as with a singular rangeproof $\P$ also wishes to prove that each
-$\vec{l_{(j)}(x)}$ and $\vec{r_{(j)}(x)}$ are constructed correctly for
-all parties. This is done in a similar manner as proving $t_{0,(j)}$
-are all correct. Proving this property the jth party would be proving
-the following:
+Just as with a singular rangeproof each party also wishes to prove that each $\vec{l_{(j)}(x)}$ and $\vec{r_{(j)}(x)}$ are constructed correctly. This is done in a similar manner as proving $t_{0,(j)}$ are all correct. Proving this property for the jth party would be proving the following:
 
 \eq{
-	\dotp{l_{(j)}(\ran{x})}{\vec{G_{(j)}}} + \dotp{r_{(j)}(\ran{x})}{\vec{H'_{(j)}}} \stackrel{?}{=} -\widetilde{e}_{(j)}\widetilde{B} + A_{(j)} + \ran{x}S_{(j)} &&+ (\dotp{\ran{z}\vecran{y^n_{(j)}} + \ran{z^2}\ran{z_{(j)}}\vec{2^n}}{H'_{(j)}} - \ran{z}\dotp{\vec{1}}{\vec{G_{(j)}}})
+	\dotp{\vec{l}_{(j)}(\ran{x})}{\vec{G}_{(j)}} + \dotp{\vec{r}_{(j)}(\ran{x})}{\vec{H'}_{(j)}} \stackrel{?}{=} -\widetilde{e}_{(j)}\widetilde{B} + A_{(j)} + \ran{x}S_{(j)} &&+ (\dotp{\ran{z}\vecran{y^n_{(j)}} + \ran{z^2}\ran{z_{(j)}}\vec{2^n}}{H'}_{(j)} - \ran{z}\dotp{\vec{1}}{\vec{G}_{(j)}})
 }
 
-$\P$ can then combine the variables in the following way:
+Each party can send their $\dotp{\vec{l}_{(j)}(\ran{x})}{\vec{G}_{(j)}}, \dotp{\vec{r}_{(j)}(\ran{x})}{\vec{H'}_{(j)}}$ and $\widetilde{e}_{(j)}$ which the dealer can then combine the variables in the following way:
 
 \eq{
 	\vec{l}(x) &= \vec{l_0}(x) &&\concat \vec{l_1}(x) &&\concat \dots &&\concat \vec{l_{m-1}}(x)\\
 	\vec{r}(x) &= \vec{r_0}(x) &&\concat \vec{r_1}(x) &&\concat \dots &&\concat \vec{r_{m-1}}(x)\\
-	\vec{G}    &= \vec{G_0}    &&\concat \vec{G_1}    &&\concat \dots &&\concat \vec{G_{m-1}}\\
-	\vec{H'}   &= \vec{H'_0}   &&\concat \vec{H'_1}   &&\concat \dots &&\concat \vec{H'_{m-1}}
+	\vec{G} &= \vec{G_0} &&\concat \vec{G_1} &&\concat \dots &&\concat \vec{G_{m-1}}\\
+	\vec{H'} &= \vec{H'_0} &&\concat \vec{H'_1} &&\concat \dots &&\concat \vec{H'_{m-1}}
 }
 
-And send $\dotp{\vec{l}(\ran{x})}{\vec{G}}$ and
-$\dotp{\vec{r}(\ran{x})}{\vec{H'}}$ to $\V$, along with each party's
-$\widetilde{e}_{(j)}$. From here $\V$ can then construct:
+Additionally the dealer can construct the following:
 
 \eq{
 	\vecran{y^n_{(j)}} &= \ran{y^{n*m}}[j*n : (j+1)*n]\\
@@ -1090,18 +986,15 @@ $\widetilde{e}_{(j)}$. From here $\V$ can then construct:
 	S &= \sum^{m-1}_{j = 0} S_{(j)}
 }
 
-Note that is has already recieved $A_{(j)}$ and $S_{(j)}$ from the first step of the transcript. $\V$ can then use the following check to convince itself that all $\vec{l_{(j)}}(x)$ and $\vec{r_{(j)}}(x)$ are correctly constructed:
+Note that the dealer has already recieved $A_{(j)}$ and $S_{(j)}$ from the first step of the transcript. The dealer can then use the following check to convince itself that all $\vec{l_{(j)}}(x)$ and $\vec{r_{(j)}}(x)$ are correctly constructed:
 
 \eq{
 	\vec{l_{(j)}}(\ran{x}) + \vec{r_{(j)}}(\ran{x}) \stackrel{?}{=} -\widetilde{e}\widetilde{B} + A + \ran{x}S - \ran{z}\dotp{\vec{1}}{\vec{G}} + \ran{z}\dotp{\vecran{y^{n*m}}}{\vec{H'}} + \sum^{m-1}_{j = 0}\dotp{\ran{z^{j+2}}*\vec{2^n}}{\vec{H'}[j*n: (j+1)*n]}
 }
 
-And if this holds then $\V$ is convinced that $\vec{l_{(j)}}(x)$ and
-$\vec{r_{(j)}}(x)$ are correctly constructed and with the previous part
-on top it is now convinced that all the given v are within the range
-$[0,2^n)$ and thus the proof is sound. Additionally, using the same
-argument as in \ref{verifier-range-proof} for each individual party,
-this is also zero-knowledge.
+And if this holds then the dealer is convinced that $\vec{l_{(j)}}(x)$ and $\vec{r_{(j)}}(x)$ are correctly constructed and with the previous part on top it is now convinced that all parties' $v_{(j)}$ are within the range $[0,2^n)$ and thus the proof is complete. Additionally, using the same arguments as in \ref{verifier-range-proof} for each individual party, this is also sound and zero-knowledge.
+
+\subsubsection{The Algorithm}
 
 \subsection{Fiat-Shamir Heuristic}\label{fiat-shamir-heuristic}
 
@@ -1109,36 +1002,29 @@ this is also zero-knowledge.
 
 \subsection{Hacspec:} \label{Hacspec}
 
-Hacspec \cite{hacspec} is a subset of the programming language of
-Rust. It's purpose is to be a specification language for cryptographic
-algorithms, with the special properties that it is executable (since it
-is valid rust code), but also that it is defined such that it can easily
-be transpiled into proof assistants, namely Coq and F*. It also provides
-convenient cryptographic primitives that make implementation easier and
-can help protect against side-channel attacks. The cost for having this
-property is that certain syntactic enhancements that are available in
-Rust are not defined in Hacspec. This makes the language simpler, but
-it also makes it harder to simply express some concepts. The language
-however is still in development, balancing and adding features.
+Hacspec is a subset of the programming language of Rust. It's purpose is
+to be a specification language for cryptographic algorithms, with the
+special properties that it is executable (since it is valid rust code),
+but also that it is defined such that it can easily be transpiled
+into theorem solvers, namely Coq and F*. The cost for having this
+property is certain syntactic enhancements that are available in Rust
+are not defined in Hacspec. This makes the language simpler, but it
+also makes it harder to simply express some concepts due to the lack
+of syntactic sugar. The language however is still in development,
+balancing and adding features.
 
 All code written for this project was written to be Hacspec
 compliant. Our implementation is a specification meant to be
 simply understood compared to a more obfuscated, but highly
-optimized implementation. We will use property based testing
-often using QuickCheck \cite{quickcheck} where possible
-and convienient, and test our Bulletproofs implementation
-against the Dalek-Cryptography group's Bulletproofs Rust
-implementation \cite{dalek}.
-
-Since we need our implementation to work the same way as the Dalek
-implementation, we need to use the same kind of elliptic curve and
-Fiat-Shamir protocol as theirs. To this end we also implemented
-Ristretto \cite{ristretto}, an elliptic curve specification based
-on Curve25519, and Merlin \cite{merlin}, a STROBE-based transcript
-construction for zero-knowledge proofs.  We have also created a minimal
-linear algebra library, in hacspec, as it was thought that it could
-help with the implementation while also creating a library to be used
-with other cryptographic algorithms.
+optimized implementation. We will use property based testing with
+QuickCheck\footnote{\url{https://github.com/BurntSushi/quickcheck}}
+where possible and convienient and test our Bulletproofs
+implementation against the Dalek-Cryptography group's Bulletproofs Rust
+implementation\footnote{\url{https://github.com/dalek-cryptography/bulletproofs}}.
+We have also created a minimal linear algebra library,
+in hacspec, as it was thought that it could help with the
+implementation while also creating a library to be used with
+other cryptographic algorithms.
 
 \subsection{Linear Algebra Library:}
 It was decided that the specification should of course consist of what
@@ -1167,10 +1053,8 @@ pub type ScalRes = Result<Scalar, u8>;
 We model matrices as a \texttt{Seq<Scalar>} instead of a
 \texttt{Seq<Seq<Scalar>>} since we had problems with the hacspec type
 checker when double indexing (\texttt{list[i][j]}), and it is more
-efficient. Since this part was intended to be a library we wanted to
-generalize over the \texttt{Scalar} type. We wanted to at least have
-it be generalizable over any type that can be defined using hacspec
-macros, for example the following Scalar:
+efficient. Since this part was intended to be a library we wanted
+to generalize over the \texttt{Scalar} type. We wanted to at least have it be generalizable over any type that can be defined using hacspec macros, for example the following Scalar:
 
 \begin{lstlisting}
 public_nat_mod!(
@@ -1213,9 +1097,7 @@ type ScalRes<T> = Result<T, u8>;
 
 Which would allow anyone using the library to use matrices with their
 own defined hacspec types. Notice the \texttt{hacspec\_lib::Integer},
-this trait is implemented by all integers. This form is a suggestion
-and is subject to change according to how generics ends up actually
-being implemented.
+this trait is implemented by all integers.
 
 \textbf{Testing:}
 
@@ -1228,8 +1110,7 @@ operations on them and finally assert that the operations had the same
 effect. A simple example is the \texttt{zeros} function:
 
 \begin{lstlisting}
-#[test]
-fn test_nalg_zeros() {
+#[test] fn test_nalg_zeros() {
     fn helper(n: u8, m: u8) -> TestResult {
         let n = n as usize; let m = m as usize;
 
@@ -1247,53 +1128,45 @@ fn test_nalg_zeros() {
 Here the only operation that is performed is the construction of the
 vectors. The \texttt{assert\_matrices} function is simply a function
 that checks each element in the two vectors and assert them all to
-be equal. We also have basic unit tests that checks the functions
-manually derived results.
-
-\subsection{Implementing Merlin:}
+be equal.
 
 \subsection{Implementing Ristretto:} \label{implementing-ristretto}
 
-For the Ristretto implementation on Curve25519 we used an IETF-standard
-specification and the paper of exactly this, which was used as a guide
-for our implementation.\cite{ristretto-ietf} This specification was
-very helpful when implemting, as it clearly defined the types and
-functionalities needed to implement Ristretto securely. However there
-was one operation that needed to be implemented, which did \textit{not}
-have a standard forumla for its implementation. This method was scalar
-multiplication. For this we used the specification from (Insert
-Reference to literature here). This proved to work perfectly, with
-the given tests and the IETF-standard methods.
+For the Ristretto implementation on Curve25519
+we used an IETF-standard specification and the
+paper of exactly this, which was used as a guide for our
+implementation.\footnote{\url{https://www.ietf.org/archive/id/draft-irtf-cfrg-ristretto255-00.html}}
+This specification was very helpful when implemting, as it clearly
+defined the types and functionalities needed to implement Ristretto
+securely. However there was one operation that needed to be implemented, which did \textit{not} have a standard forumla for its implementation. This method was scalar multiplication. For this we used the specification from (Insert Reference to literature here). This proved to work perfectly, with the given tests and the IETF-standard methods. 
 
 Ristretto is, in essence, a prime-order subgroup of a non-prime-order
-Edwards curve which has a co-factor of 4 or 8. The subgroup formed
-under Ristretto is constructed in such a way that it elimates this
-co-factor, which is useful to avoid additional checks and also avoids
-the risk of leaving in exploitable vulnerabilities which utilize the
-co-factor. One such vulnerability was found that affects all CryptoNote
-based cryptocurrencies \cite{cryptonote}. Ristretto elimates all of
-these checks and potential vulnerabilities by automatically mapping
-all points on the curve directly into the subset of the curve in the
-operations themselves. Additionally Ristretto defines equality such that
-equivalent representations of the same point are considered equal. In
-the same vein the encoding function for points, encodes equivalent
-points to the same encoding and by proxy the decoding function decodes
-those points to the same point.
+Edwards curve which has a co-factor of 4 or 8. The subgroup formed under
+Ristretto is constructed in such a way that it elimates this co-factor,
+which is useful to avoid additional checks and also avoids the risk of
+leaving in exploitable vulnerabilities which utilize the co-factor. One
+such vulnerability was found that affects all CryptoNote based
+cryptocurrencies\footnote{\url{https://www.getmonero.org/2017/05/17/disclosure-of-a-major-bug-in-cryptonote-based-currencies.html}}.
+Ristretto elimates all of these checks and potential vulnerabilities
+by automatically mapping all points on the curve directly into the
+subset of the curve in the operations themselves. Additionally Ristretto
+defines equality such that equivalent representations of the same point
+are considered equal. In the same vein the encoding function for points,
+encodes equivalent points to the same encoding and by proxy the decoding
+function decodes those points to the same point.
 
 For our implementation of bulletproofs, seeing as we needed to test it
 against an existing implementation, we made use of the same elliptic
 curve, as well as gained an understanding of the basics of elliptic
-curve cryptography. The elliptic curve in question is Curve25519,
-which is widely used in encryption as is the case here. Curve25519,
-is defined by the following formula:
+curve cryptography. The elliptic curve in question is Curve25519, which
+is widely used in encryption as is the case here. Curve25519, is defined by the following formula:
 
 $$y^2 = x^3 + 48662x^2 + x$$
 
 This curve is defined over the prime field $p = 2^{255} - 19$ and base
-point defined at $x = 9$ with the positive $y$ value. This results
-in a sub-group of order $2^{252} + 2774231777737235353585$, which has
-a co-factor of $8$, thus meeting the criteria for using Ristretto to
-eliminate this co-factor.
+point defined at $x = 9$ with the positive $y$ value. This results in a
+sub-group of order $2^{252} + 2774231777737235353585$, which has a
+co-factor of $8$, thus meeting the criteria for using Ristretto to eliminate this co-factor.
 
 Each internal point representation is composed of four field elements
 $(X : Y : Z : T)$. Field-elements, as defined by the standard are
@@ -1331,28 +1204,26 @@ decoding to be canonical and thus give a proper point as a result.
 
 The IETF-standard was used for the implementation of nearly every
 operation implemented, however, scalar multiplication was not specified,
-however we used the specification from \cite{elliptic-curves}. This
-proved to work perfectly, with the given tests and the IETF-standard
-methods.
+however we used the specification from \cite{elliptic-curves}. This proved to work perfectly, with the given tests and the
+IETF-standard methods.
 
 For our implementation of bulletproofs, seeing as we needed to test it
 against an existing implementation, we made use of the same elliptic
 curve, as well as gained an understanding of the basics of elliptic
-curve cryptography. The elliptic curve in question is Curve25519,
-which is widely used in encryption as is the case here. Curve25519,
-is defined by the following formula:
+curve cryptography. The elliptic curve in question is Curve25519, which
+is widely used in encryption as is the case here. Curve25519, is defined by the following formula:
 
 $$y^2 = x^3 + 48662x^2 + x$$
 
 This curve is defined over the prime field $K = 2^{255} - 19$ and base
-point defined at $x = 9$ with the positive $y$ value. This results
-in a sub-group of order $2^{252} + 2774231777737235353585$, which has
-a co-factor of $8$, thus meeting the criteria for using Ristretto to
-eliminate this co-factor.
+point defined at $x = 9$ with the positive $y$ value. This results in a
+sub-group of order $2^{252} + 2774231777737235353585$, which has a
+co-factor of $8$, thus meeting the criteria for using Ristretto to eliminate this co-factor.
 
 \subsection{Implementing Inner Product Proof:}
 
 \subsection{Implementing Bulletproofs:}
+
 
 \begin{algorithm}[H]
 	\DontPrintSemicolon
@@ -1395,59 +1266,15 @@ eliminate this co-factor.
 	\caption{Bulletproof algorithm}
 	\end{algorithm}
 
-The final part of the project was the implementation of the
-Bulletproofs protocol. The code was heavily based on the code we were
-testing against as well as the mathematical formulas explained in
-\ref*{Bulletproofs}. This implementation had X major roadblocks.
+The final part of the project was the implementation of the Bulletproofs protocol. The code was heavily based on the code we were testing against as well as the mathematical formulas explained in \ref*{Bulletproofs}. This implementation had X major roadblocks.
 
-The first big roadblock was the immense length it would have. This
-meant that writing any sort of test for the code would require it to
-be finished in nearly its entirety. This resulted in many tests being
-performed before the code was finished through the simple method of
-printing out every value on the screen and checking if they match what
-we are testing against, in order to ensure that our code was working
-correctly. But this in and of itself was an issue as the library we
-test against, naturally does not print all values on the screen. For
-this reason we forked their library and inserted the needed print
-statements. However yet another issue with this was the fact that their
-library has built-in randomness. This meant that our code had no way
-to utlize the exact same random values, something that is vital when
-testing to see if it works in the same way. Therefore we refactored all
-random values into inputs in their library. This in no way changes the
-functionality of their code, but instead it allows us to control the
-random values it uses, which we can then match to our own, and thus
-allowing us to test against it.
+The first big roadblock was the immense length it would have. This meant that writing any sort of test for the code would require it to be finished in nearly its entirety. This resulted in many tests being performed before the code was finished through the simple method of printing out every value on the screen and checking if they match what we are testing against, in order to ensure that our code was working correctly. But this in and of itself was an issue as the library we test against, naturally does not print all values on the screen. For this reason we forked their library and inserted the needed print statements. However yet another issue with this was the fact that their library has built-in randomness. This meant that our code had no way to utlize the exact same random values, something that is vital when testing to see if it works in the same way. Therefore we refactored all random values into inputs in their library. This in no way changes the functionality of their code, but instead it allows us to control the random values it uses, which we can then match to our own, and thus allowing us to test against it. 
 
-To keep our implementation as simple as possible we only implemented
-what would be equivalent to the \texttt{prove\_multiple\_with\_rng}
-method from the library we test against. We felt this was sufficient
-as the \texttt{prove\_multiple}, \texttt{prove\_single\_with\_rng}
-and \texttt{prove\_single} methods would all call
-\texttt{prove\_multiple\_with\_rng} in some way.
+To keep our implementation as simple as possible we only implemented what would be equivalent to the \texttt{prove\_multiple\_with\_rng} method from the library we test against. We felt this was sufficient as the \texttt{prove\_multiple}, \texttt{prove\_single\_with\_rng} and \texttt{prove\_single} methods would all call \texttt{prove\_multiple\_with\_rng} in some way.
 
-Outside of a few indexing errors and wrong calculation occationally,
-the implementation of the methods in a way that worked correctly was not
-much of an issue outside of how long it took to fully implement. The
-biggest issue with our implementation itself was making it hacspec
-compliant. Specifically there were many problems involving \texttt{Seq}
-objects. Most cumbersome of which were the fact that a \texttt{Seq}
-could not be a part of a tuple, if said tuple was going to be
-unwrapped. This resulted in \texttt{prove()} being somewhat bloated with
-sequences, whenever a \texttt{party} method was going to be performed
-for each party. Ordinarily we would simply make a single \texttt{Seq}
-and store the tuple in this sequence, however this was not viable as
-the tuple would need to be unwrapped later, something Hacspec did not
-allow. Additionally there are many places in which \texttt{Seqs} objects
-contain other \texttt{Seq} objects where, whenever the outer sequence
-was indexed into the index needed to be cloned, before it could be used.
+Outside of a few indexing errors and wrong calculation occationally, the implementation of the methods in a way that worked correctly was not much of an issue outside of how long it took to fully implement. The biggest issue with our implementation itself was making it hacspec compliant. Specifically there were many problems involving \texttt{Seq} objects. Most cumbersome of which were the fact that a \texttt{Seq} could not be a part of a tuple, if said tuple was going to be unwrapped. This resulted in \texttt{prove()} being somewhat bloated with sequences, whenever a \texttt{party} method was going to be performed for each party. Ordinarily we would simply make a single \texttt{Seq} and store the tuple in this sequence, however this was not viable as the tuple would need to be unwrapped later, something Hacspec did not allow. Additionally there are many places in which \texttt{Seqs} objects contain other \texttt{Seq} objects where, whenever the outer sequence was indexed into the index needed to be cloned, before it could be used. 
 
-Additionally, while it is not actually much of an issue, Hacspec did
-not allow us to use iterators, and so we instead have an abundance
-of for-loops in our code. This results in our code being much slower
-than the library which we test against, which \textit{did} turn out
-to be somewhat of a problem when it came to testing correctness. While
-the code we test against could run in mere seconds, ours took several
-minutes to finish which made the checks bothersome.
+Additionally, while it is not actually much of an issue, Hacspec did not allow us to use iterators, and so we instead have an abundance of for-loops in our code. This results in our code being much slower than the library which we test against, which \textit{did} turn out to be somewhat of a problem when it came to testing correctness. While the code we test against could run in mere seconds, ours took several minutes to finish which made the checks bothersome. 
 
 \subsection{Conclusions on our work:}
 
