@@ -998,6 +998,34 @@ And if this holds then the dealer is convinced that $\vec{l_{(j)}}(x)$ and $\vec
 
 \subsection{Fiat-Shamir Heuristic}\label{fiat-shamir-heuristic}
 
+The Fiat-Shamir Heuristic is a cryptographic concept, which allows a prover to compute random values without the need to consult the verifier first. This is done by defining a hash function $\textbf{H}()$ which can hash any number of values into a single pseudo-random value. When the verifier would be needed to provide a challenge, instead, all public values that $\V$ would have access to are hashed using this hash function and the resulting value is used as the challenge. This way the prover can send all values it must generate at once, and the verifier can simply make the Hashes which an honest prover would have done to find the challenges and assert correctness. 
+
+To show this we will once more look at the Schnorr Identity Protocol if it used the Fiat Shamir Heuristic. We will use the same notation we used in \ref{zero-knowledge}. 
+
+$\P$ wishes to show $\V$ that they know the secret value $x$ such that $X = xG$ for the public curve-points $X$ and $G$. Ordinarily $\P$ would send a commitment $K$ to a randomly chosen k and \textit{send this to $\V$}, who would then send back a challenge. However with the Fiat-Shamir Heuristic, $\P$ will instead compute:
+
+\eq{
+	e = \textbf{H}(X,P,K)
+}
+
+From here $\P$ can compute $s = k + ex$ and send $K$ and $s$ to $\V$. 
+
+From there $\V$ can compute $e = \textbf{H}(X,P,K)$ and at this point the rest of the protocol functions the same as it does in \ref{zero-knowledge}. The transcript for this proof would thus go from:
+
+\eq{
+	\P \rightarrow \V &: K \\
+	\V \rightarrow \P &: e \\
+	\P \rightarrow \V &: s \\
+}
+
+To the much shorter:
+
+\eq{
+	\P \rightarrow \V: K, s
+}
+
+Crutically allowing $\P$ to complete the entire proof without ever needed to hear from $\V$. The proof is still sound as $\P$ cannot get $e$ without commiting to a $K$ first.
+
 \section{Our Contributions:}
 
 \subsection{Hacspec:} \label{Hacspec}
