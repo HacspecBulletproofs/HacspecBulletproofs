@@ -1416,6 +1416,64 @@ however we used the specification from \cite{elliptic-curves}. This
 proved to work perfectly, with the given tests and the IETF-standard
 methods.
 
+\subsubsection{Hacspec related problems:}
+
+Due to the need for comparing points scalars had to be implemented using \texttt{public\_nat\_mod!} rather than the more secure \texttt{nat\_mod!} which has nearly identical functionality except over secret integers. However secret integers cannot be compared, something that was required by the IETF-standard.
+
+Additionally we ran into two issues with using \texttt{public\_nat\_mod!}. The first was one of the checks in decode:
+
+\begin{lstlisting}
+	pub fn decode(u: RistrettoPointEncoded) -> DecodeResult {
+    let mut ret = DecodeResult::Err(DECODING_ERROR);
+
+    let s = FieldElement::from_byte_seq_le(u);
+
+    if !geq_p(u.to_le_bytes()) && !is_negative(s)
+
+	[...]
+
+	fn geq_p(x: Seq<U8>) -> bool {
+    let p_seq = byte_seq!([....]);
+    let mut res = true;
+
+    for index in 0..p_seq.len() {
+        let x_index = x[index].declassify();
+        let p_index = p_seq[index].declassify();
+        if x_index != p_index {
+            res = x_index > p_index;
+        }
+    }
+    res
+}
+\end{lstlisting}
+
+This check involves checking to see if the inputted byte sequence, if interpreted as a field element is larger than $p$. This is naturally not possible to do directly given that all field elements in our implementation are integers mod $p$. As such it is done in this manner to circumvent this issue.
+
+Another more significant issue we encountered was in the implementation of the one-way map, in which, we must mod the 255 least significant bits of both halves of a ByteString object. However the two halves of the ByteString are each 256 bits. This means that the most significant bit must be set to 0. in the code this is as follows:
+
+\begin{lstlisting}
+	pub fn one_way_map(b: ByteString) -> RistrettoPoint {
+    let r0_bytes = b.slice(0, 32);
+    let r1_bytes = b.slice(32, 32);
+
+    let mut r0_bytes = r0_bytes.declassify();
+    let mut r1_bytes = r1_bytes.declassify();
+
+    // The specification states:
+    // Set r0 to the low 255 bits of b[ 0..32], taken mod p
+    // Set r1 to the low 255 bits of b[32..64], taken mod p
+    // Note the low 255 bits. NOT 256 bits! This is why we mod the most significant byte
+    r0_bytes[31] = r0_bytes[31] % 128u8;
+    r1_bytes[31] = r1_bytes[31] % 128u8;
+
+    let r0 = FieldElement::from_public_byte_seq_le(r0_bytes);
+    let r1 = FieldElement::from_public_byte_seq_le(r1_bytes);
+
+	[...]
+\end{lstlisting}
+
+This interaction was tested thoroughly to ensure it functions as we intended it to. 
+
 \subsection{Implementing Inner Product Proof:}
 
 We'll start by presenting the prover's algorithm as implemented in pseudocode. Note that we index at 1:
