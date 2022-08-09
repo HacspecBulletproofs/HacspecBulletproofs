@@ -1,7 +1,5 @@
 #![allow(non_snake_case)]
-use rand::{distributions::Uniform, Rng}; // 0.6.5
-
-//use rand_core::{CryptoRng, RngCore};
+use rand::{distributions::Uniform, Rng};
 
 use hacspec_ipp::*;
 use hacspec_lib::*;
@@ -10,11 +8,10 @@ use hacspec_ristretto::*;
 use curve25519_dalek_ng::ristretto::CompressedRistretto as DalekRistrettoPointEncoded;
 use curve25519_dalek_ng::ristretto::RistrettoPoint as DalekRistrettoPoint;
 use curve25519_dalek_ng::scalar::Scalar as DalekScalar;
-use quickcheck::*;
 
 use bulletproofs::inner_product_proof::InnerProductProof;
 
-//use curve25519_dalek_ng::traits::VartimeMultiscalarMul;
+use quickcheck::*;
 
 // === Helper functions === //
 
@@ -297,126 +294,3 @@ fn testquick() {
     }
     quickcheck(1, helper as fn() -> TestResult)
 }
-
-/*
-#[test]
-fn test_helper_create() {
-    let n = 4;
-    let mut rng = rand::thread_rng();
-
-    //use bulletproofs::generators::BulletproofGens;
-    //use bulletproofs::*;
-    //let bp_gens = BulletproofGens::new(n, 1);
-    let byte_range = Uniform::new(0, 255);
-
-    //let G: Vec<DalekRistrettoPoint> = bp_gens.share(0).G(n).cloned().collect();
-    //let H: Vec<DalekRistrettoPoint> = bp_gens.share(0).H(n).cloned().collect();
-
-    // Initialize IPP inputs
-    let mut G: Vec<DalekRistrettoPoint> = Vec::with_capacity(n);
-    let mut H: Vec<DalekRistrettoPoint> = Vec::with_capacity(n);
-    let mut a: Vec<DalekScalar> = Vec::with_capacity(n);
-    let mut b: Vec<DalekScalar> = Vec::with_capacity(n);
-    let mut G_factors: Vec<DalekScalar> = Vec::with_capacity(n);
-    let mut H_factors: Vec<DalekScalar> = Vec::with_capacity(n);
-    let mut b_prime: Vec<DalekScalar> = Vec::with_capacity(n);
-    let mut a_prime: Vec<DalekScalar> = Vec::with_capacity(n);
-    let mut c = DalekScalar::zero();
-    let mut P1 = DalekScalar::zero() * curve25519_dalek_ng::constants::RISTRETTO_BASEPOINT_POINT;
-    let mut P2 = DalekScalar::zero() * curve25519_dalek_ng::constants::RISTRETTO_BASEPOINT_POINT;
-
-    let y_inv: Vec<u8> = (0..32).map(|_| rng.sample(&byte_range)).collect();
-    // Generate inputs from random bytevecs
-    for i in 0..n {
-        G.push(DalekRistrettoPoint::from_uniform_bytes(&vec_to_arr(
-            (0..64).map(|_| rng.sample(&byte_range)).collect(),
-        )));
-        H.push(DalekRistrettoPoint::from_uniform_bytes(&vec_to_arr(
-            (0..64).map(|_| rng.sample(&byte_range)).collect(),
-        )));
-        a.push(dal_from_bytes(
-            &(0..32).map(|_| rng.sample(&byte_range)).collect(),
-        ));
-        b.push(dal_from_bytes(
-            &(0..32).map(|_| rng.sample(&byte_range)).collect(),
-        ));
-        G_factors.push(DalekScalar::one());
-        H_factors.push(dal_from_bytes(&exp(&y_inv, i)));
-        b_prime.push(b[i] * H_factors[i]);
-        c += a[i] * b[i];
-        P1 = P1 + a[i] * G[i];
-        P2 = P2 + b_prime[i] * H[i];
-    }
-
-    let Q = DalekRistrettoPoint::from_uniform_bytes(&vec_to_arr(
-        (0..64).map(|_| rng.sample(&byte_range)).collect(),
-    ));
-    let y_inv = dal_from_bytes(&y_inv);
-    //let c = inner_product_dalek(&a, &b);
-    let P3 = c * Q;
-    let P = P1 + P2 + P3;
-
-    // Q would be determined upstream in the protocol, so we pick a random one.
-    // a and b are the vectors for which we want to prove c = <a,b>
-
-    //let G_factors: Vec<DalekScalar> = iter::repeat(DalekScalar::one()).take(n).collect();
-
-    // y_inv is (the inverse of) a random challenge
-    //let H_factors: Vec<DalekScalar> = util::exp_iter(y_inv).take(n).collect();
-
-    // P would be determined upstream, but we need a correct P to check the proof.
-    //
-    // To generate P = <a,G> + <b,H'> + <a,b> Q, compute
-    //             P = <a,G> + <b',H> + <a,b> Q,
-    // where b' = b \circ y^(-n)
-    //let b_prime = b.iter().zip(util::exp_iter(y_inv)).map(|(bi, yi)| bi * yi);
-    // a.iter() has Item=&Scalar, need Item=Scalar to chain with b_prime
-    let a_prime = a.iter().cloned();
-
-    //let P = DalekRistrettoPoint::vartime_multiscalar_mul(
-    //    a_prime.chain(b_prime).chain(iter::once(c)),
-    //    G.iter().chain(H.iter()).chain(iter::once(&Q)),
-    //);
-
-    let mut verifier = merlin::Transcript::new(b"innerproducttest");
-    let proof = InnerProductProof::create(
-        &mut verifier,
-        &Q,
-        &G_factors,
-        &H_factors,
-        G.clone(),
-        H.clone(),
-        a.clone(),
-        b.clone(),
-    );
-
-    let mut verifier = merlin::Transcript::new(b"innerproducttest");
-    assert!(proof
-        .verify(
-            n,
-            &mut verifier,
-            iter::repeat(DalekScalar::one()).take(n),
-            bulletproofs::util::exp_iter(y_inv).take(n),
-            &P,
-            &Q,
-            &G,
-            &H
-        )
-        .is_ok());
-
-    let proof = InnerProductProof::from_bytes(proof.to_bytes().as_slice()).unwrap();
-    let mut verifier = merlin::Transcript::new(b"innerproducttest");
-    assert!(proof
-        .verify(
-            n,
-            &mut verifier,
-            iter::repeat(DalekScalar::one()).take(n),
-            bulletproofs::util::exp_iter(y_inv).take(n),
-            &P,
-            &Q,
-            &G,
-            &H
-        )
-        .is_ok());
-}
-*/

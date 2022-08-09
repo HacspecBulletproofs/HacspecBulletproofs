@@ -26,7 +26,7 @@ type VerScalarsRes = Result<(Seq<Scalar>, Seq<Scalar>, Seq<Scalar>), u8>;
 type VerifyRes = Result<(), u8>;
 type DecodeRes = Result<RistrettoPoint, u8>;
 
-// asci representations of: L, R, u
+// ASCI representations of: L, R, u
 fn L_U8() -> Seq<U8> {
     byte_seq!(76u8)
 }
@@ -160,6 +160,9 @@ pub fn create(
     ret
 }
 
+/// Returns (u^2, s, u^-2) to be used in the verification algorithm.
+/// It is public as it can be faster and more convenient to simply get
+/// these values and do the verification outside this module.
 pub fn verification_scalars(
     ipp: InnerProductProof,
     n: usize,
@@ -223,6 +226,8 @@ pub fn verification_scalars(
     res
 }
 
+/// Checks if a given InnerProductProof and P have been honestly
+/// constructed. Returns an error if the verification check fails.
 pub fn verify(
     ipp: InnerProductProof,
     n: usize,
