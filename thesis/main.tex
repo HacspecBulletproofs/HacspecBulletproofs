@@ -1057,13 +1057,13 @@ And finally convince themselves that for ALL $t_{0,(j)}$ are correct
 by performing the following check:
 
 \eq{
-	t(\ran{x})B + \widetilde{t}(\ran{x})\widetilde{B} \stackrel{?}{=} \ran{z^2}\sum^{m-1}_{j = 0} \ran{z_{(j)}}*V_{(j)} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
+	t(\ran{x})B + \widetilde{t}(\ran{x})\widetilde{B} \stackrel{?}{=} \ran{z^2}\sum^{m-1}_{j = 0} \ran{z_{(j)}} \cdot V_{(j)} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
 }
 
 we know that $z_{(j)} = z^j$ we can make a small rewrite:
 
 \eq{
-	t(\ran{x})B + \widetilde{t}(\ran{x})\widetilde{B} \stackrel{?}{=} \sum^{m-1}_{j = 0} \ran{z^{j+2}}*V_{(j)} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
+	t(\ran{x})B + \widetilde{t}(\ran{x})\widetilde{B} \stackrel{?}{=} \sum^{m-1}_{j = 0} \ran{z^{j+2}} \cdot V_{(j)} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
 }
 
 
@@ -1094,7 +1094,7 @@ which $\D$ can then combine in the following manner:
 Additionally $\D$ can construct the following:
 
 \eq{
-	\vecran{y^n_{(j)}} &= \ran{y^{n*m}}[j*n : (j+1)*n]\\
+	\vecran{y^n_{(j)}} &= \ran{y^{n \cdot m}}[j \cdot n : (j+1) \cdot n]\\
 	\ran{z_{(j)}} &= \ran{z^j}\\
 	\widetilde{e} &= \sum^{m-1}_{j = 0} \widetilde{e}_{(j)}\\
 	A &= \sum^{m-1}_{j = 0} A_{(j)}\\
@@ -1107,7 +1107,7 @@ to convince itself that all $\vec{l_{(j)}}(x)$ and $\vec{r_{(j)}}(x)$
 are correctly constructed:
 
 \eq{
-	\vec{l_{(j)}}(\ran{x}) + \vec{r_{(j)}}(\ran{x}) \stackrel{?}{=} -\widetilde{e}\widetilde{B} + A + \ran{x}S - \ran{z}\dotp{\vec{1}}{\vec{G}} + \ran{z}\dotp{\vecran{y^{n*m}}}{\vec{H'}} + \sum^{m-1}_{j = 0}\dotp{\ran{z^{j+2}}*\vec{2^n}}{\vec{H'}[j*n: (j+1)*n]}
+	\vec{l_{(j)}}(\ran{x}) + \vec{r_{(j)}}(\ran{x}) \stackrel{?}{=} -\widetilde{e}\widetilde{B} + A + \ran{x}S - \ran{z}\dotp{\vec{1}}{\vec{G}} + \ran{z}\dotp{\vecran{y^{n \cdot m}}}{\vec{H'}} + \sum^{m-1}_{j = 0}\dotp{\ran{z^{j+2}} \cdot \vec{2^n}}{\vec{H'}[j \cdot n: (j+1) \cdot n]}
 }
 
 And if this holds then $\D$ is convinced that $\vec{l_{(j)}}(x)$ and
