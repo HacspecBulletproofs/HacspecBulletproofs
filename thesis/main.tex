@@ -1416,21 +1416,6 @@ however we used the specification from \cite{elliptic-curves}. This
 proved to work perfectly, with the given tests and the IETF-standard
 methods.
 
-For our implementation of bulletproofs, seeing as we needed to test it
-against an existing implementation, we made use of the same elliptic
-curve, as well as gained an understanding of the basics of elliptic
-curve cryptography. The elliptic curve in question is Curve25519,
-which is widely used in encryption as is the case here. Curve25519,
-is defined by the following formula:
-
-$$y^2 = x^3 + 48662x^2 + x$$
-
-This curve is defined over the prime field $K = 2^{255} - 19$ and base
-point defined at $x = 9$ with the positive $y$ value. This results
-in a sub-group of order $2^{252} + 2774231777737235353585$, which has
-a co-factor of $8$, thus meeting the criteria for using Ristretto to
-eliminate this co-factor.
-
 \subsection{Implementing Inner Product Proof:}
 
 We'll start by presenting the prover's algorithm as implemented in pseudocode. Note that we index at 1:
@@ -1572,20 +1557,20 @@ to other bottlenecks.
 	$\performChecks$\\
 	$m := \vec{v}\len$\\
 	$dealer\_step1 := \createDealer$ \\
-	\For{$j \in [0 : m]$}{
+	\For{$j \in [1 : m+1]$}{
 		$party_j\_step1, V_j := \createParty$\\
 		$A_j, S_j := \computeAS$
 	}
 
 	$(dealer\_step2, \ran{y},\ran{z}) := \firstaggregate$\\
 
-	\For{$j \in [0 : m]$}{
+	\For{$j \in [1 : m+1]$}{
 		$(party_j\_step2, T_{1,j}, T_{2,j}) := \computeTs$
 	}
 
 	$(dealer\_step3, \ran{x}) := \secondaggregate$\\
 
-	\For{$j\in [0 : m]$}{
+	\For{$j\in [1 : m+1]$}{
 		$t(\ran{x})_jB, \tt (\ran{x})_j\tB := \computetxB$ 
 	}
 
@@ -1599,7 +1584,7 @@ to other bottlenecks.
 The final part of the project was the implementation of the
 Bulletproofs protocol. The code was heavily based on the code we
 were testing against as well as the mathematical formulas explained
-in \ref*{Bulletproofs}. The implementation followed the pseudo-code
+in \ref{Bulletproofs}. The implementation followed the pseudo-code
 format as seen above just like the implementation we test against
 did. The implementation ran into a few roadblocks during devealopment,
 some relating specifically to Hacspec.
@@ -1631,7 +1616,39 @@ and \texttt{prove\_single} methods would all call
 
 \subsubsection{Hacspec-related problems:}
 
-Outside of a few indexing errors and wrong calculation occationally, the implementation of the methods in a way that worked correctly was not much of an issue outside of how long it took to fully implement. The biggest issue with our implementation itself was making it hacspec compliant. Specifically there were many problems involving \texttt{Seq} objects. Most cumbersome of which were the fact that a \texttt{Seq} could not be a part of a tuple, if said tuple was going to be unwrapped. This resulted in \texttt{prove()} being somewhat bloated with sequences, whenever a \texttt{party} method was going to be performed for each party. Ordinarily we would simply make a single \texttt{Seq} and store the tuple in this sequence, however this was not viable as the tuple would need to be unwrapped later, something Hacspec did not allow. Additionally there are many places in which \texttt{Seqs} objects contain other \texttt{Seq} objects where, whenever the outer sequence was indexed into the index needed to be cloned, before it could be used. 
+Outside of a few indexing errors and wrong calculation occationally, the implementation of the methods in a way that worked correctly was not much of an issue outside of how long it took to fully implement. The biggest issue with our implementation itself was making it hacspec compliant. Specifically there were many problems involving \texttt{Seq} objects. Most cumbersome of which were the fact that a \texttt{Seq} could not be a part of a tuple, if said tuple was going to be unwrapped. This resulted in \texttt{prove()} being somewhat bloated with sequences, whenever a \texttt{party} method was going to be performed for each party. Ordinarily we would simply make a single \texttt{Seq} and store the tuple in this sequence, however this was not viable as the tuple would need to be unwrapped later, something Hacspec did not allow, due to some of the elements in these tuples having type \texttt{Seq}. Below is a coding example of how this is handled instead:
+
+\begin{lstlisting}
+	let mut bp_genss_party_capacity = Seq::<usize>::new(number_of_parties);
+	let mut bp_genss_gens_capacity = Seq::<usize>::new(number_of_parties);
+	let mut bp_genss_g_vec = Seq::<Seq<Seq<RistrettoPoint>>>::new(number_of_parties);
+	let mut bp_genss_h_vec = Seq::<Seq<Seq<RistrettoPoint>>>::new(number_of_parties);
+	let mut pc_genss = Seq::<PedersenGens>::new(number_of_parties);
+	let mut Vs = Seq::<RistrettoPointEncoded>::new(number_of_parties);
+
+	for i in 0..number_of_parties {
+		let ((new_party_capacity, new_gens_capacity, new_g_vec, new_h_vec),new_pc_gens,new_V) = create_party((party_capacity, gens_capacity, g_vec.clone(), h_vec.clone()),pc_gens, values[i], v_blindings[i],n)?;
+		
+		bp_genss_party_capacity[i] = new_party_capacity;
+		bp_genss_gens_capacity[i] = new_gens_capacity;
+		bp_genss_g_vec[i] = new_g_vec;
+		bp_genss_h_vec[i] = new_h_vec;
+		pc_genss[i] = new_pc_gens;
+		Vs[i] = new_V;
+
+	}
+\end{lstlisting}
+
+Rather than the much more simple:
+
+\begin{lstlisting}
+	let mut parties = Seq::<Party_Awaiting_Position>::new(number_of_parties);
+
+	for i in 0..number_of_parties {
+		let new_party = create_party((party_capacity, gens_capacity, g_vec.clone(), h_vec.clone()),pc_gens, values[i], v_blindings[i],n)?;
+		parties[i] = new_party;
+	}
+	\end{lstlisting}
 
 Additionally, while it is not actually much of an issue, Hacspec did not allow us to use iterators, and so we instead have an abundance of for-loops in our code. This results in our code being much slower than the library which we test against, which \textit{did} turn out to be somewhat of a problem when it came to testing correctness. While the code we test against runs in mere seconds, ours takes several minutes to finish the same proof which made the checks bothersome. The approximate difference in run-time for our code, compared to the code we test against is 550-600 times slower depending on the inputs. There are multiple reasons for this, not least of which is that we avoid most of the optimizations that are done in the code we test against to make our code more readable. This speed made testing take quite a lot longer than we would have liked, as running all tests, at the current moment, takes approximately 22 hours to run to completion on our PC with the fastest of the 18 tests taking 5 minutes.
 
