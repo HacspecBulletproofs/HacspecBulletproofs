@@ -9,6 +9,7 @@
 \usepackage{listings,listings-rust}
 \usepackage{xcolor}
 \usepackage[ruled, lined, linesnumbered, commentsnumbered, longend]{algorithm2e}
+\usepackage{forest}
 
 %\usepackage{algorithm}% http://ctan.org/pkg/algorithms
 %\usepackage{algpseudocode}% http://ctan.org/pkg/algorithmicx
@@ -306,7 +307,7 @@ naturally yield the identity element $\mathcal{O}$ by definition.
 Additionally multiplying by a negative integer, ${-m}$, is defined as
 $-m\cdot P = m\cdot ({-P})$.
 
-With these definitions we can also define the concept of an elliptic
+With these definitions give rise to the concept of an elliptic
 curve's \textit{generator}.
 
 \begin{definition}[EC Generator]
@@ -448,14 +449,14 @@ than it can infer $x$ from $X$, thus this proof is also zero-knowledge.
 
 \section{The Bulletproofs protocol} \label{Bulletproofs}
 
-The ultimate goal of this project has been to implement bulletproofs in
-Hacspec, using property-based testing to ensure it is equivalent to the
-implementation done in Rust, using Curve25519. A bulletproof is a
+The ultimate goal of this project has been to implement bulletproofs
+in Hacspec, using property-based testing to ensure it is equivalent to
+the implementation done in Rust, using Curve25519. A bulletproof is a
 non-interactive aggregation of rangeproofs using Pedersen commitments.
-The following section will describe each of these terms in greater detail
-on a theoretic level. The following subsections have been created
-based on the original bulletproofs paper \cite{bulletproofs} as
-well as the implementation notes from the Dalek-Bulletproofs project
+The following section will describe each of these terms in greater
+detail on a theoretic level. The following subsections have been
+created based on the original bulletproofs paper \cite{bulletproofs}
+as well as the implementation notes from the Dalek-Bulletproofs project
 \cite{dalek}.
 
 \subsection{Inner Product Proof:}
@@ -1662,7 +1663,53 @@ chose for our implementation to take them as an input, so that the
 two functions take the same arguments, but to apply the factors before
 running the loop as it simplifies and shortens the code. Furthermore,
 the performance increase, while noticable was not significant compared
-to other bottlenecks.
+to other bottlenecks. The file structure here is notable:
+
+\begin{forest}
+  for tree={
+    font=\rmfamily,
+    grow'=0,
+    child anchor=west,
+    parent anchor=south,
+    anchor=west,
+    calign=first,
+    edge path={
+      \noexpand\path [draw, \forestoption{edge}]
+      (!u.south west) +(7.5pt,0) |- node[fill,inner sep=1.25pt] {} (.child anchor)\forestoption{edge label};
+    },
+    before typesetting nodes={
+      if n=1
+        {insert before={[,phantom]}}
+        {}
+    },
+    fit=band,
+    before computing xy={l=15pt},
+  }
+[\textbf{inner-product-proof}
+  [\textbf{src}
+    [\textbf{transcript}
+      [\texttt{\textit{errors.rs}}]
+    ]
+    [\texttt{errors.rs}]
+    [\texttt{ipp.rs}]
+    [\texttt{transcript.rs}]
+  ]
+  [\textbf{tests}
+    [\texttt{test\_prop\_ipp.rs}]
+  [\texttt{Cargo.toml}]
+  ]
+]
+\end{forest}
+
+We created a \texttt{transcript.rs} file that implemented wrapper
+functions over the Fiat-Shamir mechanism introduced by the Merlin
+library. This file needed access to defined errors needed access to the same errors as the \texttt{transcript.rs} file. Normally in Rust the solution would be:
+
+\begin{lstlisting}
+use crate::errors::*;
+\end{lstlisting}
+
+But this is not valid hacspec code. We resorted to doing:
 
 \begin{algorithm}[H]
 	\caption{IPP: The Verifiers's Algorithm}
