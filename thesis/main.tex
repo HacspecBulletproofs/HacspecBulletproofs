@@ -1476,28 +1476,23 @@ This interaction was tested thoroughly to ensure it functions as we intended it 
 
 \subsection{Implementing Merlin:} \label{implementing-merlin}
 
-Merlin \cite{merlin} is mostly just a wrapper over the Strobe protocol
-\cite{strobe}. It performs the fiat-shamir heuristic by keeping
-a running hash of the transcript. Importantly it does this in an
-abstract way so algorithms implemented using it can be implemented
-non-interactively but \textit{as if} they are interactive. This
-makes creates simpler code that is less error prone than if the
-transformations were done by hand.
+Merlin \cite{merlin} is for the most part a wrapper over the Strobe protocol
+\cite{strobe}. It performs the Fiat-Shamir Heuristic by keeping
+a running hash of the transcript. Importantly, it does this in a way so algorithms implemented using it will appear to interact with a verifier, while remaining non-interactive. It achieves this by only allowing he algorithm to commit or receive challenge scalars from the transcript. This allows for simpler code that is less error prone than if the Fiat-Shamir Heuristic were done without it.
 
-Most of the work was implementing strobe, there were no great
+Most of the work was implementing strobe. There were no great
 difficulties in translating most functions, except that the
-\texttt{Strobe} type could not be mutable. Therefore, in our
-implementation we returned a new strobe object in each function instead
+\texttt{Strobe} type could not be mutably modified. Therefore, in our
+implementation we return a strobe object in each function instead
 of taking one as argument and modifying it. Since all operations needed
-were supported by the Secret Integer hacspec type we naturally used
+were supported by the Secret Integer hacspec type, we naturally used
 this over the less secure Public Integers.
 
 Merlin uses Keccakf1600 for its hashing, fortunately this cryptographic
-function was already defined in another hacspec library, which we
-imported. We ran into issues however since Keccakf1600 is defined for 64
+function was already defined in another hacspec library. We ran into issues however, since Keccakf1600 is defined for 64
 bit integers and strobe operates on bytes. Therefore we had to transmute
 the \texttt{state} object, from a list of bytes into a shorter list
-of 64 bit integers. In the Rust Merlin implementation this was easy:
+of 64 bit integers. In the Dalek Rust Merlin implementation this was simple:
 
 \begin{lstlisting}
 fn transmute_state(st: &mut AlignedKeccakState) -> &mut [u64; 25] {
@@ -1505,7 +1500,7 @@ fn transmute_state(st: &mut AlignedKeccakState) -> &mut [u64; 25] {
 }
 \end{lstlisting}
 
-But in our case we ended up doing the following: 
+But in our implementation we instead do the following: 
 
 \begin{lstlisting}
 // Turns a stateU8 into a StateU64
@@ -1538,7 +1533,7 @@ fn transmute_state_to_u8(state: StateU64) -> StateU8 {
 }
 \end{lstlisting}
 
-Which is of course significantly slower but gets the job done.
+This implementation is significantly slower, as expected, but functions correctly.
 
 \subsection{Implementing Inner Product Proof:}
 
