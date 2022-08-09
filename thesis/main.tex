@@ -1631,45 +1631,11 @@ and \texttt{prove\_single} methods would all call
 
 \subsubsection{Hacspec-related problems:}
 
-<<<<<<< HEAD
 Outside of a few indexing errors and wrong calculation occationally, the implementation of the methods in a way that worked correctly was not much of an issue outside of how long it took to fully implement. The biggest issue with our implementation itself was making it hacspec compliant. Specifically there were many problems involving \texttt{Seq} objects. Most cumbersome of which were the fact that a \texttt{Seq} could not be a part of a tuple, if said tuple was going to be unwrapped. This resulted in \texttt{prove()} being somewhat bloated with sequences, whenever a \texttt{party} method was going to be performed for each party. Ordinarily we would simply make a single \texttt{Seq} and store the tuple in this sequence, however this was not viable as the tuple would need to be unwrapped later, something Hacspec did not allow. Additionally there are many places in which \texttt{Seqs} objects contain other \texttt{Seq} objects where, whenever the outer sequence was indexed into the index needed to be cloned, before it could be used. 
 
 Additionally, while it is not actually much of an issue, Hacspec did not allow us to use iterators, and so we instead have an abundance of for-loops in our code. This results in our code being much slower than the library which we test against, which \textit{did} turn out to be somewhat of a problem when it came to testing correctness. While the code we test against runs in mere seconds, ours takes several minutes to finish the same proof which made the checks bothersome. The approximate difference in run-time for our code, compared to the code we test against is 550-600 times slower depending on the inputs. There are multiple reasons for this, not least of which is that we avoid most of the optimizations that are done in the code we test against to make our code more readable. This speed made testing take quite a lot longer than we would have liked, as running all tests, at the current moment, takes approximately 22 hours to run to completion on our PC with the fastest of the 18 tests taking 5 minutes.
 
 Finally the code we test against uses structs to keep hold of the values for each party and the dealer. This ensures that a potential client cannot accidentally perform the steps out of order, due to the next step being integrated in the struct itself. Hacspec does not allow for the use of structs. As such we instead use simple type-aliases which \textit{could} be forged and done out of order. This, in combination with how slow it is, practically disqulifies it from being put into use for creating bulletproofs properly. However this code is not designed for actual use by clients as a cryptographic algorithm, but rather it is supposed to be used for the purposes of creating proofs about the original code we test against.
-=======
-Outside of a few indexing errors and wrong calculation occationally,
-the implementation of the methods in a way that worked correctly was
-not much of an issue outside of how long it took to fully implement.
-
-The biggest issue with our implementation itself was making it
-hacspec compliant. Specifically there were many problems involving
-\texttt{Seq} objects. Most cumbersome of which were the fact that a
-\texttt{Seq} could not be a part of a tuple, if said tuple was going
-to be unwrapped. This resulted in \texttt{prove()} being somewhat
-bloated with sequences, whenever a \texttt{party} method was going
-to be performed for each party. Ordinarily we would simply make a
-single \texttt{Seq} and store the tuple in this sequence, however
-this was not viable as the tuple would need to be unwrapped later,
-something Hacspec did not allow. Additionally there are many places in
-which \texttt{Seqs} objects contain other \texttt{Seq} objects where,
-whenever the outer sequence was indexed into the index needed to be
-cloned, before it could be used.
-
-Additionally, while it is not actually much of an issue, Hacspec did
-not allow us to use iterators, and so we instead have an abundance
-of for-loops in our code. This results in our code being much slower
-than the library which we test against, which \textit{did} turn out
-to be somewhat of a problem when it came to testing correctness. While
-the code we test against could run in mere seconds, ours took several
-minutes to finish which made the checks bothersome.
-
-\textbf{notes: Structs vs code aliases}
-
-\textbf{notes: Speed}
-
-\textbf{notes: Hacspec problems}
->>>>>>> ef5775ed32227a229966026baca5ef38b5ab125e
 
 \subsection{Conclusions on our work:}
 
