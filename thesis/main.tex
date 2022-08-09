@@ -658,8 +658,6 @@ $\dotp{\vec{a}}{\vec{b}} = c$:
 	        &\stackrel{?}{=} \dotp{a\vec{s}}{\vec{G}} + \dotp{b\vec{s'}}{\vec{H}} + abQ - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i)
 }
 
-\subsubsection{The Algorithm}
-
 \subsection{Range Proofs:}\label{range-proofs}
 
 A range-proof is a zero-knowledge proof which seeks to prove that for some value $v$, $v$ lies within the range of $[0,2^n)$ without revealing $v$ or any additional information about $v$, thus zero-knowledge. We wish to express this property of $v$ in a single inner product to be able to use an inner product proof as described above. 
@@ -1378,6 +1376,9 @@ sub-group of order $2^{252} + 2774231777737235353585$, which has a
 co-factor of $8$, thus meeting the criteria for using Ristretto to eliminate this co-factor.
 
 \subsection{Implementing Inner Product Proof:}
+
+We'll start by presenting the prover's algorithm as implemented in pseudocode. Note that we index at 1:
+
 \begin{algorithm}[H]
 	\caption{IPP: The Prover's Algorithm}
 
@@ -1403,15 +1404,71 @@ co-factor of $8$, thus meeting the criteria for using Ristretto to eliminate thi
 		$\appendR$ \\
 		$u := \challenge$ \\
 		\ \\
-		$a := \veclo{a} \cdot u      + u^{-1} \cdot \vechi{a}$ \\
-		$b := \veclo{b} \cdot u^{-1} + u      \cdot \vechi{b}$ \\
-		$G := \veclo{G} \cdot u      + u^{-1} \cdot \vechi{G}$ \\
-		$H := \veclo{H} \cdot u^{-1} + u      \cdot \vechi{H}$ \\
+		$\vec{a} := \veclo{a} \cdot u      + u^{-1} \cdot \vechi{a}$ \\
+		$\vec{b} := \veclo{b} \cdot u^{-1} + u      \cdot \vechi{b}$ \\
+		$\vec{G} := \veclo{G} \cdot u      + u^{-1} \cdot \vechi{G}$ \\
+		$\vec{H} := \veclo{H} \cdot u^{-1} + u      \cdot \vechi{H}$ \\
 	}
 
 	\Return{$(a_1, b_1, \vec{L}, \vec{R})$}
 
 \end{algorithm}
+
+We tried to find a way to incorperate the linear algebra library into
+our implementation but it turned out to be bothersome. Lines 13-16
+are run in a for-loop, but although less efficient, it would be more
+clear to have $\vec{a}, \vec{b}, \vec{G}, \vec{H},$ calculated using
+built-in linear algebra functions. If we take the actual implementation:
+
+\begin{lstlisting}
+for i in 0..n {
+    a_L[i] = a_L[i] * u + u_inv * a_R[i];
+    b_L[i] = b_L[i] * u_inv + u * b_R[i];
+    G_L[i] = add(mul(u_inv, G_L[i]), mul(u, G_R[i]));
+    H_L[i] = add(mul(u, H_L[i]), mul(u_inv, H_R[i]));
+}
+\end{lstlisting}
+
+We could rewrite this with vector operations, but this would not
+necessarily mean it's more clear. Take for example
+
+\begin{lstlisting}
+a_L = v_add(v_scale(u, a_L), v_scale(u_inv, a_R));
+b_L = v_add(v_scale(u_inv, b_L), v_scale(u, b_R));
+G_L = v_p_add(v_p_mul(u_inv, G_L), v_p_mul(u, G_R));
+H_L = v_p_add(v_p_mul(u, H_L), v_p_mul(u_inv, H_R));
+\end{lstlisting}
+
+Where \texttt{v\_} indicates a vector operation and \texttt{p\_}
+indicates a point operation. Having this many nested functions impacts
+readability, but lets suppose that we could define the multiplicative
+and additive operators for types like it would be possible in Rust:
+
+\begin{lstlisting}
+a_L = a_L * u     + u_inv * a_R;
+b_L = b_L * u_inv + u     * b_R;
+G_L = G_L * u_inv + u     * G_R;
+H_L = H_L * u     + u_inv * H_R;
+\end{lstlisting}
+
+This is indeed more intuitive and closer to the math, but it is not
+possible in hacspec due to the absence of structs. Even if this were
+solved by introducing limited structs we would still have to deal with
+the fact that linear algebra operations are defined over two vectors
+of the \textit{same} type.
+
+In our implementation we also have the inputs \texttt{G\_factors}
+and \texttt{H\_factors}, which is simply factors applied to $\vec{G}$
+and $\vec{H}$ respectively. We have these as the Dalek implementation
+also have this input because they make optimizations that makes the
+code faster than multiplying them on before running the function. We
+chose for our implementation to take them as an input, so that the
+two functions take the same arguments, but to apply the factors before
+running the loop as it simplifies and shortens the code. Furthermore,
+the performance increase, while noticable was not significant compared
+to other bottlenecks.
+
+
 
 \begin{algorithm}[H]
 	\caption{IPP: The Verifiers's Algorithm}
@@ -1427,12 +1484,12 @@ co-factor of $8$, thus meeting the criteria for using Ristretto to eliminate thi
 	\KwIn{$a \in \Z_p, b \in \Z_p, n \in \Z, P' \in \G, Q \in \G, \vec{G} \in \G^n, \vec{H} \in\G^n$}
 
 	$k := \log_2(n)$ \\
-	\For{$i_ \in [0 : k]$}{
+	\For{$i_ \in [1 : k+1]$}{
 		$\appendL$ \\
 		$\appendR$ \\
 		$u_i := \challenge$ \\
 	}
-	\For{$i_ \in [0 : n]$}{
+	\For{$i_ \in [1 : n+1]$}{
 		$s_i  := u^{b(i,k)}_k \cdots u^{b(i,1)}_1$ \\
 		$s_i' := s_i^{-1}$
 	}
@@ -1444,7 +1501,6 @@ co-factor of $8$, thus meeting the criteria for using Ristretto to eliminate thi
 \end{algorithm}
 
 \subsection{Implementing Bulletproofs:}
-
 
 \begin{algorithm}[H]
 	\DontPrintSemicolon
