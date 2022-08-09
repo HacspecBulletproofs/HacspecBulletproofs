@@ -218,7 +218,7 @@ pub fn create_poly_commitment(party: BitChallengeInput) -> CreatePolyCommitmentR
         let a_L_i = Scalar::from_literal(((value >> i) & 1u64) as u128);
         let a_R_i = a_L_i - Scalar::from_literal(1u128);
 
-        l_poly0[i] = a_L_i - z; //Error here!
+        l_poly0[i] = a_L_i - z;
         l_poly1[i] = s_L[i];
 
         r_poly0[i] = exp_y * (a_R_i + z) + offset_zz * exp_2;
