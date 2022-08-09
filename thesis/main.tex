@@ -286,7 +286,7 @@ curve's \textit{generator}.
 \subsection{Pedersen Commitment:}
 
 A Pedersen commitment is a commitment scheme originally defined
-by Torben Pryds Pedersen \cite{pedersen-commit}. The essence of
+by Torben Pryds Pedersen \cite{pedersen}. The essence of
 Pedersen commitments is the so called \textit{Additive Homomorphism}
 \ref{pedersen-additive-homomorphism} defined later. For our purposes we
 redefine the scheme to work with commitments to elliptic curve points
@@ -423,7 +423,7 @@ The following section will describe each of these terms in greater detail
 on a theoretic level. The following subsections have been created
 based on the original bulletproofs paper \cite{bulletproofs} as
 well as the implementation notes from the Dalek-Bulletproofs project
-\cite{dalek-bulletproofs}.
+\cite{dalek}.
 
 \subsection{Inner Product Proof:}
 A prover, $\P$, wants to prove to a verifier, $\V$, that he has
@@ -1011,8 +1011,8 @@ parties from working together to 'cheat'. This offset is defined as
 such for the jth party:
 
 \eq{
-	z_{(j)} &= z^j * \vec{y^n_{(j)}}\\
-	y^n_{(j)} &= y^{n*m}[j*n:(j+1)*n]
+	z_{(j)}   &= z^j \cdot \vec{y^n_{(j)}} \\
+	y^n_{(j)} &= y^{n \cdot m}[j \cdot n:(j+1) \cdot n]
 }
 
 The evaluation point $\ran{x}$ is the same for all parties. The choice
@@ -1474,6 +1474,72 @@ Another more significant issue we encountered was in the implementation of the o
 
 This interaction was tested thoroughly to ensure it functions as we intended it to. 
 
+\subsection{Implementing Merlin:} \label{implementing-merlin}
+
+Merlin \cite{merlin} is mostly just a wrapper over the Strobe protocol
+\cite{strobe}. It performs the fiat-shamir heuristic by keeping
+a running hash of the transcript. Importantly it does this in an
+abstract way so algorithms implemented using it can be implemented
+non-interactively but \textit{as if} they are interactive. This
+makes creates simpler code that is less error prone than if the
+transformations were done by hand.
+
+Most of the work was implementing strobe, there were no great
+difficulties in translating most functions, except that the
+\texttt{Strobe} type could not be mutable. Therefore, in our
+implementation we returned a new strobe object in each function instead
+of taking one as argument and modifying it. Since all operations needed
+were supported by the Secret Integer hacspec type we naturally used
+this over the less secure Public Integers.
+
+Merlin uses Keccakf1600 for its hashing, fortunately this cryptographic
+function was already defined in another hacspec library, which we
+imported. We ran into issues however since Keccakf1600 is defined for 64
+bit integers and strobe operates on bytes. Therefore we had to transmute
+the \texttt{state} object, from a list of bytes into a shorter list
+of 64 bit integers. In the Rust Merlin implementation this was easy:
+
+\begin{lstlisting}
+fn transmute_state(st: &mut AlignedKeccakState) -> &mut [u64; 25] {
+    unsafe { &mut *(st as *mut AlignedKeccakState as *mut [u64; 25]) }
+}
+\end{lstlisting}
+
+But in our case we ended up doing the following: 
+
+\begin{lstlisting}
+// Turns a stateU8 into a StateU64
+fn transmute_state_to_u64(state: StateU8) -> StateU64 {
+    let mut new_state = StateU64::new();
+
+    for i in 0..new_state.len() {
+        let mut word = U64Word::new();
+        for j in 0..word.len() {
+            word[j] = state[i * 8 + j];
+        }
+        new_state[i] = U64_from_le_bytes(word);
+    }
+
+    new_state
+}
+
+// Turns a stateU64 into a StateU8
+fn transmute_state_to_u8(state: StateU64) -> StateU8 {
+    let mut new_state = StateU8::new();
+
+    for i in 0..state.len() {
+        let bytes = state[i].to_le_bytes();
+        for j in 0..bytes.len() {
+            new_state[i * 8 + j] = bytes[j]
+        }
+    }
+
+    new_state
+}
+\end{lstlisting}
+
+Which is of course significantly slower but gets the job done.
+
 \subsection{Implementing Inner Product Proof:}
 
 We'll start by presenting the prover's algorithm as implemented in pseudocode. Note that we index at 1:
@@ -1595,6 +1661,10 @@ to other bottlenecks.
 
 	\Return{$\opn{Result}$}
 \end{algorithm}
+
+\textbf{Testing:}
+
+Given that we 
 
 \subsection{Implementing Bulletproofs:}
 
