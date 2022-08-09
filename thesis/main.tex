@@ -270,6 +270,12 @@ naturally yield the identity element $\mathcal{O}$ by definition.
 Additionally multiplying by a negative integer, ${-m}$, is defined as
 $-m\cdot P = m\cdot ({-P})$.
 
+With these definitions we can also define the concept of an elliptic curve's 'generator'.
+
+\begin{definition}[EC Generator]
+	A Generator for any given Elliptic curve is a point, for which all possible points can be reached using addition or scalar multiplication of this point. The set of all possible generators for a curve is denoted $\G$.
+\end{definition}
+
 The particular curve used for our implementation, as well as the
 implementation of the Rust bulletproofs, is a special curve from a subset
 of curves known as Montgomery curves. These curves are defined by the
@@ -946,7 +952,7 @@ figure out anything about $v$ and thus the proof is also zero-knowledge.
 \subsection{Aggregation of rangeproofs:}
 
 An aggregated range-proof is a rangeproof which proves that a series
-of vectors $\vec{v}$ lie within a certain range:
+of values, $\vec{v} \in \Z^m$, lie within a certain range:
 
 \eqn{agg-range}{
 	[0,2^n)
@@ -962,7 +968,7 @@ needs to prove lies within the range (\ref{agg-range}). Each $\P_{(j)}$
 will converse with the so-called dealer $\D$, who takes on the role
 of $\V$, thus being responsible for collecting the various commitments
 from each $\P_{(j)}$ and generating challenges which will be used by all
-$\P_{(j)}$'s. At the very end $\D$ will then collect all the individual
+$\P_{(j)}$'s. At the very end, $\D$ will then collect all the individual
 rangeproofs for each value and aggregate them. It is important to note
 that all parties are in agreement over a specific $n$.
 
@@ -981,26 +987,26 @@ such for the jth party:
 	y^n_{(j)} &= y^{n*m}[j*n:(j+1)*n]
 }
 
-the evaluation point $\ran{x}$ is the same for all parties. The choice
+The evaluation point $\ran{x}$ is the same for all parties. The choice
 of $\ran{y}, \ran{z}$ and $\ran{x}$ is done where it would ordinarily
-be done, but only once the dealer has received the needed values from
-ALL parties. Once again, this can also be done using the Fiat-Shamir
+be done, but only once $\D$ has received the needed values from
+ALL $\P_{(j)}$. Once again, this can also be done using the Fiat-Shamir
 Heuristic. (\ref{fiat-shamir-heuristic})
 
 After each party has created $t_{(j)}(x) =
 \dotp{\vec{l}_{(j)}(x)}{\vec{r}_{(j)}(x)}$ it would be sufficient
 to perform the proving steps from \ref{range-proofs} for each
-party. However this will require the dealer to make $m$ checks to see
-if each $v_j$ lies within the range. However the dealer can do a few
+party. However this will require $\D$ to make $m$ checks to see
+if each $v_j$ lies within the range (\ref{agg-range}). However $\D$ can do a few
 more computations to create a singular proof which requires a single
-check to see that ALL $v$ lie within the range.
+check to see that ALL $v_j$ lie within the range. (\ref{agg-range})
 
-For the jth party to prove that its polynomial $t_{(j)}(x)$
-is correct means proving that $\vec{l}_{(j)}(x)$ and
-$\vec{r}_{(j)}(x)$ are created correctly and that $t_{(j), 0} =
+For $\P_{(j)}$ to prove that its polynomial $t_{(j)}(x)$
+is correct means proving that $t_{0,(j)}$ is correct as well as proving that $\vec{l}_{(j)}(x)$ and
+$\vec{r}_{(j)}(x)$ are created correctly and that $t_{(j)} =
 \dotp{\vec{l}_{(j)}(x)}{\vec{r}_{(j)}(x)}$.
 
-Each party sends their $T_{1,(j)}$ and $T_{2,(j)}$, to the dealer,
+Each $\P_{(j)}$ sends their $T_{1,(j)}$ and $T_{2,(j)}$, to the dealer,
 which can then compute:
 
 \eq{
@@ -1009,9 +1015,9 @@ which can then compute:
 	\delta(y,z) &= \sum^{m-1}_{j = 0} \delta_{(j)}(y,z)
 }
 
-and from here the dealer can will send back the challenge
-$\ran{x}$ and each party will return $t_{(j)}(\ran{x})B$ and
-$\tt_{(j)}(\ran{x})\tB$. From here the dealer can then sum these
+and from here $\D$ sends back the challenge
+$\ran{x}$ and $\P_{(j)}$ will return $t_{(j)}(\ran{x})B$ and
+$\tt_{(j)}(\ran{x})\tB$. $\D$ can then sum these
 together as well:
 
 \eq{
@@ -1033,10 +1039,10 @@ we know that $z_{(j)} = z^j$ we can make a small rewrite:
 }
 
 
-And this check will then convince the dealer that all $t_{0,(j)}$
+And this check will then convince $\D$ that all $t_{0,(j)}$
 are correct.
 
-Just as with a singular rangeproof each party also wishes to prove
+Just as with a singular rangeproof each $\P_{(j)}$ also wishes to prove
 that each $\vec{l_{(j)}(x)}$ and $\vec{r_{(j)}(x)}$ are constructed
 correctly. This is done in a similar manner as proving $t_{0,(j)}$
 are all correct. Proving this property for the jth party would be
@@ -1046,9 +1052,9 @@ proving the following:
 	\dotp{\vec{l}_{(j)}(\ran{x})}{\vec{G}_{(j)}} + \dotp{\vec{r}_{(j)}(\ran{x})}{\vec{H'}_{(j)}} \stackrel{?}{=} -\widetilde{e}_{(j)}\widetilde{B} + A_{(j)} + \ran{x}S_{(j)} &&+ (\dotp{\ran{z}\vecran{y^n_{(j)}} + \ran{z^2}\ran{z_{(j)}}\vec{2^n}}{H'}_{(j)} - \ran{z}\dotp{\vec{1}}{\vec{G}_{(j)}})
 }
 
-Each party can send their $\dotp{\vec{l}_{(j)}(\ran{x})}{\vec{G}_{(j)}},
+$\P_{(j)}$ will send their $\dotp{\vec{l}_{(j)}(\ran{x})}{\vec{G}_{(j)}},
 \dotp{\vec{r}_{(j)}(\ran{x})}{\vec{H'}_{(j)}}$ and $\widetilde{e}_{(j)}$
-which the dealer can then combine the variables in the following way:
+which $\D$ can then combine in the following manner:
 
 \eq{
 	\vec{l}(x) &= \vec{l_0}(x) &&\concat \vec{l_1}(x) &&\concat \dots &&\concat \vec{l_{m-1}}(x)\\
@@ -1057,7 +1063,7 @@ which the dealer can then combine the variables in the following way:
 	\vec{H'} &= \vec{H'_0} &&\concat \vec{H'_1} &&\concat \dots &&\concat \vec{H'_{m-1}}
 }
 
-Additionally the dealer can construct the following:
+Additionally $\D$ can construct the following:
 
 \eq{
 	\vecran{y^n_{(j)}} &= \ran{y^{n*m}}[j*n : (j+1)*n]\\
@@ -1067,8 +1073,8 @@ Additionally the dealer can construct the following:
 	S &= \sum^{m-1}_{j = 0} S_{(j)}
 }
 
-Note that the dealer has already recieved $A_{(j)}$ and $S_{(j)}$
-from the first step of the transcript. The dealer can then use the
+Note that $\D$ has already recieved $A_{(j)}$ and $S_{(j)}$
+from the first step of the transcript. $\D$ can then use the
 following check to convince itself that all $\vec{l_{(j)}}(x)$ and
 $\vec{r_{(j)}}(x)$ are correctly constructed:
 
@@ -1076,12 +1082,22 @@ $\vec{r_{(j)}}(x)$ are correctly constructed:
 	\vec{l_{(j)}}(\ran{x}) + \vec{r_{(j)}}(\ran{x}) \stackrel{?}{=} -\widetilde{e}\widetilde{B} + A + \ran{x}S - \ran{z}\dotp{\vec{1}}{\vec{G}} + \ran{z}\dotp{\vecran{y^{n*m}}}{\vec{H'}} + \sum^{m-1}_{j = 0}\dotp{\ran{z^{j+2}}*\vec{2^n}}{\vec{H'}[j*n: (j+1)*n]}
 }
 
-And if this holds then the dealer is convinced that $\vec{l_{(j)}}(x)$
-and $\vec{r_{(j)}}(x)$ are correctly constructed and with the previous
-part on top it is now convinced that all parties' $v_{(j)}$ are within
-the range $[0,2^n)$ and thus the proof is complete. Additionally,
+And if this holds then $\D$ is convinced that $\vec{l_{(j)}}(x)$
+and $\vec{r_{(j)}}(x)$ are correctly constructed and that $l_{(j)}(x) = \dotp{\vec{l}_{(j)}(x)}{\vec{r}_{(j)}(x)}$. This, along with the previous
+part on top $\D$ is now convinced that all parties' $v_{(j)}$ are within
+the range (\ref{agg-range}) and thus the proof is complete. Additionally,
 using the same arguments as in \ref{verifier-range-proof} for each
-individual party, this is also sound and zero-knowledge.
+$\P_{(j)}$, this is also sound and zero-knowledge.
+
+This protocol in transcript form would be the following: 
+
+\eq{
+	&\P_{(j)} &&\rightarrow \D &&: V_{(j)}, n, A_{(j)}, S_{(j)} \\
+	&\D &&\rightarrow \P_{(j)} &&: \ran{y}, \ran{z}, j \\
+	&\P_{(j)} &&\rightarrow \V &&: T_{1, (j)}, T_{2,(j)} \\
+	&\D &&\rightarrow \P_{(j)} &&: \ran{x} \\
+	&\P_{(j)} &&\rightarrow \V &&: t_{(j)}(\ran{x})B, \tt_{(j)}(\ran{x})\tB, \widetilde{e} \hspace*{1cm}\text{($t_{(j)}(x)$ and $\tt_{(j)}(\ran{x})\tB$ both evaluated with challenge $\ran{x}$)}\\
+}
 
 
 \subsection{Fiat-Shamir Heuristic}\label{fiat-shamir-heuristic}
@@ -1131,7 +1147,13 @@ Crutically allowing $\P$ to complete the entire proof without ever
 needed to hear from $\V$. The proof is still sound as $\P$ cannot get
 $e$ without commiting to a $K$ first.
 
-\textbf{NOTE: Inkluder hvad hvordan vores fiat-shamir ser ud}
+Our Fiat-Shamir for the bulletproofs algorithm requires a 'overseer' for the parties who can gather all the needed values to create the challenges. In essence when a challenge is needed all parties will send their values to this local overseer who can then generate the challenges using the Fiat-Shamir Heuristic. Specifically $y = \textbf{H}(\vec{V},\vec{A},\vec{S}), z = \textbf{H}(\vec{V},\vec{A},\vec{S}, y)$ and $x = \textbf{H}(\vec{V},\vec{A},\vec{S}, y, \vec{T_1},\vec{T_2})$. This will result in the following final transcript:
+
+\eq{
+	&\P_{(j)} &&\rightarrow \D &&: V_{(j)}, n, A_{(j)}, S_{(j)}, j, T_{1, (j)}, T_{2,(j)}, t_{(j)}(\ran{x})B, \tt_{(j)}(\ran{x})\tB, \widetilde{e}
+}
+
+Finally, recently there was a vulnerability within the Fiat-Shamir Heuristic suggested in \cite{bulletproofs}, in which a malicious prover could cheat successfully every time. This was because in the original paper the Fiat-Shamir Heuristic did not include $\vec{V}$ in their hash function which allowed a malicious $\P$ to get a proof verified even if one or more $vs$ did not lie within the range. This vulnerability has since been fixed, and is thus not in effect anymore.
 
 \section{Our Contributions:}
 
@@ -1373,7 +1395,7 @@ co-factor of $8$, thus meeting the criteria for using Ristretto to eliminate thi
 	$\assertIsPowerOfTwo$ \\
 	$\assertLengths$ \\
 	$\appendN$ \\
-	\For{$i_ \in [0 : \log_2(n)]$}{
+	\For{$i \in [0 : \log_2(n)]$}{
 		$L = \dotp{\veclo{a}}{\vechi{G}} + \dotp{\vechi{b}}{\veclo{H}} + \dotp{\veclo{a}}{\vechi{b}}$ \\
 		$R = \dotp{\vechi{a}}{\veclo{G}} + \dotp{\veclo{b}}{\vechi{H}} + \dotp{\vechi{a}}{\veclo{b}}$ \\
 		\ \\
@@ -1465,15 +1487,25 @@ co-factor of $8$, thus meeting the criteria for using Ristretto to eliminate thi
 	\caption{Bulletproof algorithm}
 \end{algorithm}
 
-The final part of the project was the implementation of the Bulletproofs protocol. The code was heavily based on the code we were testing against as well as the mathematical formulas explained in \ref*{Bulletproofs}. This implementation had X major roadblocks.
+The final part of the project was the implementation of the Bulletproofs protocol. The code was heavily based on the code we were testing against as well as the mathematical formulas explained in \ref*{Bulletproofs}. The implementation followed the pseudo-code format as seen above just like the implementation we test against did. The implementation ran into a few roadblocks during devealopment, some relating specifically to Hacspec. 
 
 The first big roadblock was the immense length it would have. This meant that writing any sort of test for the code would require it to be finished in nearly its entirety. This resulted in many tests being performed before the code was finished through the simple method of printing out every value on the screen and checking if they match what we are testing against, in order to ensure that our code was working correctly. But this in and of itself was an issue as the library we test against, naturally does not print all values on the screen. For this reason we forked their library and inserted the needed print statements. However yet another issue with this was the fact that their library has built-in randomness. This meant that our code had no way to utlize the exact same random values, something that is vital when testing to see if it works in the same way. Therefore we refactored all random values into inputs in their library. This in no way changes the functionality of their code, but instead it allows us to control the random values it uses, which we can then match to our own, and thus allowing us to test against it. 
 
 To keep our implementation as simple as possible we only implemented what would be equivalent to the \texttt{prove\_multiple\_with\_rng} method from the library we test against. We felt this was sufficient as the \texttt{prove\_multiple}, \texttt{prove\_single\_with\_rng} and \texttt{prove\_single} methods would all call \texttt{prove\_multiple\_with\_rng} in some way.
 
-Outside of a few indexing errors and wrong calculation occationally, the implementation of the methods in a way that worked correctly was not much of an issue outside of how long it took to fully implement. The biggest issue with our implementation itself was making it hacspec compliant. Specifically there were many problems involving \texttt{Seq} objects. Most cumbersome of which were the fact that a \texttt{Seq} could not be a part of a tuple, if said tuple was going to be unwrapped. This resulted in \texttt{prove()} being somewhat bloated with sequences, whenever a \texttt{party} method was going to be performed for each party. Ordinarily we would simply make a single \texttt{Seq} and store the tuple in this sequence, however this was not viable as the tuple would need to be unwrapped later, something Hacspec did not allow. Additionally there are many places in which \texttt{Seqs} objects contain other \texttt{Seq} objects where, whenever the outer sequence was indexed into the index needed to be cloned, before it could be used. 
+\subsubsection{Hacspec-related problems:}
+
+Outside of a few indexing errors and wrong calculation occationally, the implementation of the methods in a way that worked correctly was not much of an issue outside of how long it took to fully implement. 
+
+The biggest issue with our implementation itself was making it hacspec compliant. Specifically there were many problems involving \texttt{Seq} objects. Most cumbersome of which were the fact that a \texttt{Seq} could not be a part of a tuple, if said tuple was going to be unwrapped. This resulted in \texttt{prove()} being somewhat bloated with sequences, whenever a \texttt{party} method was going to be performed for each party. Ordinarily we would simply make a single \texttt{Seq} and store the tuple in this sequence, however this was not viable as the tuple would need to be unwrapped later, something Hacspec did not allow. Additionally there are many places in which \texttt{Seqs} objects contain other \texttt{Seq} objects where, whenever the outer sequence was indexed into the index needed to be cloned, before it could be used. 
 
 Additionally, while it is not actually much of an issue, Hacspec did not allow us to use iterators, and so we instead have an abundance of for-loops in our code. This results in our code being much slower than the library which we test against, which \textit{did} turn out to be somewhat of a problem when it came to testing correctness. While the code we test against could run in mere seconds, ours took several minutes to finish which made the checks bothersome. 
+
+\textbf{notes: Structs vs code aliases}
+
+\textbf{notes: Speed}
+
+\textbf{notes: Hacspec problems}
 
 \subsection{Conclusions on our work:}
 
