@@ -152,7 +152,8 @@ to understand the results of the work in this project.
 
 We start with \textit{fields} and the operations defined within
 them, as the operations we will later define that work on elliptic
-curves are built on fields.
+curves are built on fields. The definitions presented here are largely
+from \cite{elliptic-curves}.
 
 \begin{definition}[Field]
 	A field is a set $\F$, along with the \textit{addition} and
@@ -205,7 +206,9 @@ again in section \ref{implementing-ristretto} with regards to the code.
 
 \subsection{Elliptic Curve:}\label{elliptic-curves}
 
-To start our explanation of elliptic curves we add a few definitions:
+To start our explanation of elliptic curves we add a few
+definitions. Again, the definitions here are mostly from
+\cite{elliptic-curves}:
 
 \begin{definition}[Elliptic Curves]
 	An elliptic curve, $E$, is an algebraic curve defined over a
@@ -303,12 +306,13 @@ this by eliminating the co-factor. For more detail see \ref{ristretto}
 
 \subsection{Pedersen Commitment:}
 
-A Pedersen commitment is a commitment scheme defined by a certain
-property we will go into a little later. For our purposes we redefine
-the scheme to work with commitments to elliptic curve points rather than
-a value. First a single point $B$ on an elliptic curve, is chosen. This point will be the so-called generator. For
-Curve25519 we use the point we previously defined as the base point with x =
-9 and positive $y$.
+A Pedersen commitment is a commitment scheme originally defined
+by Torben Pryds Pedersen \cite{pedersen-commit}. The essence of
+Pedersen commitments is the so called \textit{Additive Homomorphism}
+\ref{pedersen-additive-homomorphism} defined later. For our purposes we
+redefine the scheme to work with commitments to elliptic curve points
+rather than a value. First a single point $B$ on an elliptic curve,
+is chosen. This point will be the generator.
 
 \begin{definition}[Pedersen Commitment]
 	A Pedersen commitment, to some message, $a$, with a randomly chosen
@@ -320,15 +324,16 @@ Curve25519 we use the point we previously defined as the base point with x =
 	is a curve point where no one knows $q$ such that $\tB = qB$.
 \end{definition}
 
-Here $\widetilde{a}$ serves as our perfect hiding. The construction of $\tB$ ensures perfect hiding as there is a nearly infinite
-amount of possible combinations of two points that can add to any given
-point. However while that is true, it does not provide perfect binding by
-definition of binding and hiding. From here on we will refer to a
-commitment to a message, $a$, with random value, $\widetilde{a}$, as $C(a,\widetilde{a})$.
+Here $\widetilde{a}$ serves as our perfect hiding. The construction
+of $\tB$ ensures perfect hiding as there is a nearly infinite amount
+of possible combinations of two points that can add to any given
+point. However while that is true, it does not provide perfect binding
+by definition of binding and hiding. From here on we will refer to
+a commitment to a message, $a$, with random value, $\widetilde{a}$,
+as $C(a,\widetilde{a})$.
 
 The most important property of Pedersen commitments however is
-that pedersen commitments have the property of \textit{Additive
-Homomorphism}:
+that pedersen commitments have the property of Additive Homomorphism:
 
 \begin{definition}[Additive Homomorphism] \label{pedersen-additive-homomorphism}
 	For any two Pedersen commitments $C(a_1,\ba_1), C(a_2,\ba_2)$ we have:
@@ -359,7 +364,7 @@ will show the simplest example of a Zero-knowledge proof, using the
 so-called Schnorr Identity Protocol.
 
 This crux of the Schnorr Identity Protocol is for $\P$ to show that
-they know the secret value x. This secret value has the following
+they know the secret value $x$. This secret value has the following
 relation to the public elliptic curve points $X$ and $G$:
 
 \eq{
@@ -422,7 +427,12 @@ but this is miniscule.
 
 \textbf{Zero-knowledge:}
 
-For a proof to be zero-knowledge it must hold that $\V$ did not gain any additional information. To see this we look at the transcript and see that $K$ does not include $x$ in its calculations, but $s$ does. However $s$ is blinded by $k$ meaning that $\V$ cannot infer $x$ without knowing $k$. And $\V$ cannot infer $k$ from $K$ any easier than it can infer $x$ from $X$, thus this proof is also zero-knowledge. 
+For a proof to be zero-knowledge it must hold that $\V$ did not gain
+any additional information. To see this we look at the transcript
+and see that $K$ does not include $x$ in its calculations, but $s$
+does. However $s$ is blinded by $k$ meaning that $\V$ cannot infer $x$
+without knowing $k$. And $\V$ cannot infer $k$ from $K$ any easier
+than it can infer $x$ from $X$, thus this proof is also zero-knowledge.
 
 \section{The Bulletproofs protocol} \label{Bulletproofs}
 
@@ -431,7 +441,10 @@ Hacspec, using property-based testing to ensure it is equivalent to the
 implementation done in Rust, using Curve25519. A bulletproof is a
 non-interactive aggregation of rangeproofs using Pedersen commitments.
 The following section will describe each of these terms in greater detail
-on a theoretic level.
+on a theoretic level. The following subsections have been created
+based on the original bulletproofs paper \cite{bulletproofs} as
+well as the implementation notes from the Dalek-Bulletproofs project
+\cite{dalek-bulletproofs}.
 
 \subsection{Inner Product Proof:}
 A prover, $\P$, wants to prove to a verifier, $\V$, that he has
@@ -1468,8 +1481,6 @@ running the loop as it simplifies and shortens the code. Furthermore,
 the performance increase, while noticable was not significant compared
 to other bottlenecks.
 
-
-
 \begin{algorithm}[H]
 	\caption{IPP: The Verifiers's Algorithm}
 
@@ -1497,7 +1508,6 @@ to other bottlenecks.
 	$\opn{Result} := P' \stackrel{?}{=} \dotp{a\vec{s}}{\vec{G}} + \dotp{b\vec{s'}}{\vec{H}} + abQ - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i)$
 
 	\Return{$\opn{Result}$}
-
 \end{algorithm}
 
 \subsection{Implementing Bulletproofs:}
