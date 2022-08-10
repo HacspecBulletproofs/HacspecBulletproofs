@@ -180,6 +180,32 @@ In this paper we will briefly go over the prerequisites for understanding the bu
 %Sources of vulnerabilities could for example be inflation bugs or Frozen Heart.
 
 %One way to minimize the odds of vulnerabilities is using proof assistance. 
+\section{Notation:} \label{notation}
+
+A table of notation used throughout this report:
+
+\begin{center}
+\begin{tabular}{ c l }
+	$a$                         & A scalar \\
+	$\vec{a}$                   & A vector \\
+	$A$                         & A curve point \\
+	$\vec{A}$                   & A vector of curve points \\
+	$\ran{a}$                   & A scalar random variable \\
+	$\vecran{a}$                & A vector of scalar random variables \\
+	$\vecran{A}$                & A vector of random curve points \\
+	$\veclo{a}$                 & The first half of vector $\vec{a}$, ($\veclo{a} = [a_{1}, \cdots, a_{n/2}]$) \\
+	$\vechi{a}$                 & The second half of vector $\vec{a}$, ($\vechi{a} = [a_{n/2+1}, \cdots, a_{n}]$) \\
+	$\vec{a^n}$                 & A vector of scalars which are made up of powers of $a$ i.e. $[1,a,a^2... a^{n-1}]$\\
+	$\vec{a} \concat \vec{b}$   & A vector, $\vec{a}$, concatinated with another vector, $\vec{b}$\\
+	$\mathbb{A}$                & A set \\
+	$\mathbb{A}^n$              & A vector space of dimension $n$ \\ 
+	$\mathbb{A}_n$              & A set whose elements are mod $n$ \\ 
+	$a(x)$                      & A function mapping integers mod p to integers mod p: $\Z_p \rightarrow \Z_p$ \\
+	$\vec{a}(x)$                & A function mapping integers mod p to vectors containing integers mod p: $\Z_p \rightarrow \Z^n_p$ \\
+	$\dotp{\vec{a}}{\vec{b}}$   & Dot product of $\vec{a}$ and $\vec{b}$ \\
+	$\dotp{\vec{a}}{\vec{A}}$   & The sum of scalar-point products of $\vec{a}$ and $\vec{A}$ ($\dotp{\vec{a}}{\vec{A}} = a_1 A_1 + a_2 A_2 + \cdots + a_n A_n$) \\
+\end{tabular}
+\end{center}
 
 %However, you cannot implement protocols that can be used by proof assistance programs and execute efficiently.
 
@@ -1378,70 +1404,78 @@ be equal.
 
 \subsection{Implementing Ristretto:} \label{implementing-ristretto}
 
-For the Ristretto implementation on Curve25519 we used an IETF-standard
-specification and the paper of exactly this, which was used as a guide
-for our implementation \cite{ristretto-ietf}.  This specification
-was very helpful when implemting, as it clearly defined the types and
-functionalities needed to implement Ristretto securely. However there
-was one operation that needed to be implemented, which did \textit{not}
-have a standard forumla for its implementation. This method was scalar
-multiplication. For this we used the specification from (Insert
-Reference to literature here). This proved to work perfectly, with
-the given tests and the IETF-standard methods.
+% However there was one operation that needed to be implemented, which did \textit{not} have a standard forumla for its implementation. This method was scalar multiplication. For this we used the specification from (Insert Reference to literature here). This proved to work perfectly, with the given tests and the IETF-standard methods.
+
+For the Ristretto Curve25519 implementation we used the Ristretto255
+IETF-standard \cite{ristretto-ietf} and the "Twisted Edwards Curves
+Revisited" paper \cite{edwards-curves} which was used as a guide for our
+implementation. This specification was very helpful when implemting,
+as it clearly defined the types and functionalities needed to implement
+Ristretto securely.
 
 Ristretto is, in essence, a prime-order subgroup of a non-prime-order
-Edwards curve which has a co-factor of 4 or 8. The subgroup formed
-under Ristretto is constructed in such a way that it elimates this
-co-factor, which is useful to avoid additional checks and also avoids
-the risk of leaving in exploitable vulnerabilities which utilize the
-co-factor. One such vulnerability was found that affects all CryptoNote
-based cryptocurrencies \cite{cryptonote}.  Ristretto elimates all of
-these checks and potential vulnerabilities by automatically mapping
-all points on the curve directly into the subset of the curve in the
-operations themselves. Additionally Ristretto defines equality such that
-equivalent representations of the same point are considered equal. In
-the same vein the encoding function for points, encodes equivalent
-points to the same encoding and by proxy the decoding function decodes
-those points to the same point.
+Edwards curve which has a co-factor of 4 or 8. The subgroup formed under
+Ristretto is constructed in such a way that it elimates this co-factor,
+which is useful to avoid additional checks and also avoids the risk of
+leaving in exploitable vulnerabilities which utilize the co-factor. One
+such vulnerability was found that affects all CryptoNote based
+cryptocurrencies including Monero \cite{cryptonote}. Ristretto elimates
+all of these checks and potential vulnerabilities by automatically
+mapping all points on the curve directly into the subset of the curve
+in the operations themselves. Additionally Ristretto defines equality
+such that equivalent representations of the same point are considered
+equal. In the same vein the encoding function for points, encodes
+equivalent points to the same encoding and by proxy the decoding
+function decodes those points to the same point.
 
 For our implementation of bulletproofs, seeing as we needed to test it
 against an existing implementation, we made use of the same elliptic
-curve, as well as gained an understanding of the basics of elliptic
-curve cryptography. The elliptic curve in question is Curve25519,
-which is widely used in encryption as is the case here. Curve25519,
-is defined by the following formula:
+curve. The elliptic curve in question is Curve25519, which is widely
+used in encryption. The curve, is defined by the following formula:
 
 $$y^2 = x^3 + 48662x^2 + x$$
 
-This curve is defined over the prime field $p = 2^{255} - 19$ and base
-point defined at $x = 9$ with the positive $y$ value. This results
-in a sub-group of order $2^{252} + 2774231777737235353585$, which has
-a co-factor of $8$, thus meeting the criteria for using Ristretto to
-eliminate this co-factor.
+This curve is defined over the prime field $\F_p$ where $p =
+2^{255} - 19$ and base point defined at $x = 9$ with the $y$ value
+being positive. This results in a sub-group of order $2^{252} +
+2774231777737235353585$, which has a co-factor of $8$, thus meeting
+the criteria for using Ristretto to eliminate this co-factor.
 
-Each internal point representation is composed of four field elements
-$(X : Y : Z : T)$. Field-elements, as defined by the standard are
-values modulo $p$, with $p$ being the prime field for Curve25519,
-$2^{255} - 19$. This was achieved using the \texttt{public\_nat\_mod!}
-macro which defines finite fields over a given modulo. Conveniently it
-accepts hex values as modulo values, which allowed us to easily make
-the modulo value $2^{255} - 19$. Most of the standard integer operators
-like addition, subtraction and multiplication are also implemented for
-these field elements. During testing we discovered that the internal
-calculations for division is done using integer arithmetic rather than
-finite field arithmetic, discussion with the Hacspec team confirmed
-that this was an oversight and we raised an issue. This was fortunately
-not a problem for us as the few times where division is used directly
-it is ensured that the result in finite field arithmetic is equal to
-the integer arithmetic solution.
+Each internal representation of a Ristretto point is an Edwards point
+composed of four field elements $(X : Y : Z : T)$. Field-elements,
+as defined by the standard are values modulo $p$, with $p$ being the
+prime field for Curve25519, $2^{255} - 19$. This was achieved using
+the \texttt{public\_nat\_mod!} macro which defines finite fields over
+a given modulo. Conveniently it accepts hex values as modulo values,
+which allowed us to easily make the modulo value $2^{255} - 19$:
+
+\begin{lstlisting}
+public_nat_mod!(
+    type_name: FieldElement,
+    type_of_canvas: FieldCanvas,
+    bit_size_of_field: 256,
+    modulo_value: "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed"
+);
+\end{lstlisting}
 
 Additionally the standard, specified a series of constants. These
 constants were too large to be implemented as integers and hacspec
-did not allow for the use \texttt{from\_hex()} method. As such, after
-converting each of these constants into their corresponding hex-values,
+did not allow for the use \texttt{from\_hex()} method. As such,
 we built them as byte sequences for which we had an equivalent
 \texttt{from\_byte\_seq\_be} which created the correct constants. This
-worked as intended but invevitably reduced readability of the code.
+worked as intended but invevitably reduced readability of the code. An
+example of such a constant definition can be seen below:
+
+\begin{lstlisting}
+fn P() -> FieldElement {
+    FieldElement::from_byte_seq_be(&byte_seq!(
+        0x7fu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8,
+        0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8,
+        0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8,
+        0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xedu8
+    ))
+}
+\end{lstlisting}
 
 While it is impossible for a legal point to be encoded and then have the
 decoding on its encoding fail, the decoding method has several checks
@@ -1459,11 +1493,13 @@ however we used the specification from \cite{elliptic-curves}. This
 proved to work perfectly, with the given tests and the IETF-standard
 methods.
 
-\subsubsection{Hacspec related problems:}
+Due to the need for comparing points scalars had to be implemented using
+hacspec's built-in public integers rather than the more secure secret
+integers. However secret integers cannot be compared to one another,
+something that was required by the IETF-standard.
 
-Due to the need for comparing points scalars had to be implemented using \texttt{public\_nat\_mod!} rather than the more secure \texttt{nat\_mod!} which has nearly identical functionality except over secret integers. However secret integers cannot be compared, something that was required by the IETF-standard.
-
-Additionally we ran into two issues with using \texttt{public\_nat\_mod!}. The first was one of the checks in decode:
+Additionally we ran into two issues with using
+\texttt{public\_nat\_mod!}. The first was one of the checks in decode:
 
 \begin{lstlisting}
 	pub fn decode(u: RistrettoPointEncoded) -> DecodeResult {
@@ -1490,9 +1526,17 @@ Additionally we ran into two issues with using \texttt{public\_nat\_mod!}. The f
 }
 \end{lstlisting}
 
-This check involves checking to see if the inputted byte sequence, if interpreted as a field element is larger than $p$. This is naturally not possible to do directly given that all field elements in our implementation are integers mod $p$. As such it is done in this manner to circumvent this issue.
+This check involves checking to see if the inputted byte sequence, if
+interpreted as a field element is larger than $p$. This is naturally
+not possible to do directly given that all field elements in our
+implementation are integers mod $p$. As such it is done in this manner
+to circumvent this issue.
 
-Another more significant issue we encountered was in the implementation of the one-way map, in which, we must mod the 255 least significant bits of both halves of a ByteString object. However the two halves of the ByteString are each 256 bits. This means that the most significant bit must be set to 0. in the code this is as follows:
+Another more significant issue we encountered was in the implementation
+of the one-way map, in which, we must mod the 255 least significant
+bits of both halves of a ByteString object. However the two halves of
+the ByteString are each 256 bits. This means that the most significant
+bit must be set to 0. in the code this is as follows:
 
 \begin{lstlisting}
 	pub fn one_way_map(b: ByteString) -> RistrettoPoint {
@@ -1519,9 +1563,14 @@ This interaction was tested thoroughly to ensure it functions as we intended it 
 
 \subsection{Implementing Merlin:} \label{implementing-merlin}
 
-Merlin \cite{merlin} is for the most part a wrapper over the Strobe protocol
-\cite{strobe}. It performs the Fiat-Shamir Heuristic by keeping
-a running hash of the transcript. Importantly, it does this in a way so algorithms implemented using it will appear to interact with a verifier, while remaining non-interactive. It achieves this by only allowing he algorithm to commit or receive challenge scalars from the transcript. This allows for simpler code that is less error prone than if the Fiat-Shamir Heuristic were done without it.
+Merlin \cite{merlin} is for the most part a wrapper over the Strobe
+protocol \cite{strobe}. It performs the Fiat-Shamir Heuristic by
+keeping a running hash of the transcript. Importantly, it does this
+in a way so algorithms implemented using it will appear to interact
+with a verifier, while remaining non-interactive. It achieves this
+by only allowing he algorithm to commit or receive challenge scalars
+from the transcript. This allows for simpler code that is less error
+prone than if the Fiat-Shamir Heuristic were done without it.
 
 Most of the work was implementing strobe. There were no great
 difficulties in translating most functions, except that the
@@ -1532,10 +1581,11 @@ were supported by the Secret Integer hacspec type, we naturally used
 this over the less secure Public Integers.
 
 Merlin uses Keccakf1600 for its hashing, fortunately this cryptographic
-function was already defined in another hacspec library. We ran into issues however, since Keccakf1600 is defined for 64
-bit integers and strobe operates on bytes. Therefore we had to transmute
-the \texttt{state} object, from a list of bytes into a shorter list
-of 64 bit integers. In the Dalek Rust Merlin implementation this was simple:
+function was already defined in another hacspec library. We ran into
+issues however, since Keccakf1600 is defined for 64 bit integers
+and strobe operates on bytes. Therefore we had to transmute the
+\texttt{state} object, from a list of bytes into a shorter list of 64
+bit integers. In the Dalek Rust Merlin implementation this was simple:
 
 \begin{lstlisting}
 fn transmute_state(st: &mut AlignedKeccakState) -> &mut [u64; 25] {
@@ -1576,10 +1626,45 @@ fn transmute_state_to_u8(state: StateU64) -> StateU8 {
 }
 \end{lstlisting}
 
-This implementation is significantly slower, as expected, but functions
+This tranformation is significantly slower, as expected, but functions
 correctly.
 
 \textbf{Testing:}
+
+\begin{lstlisting}
+// Tests all merlin functions against the external merlin counterparts.
+#[test]
+fn merl_test_all_funcs() {
+	fn helper(msg: Vec<u8>, n: u64, buf_size: u8) -> TestResult {
+		let mut ret = true;
+		let mut t1 = new(b("str"));
+		let mut t2 = merlin::Transcript::new(b"str");
+		let mut buf = Vec::<u8>::new();
+		buf.resize(buf_size as usize, 0);
+
+		t1 = append_message(t1, b("msg"), to_seq(msg.clone()));
+		t1 = append_u64(t1, b("n"), U64::classify(n));
+
+		t2.append_message(b"msg", &msg);
+		t2.append_u64(b"n", n);
+
+		let (_, data) = challenge_bytes(t1, b("challenge_label"), to_seq(buf.clone()));
+		t2.challenge_bytes(b"challenge_label", &mut buf);
+
+		if data.len() != buf.len() {
+			ret = false
+		}
+		for i in 0..data.len() {
+			if data[i].declassify() != buf[i] {
+				ret = false;
+			}
+		}
+
+		TestResult::from_bool(ret)
+	}
+	quickcheck(helper as fn(Vec<u8>, u64, u8) -> TestResult);
+}
+\end{lstlisting}
 
 \subsection{Implementing Inner Product Proof:}
 
@@ -1908,32 +1993,5 @@ In essence we have laid nearly all the groundwork for the future work of actuall
 
 \section{References}
 \printbibliography
-
-\section{Appendix A: Notation:} \label{notation}
-
-A table of notation used throughout this report:
-
-\begin{center}
-\begin{tabular}{ c l }
-	$a$                         & A scalar \\
-	$\vec{a}$                   & A vector \\
-	$A$                         & A curve point \\
-	$\vec{A}$                   & A vector of curve points \\
-	$\ran{a}$                   & A scalar random variable \\
-	$\vecran{a}$                & A vector of scalar random variables \\
-	$\vecran{A}$                & A vector of random curve points \\
-	$\veclo{a}$                 & The first half of vector $\vec{a}$, ($\veclo{a} = [a_{1}, \cdots, a_{n/2}]$) \\
-	$\vechi{a}$                 & The second half of vector $\vec{a}$, ($\vechi{a} = [a_{n/2+1}, \cdots, a_{n}]$) \\
-	$\vec{a^n}$                 & A vector of scalars which are made up of powers of $a$ i.e. $[1,a,a^2... a^{n-1}]$\\
-	$\vec{a} \concat \vec{b}$   & A vector, $\vec{a}$, concatinated with another vector, $\vec{b}$\\
-	$\mathbb{A}$                & A set \\
-	$\mathbb{A}^n$              & A vector space of dimension $n$ \\ 
-	$\mathbb{A}_n$              & A set whose elements are mod $n$ \\ 
-	$a(x)$                      & A function mapping integers mod p to integers mod p: $\Z_p \rightarrow \Z_p$ \\
-	$\vec{a}(x)$                & A function mapping integers mod p to vectors containing integers mod p: $\Z_p \rightarrow \Z^n_p$ \\
-	$\dotp{\vec{a}}{\vec{b}}$   & Dot product of $\vec{a}$ and $\vec{b}$ \\
-	$\dotp{\vec{a}}{\vec{A}}$   & The sum of scalar-point products of $\vec{a}$ and $\vec{A}$ ($\dotp{\vec{a}}{\vec{A}} = a_1 A_1 + a_2 A_2 + \cdots + a_n A_n$) \\
-\end{tabular}
-\end{center}
 
 \end{document}
