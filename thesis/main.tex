@@ -143,6 +143,39 @@ Department of Computer Science, Aarhus University\\
 
 \section{Introduction:} \label{Introduction}
 
+Transmission of data over the Internet can be incredibly risky, especially where transmitting money is concerned. This is the problem that cryptographic protocols seek to eliminate by ensuring that this data is transmitted with as little information as possible. The least possible information to transmit is a so-called Zero-knowledge proof where \textit{no} information can be infered from the outside, and only one piece of information can be discovered by the receiver. One of the newest cryptographic protocols is the Bulletproof Protocol, created by Bünz et al. (\cite{bulletproofs}). This protocol creates a short and secure way to show that a series of values lie within a range of $[0:2^n)$ for a provided n. Showing this will allow honest provers to encrypt information about the amount of money on their account when making online purchases, among other things, in a secure and compact way. 
+
+Bulletproofs were implemented in Rust about three years ago. However this implementation may have certain vulnerabilities, which could allow for exploitation by malicious users. This may lead to inflation bugs (\cite{cryptonote}, \cite{z-cash}) or the Frozen Heart vulnerability. (\cite{frozen-heart}) One way to minimize the odds of such vulnerabilities is using a Proof Assistant, such as Coq. The greatest issue with using such a Proof Assistant is that it is currently impossible to make an implementation of a cryptographic protocol which can both use a Proof Assistant and also execute effectively. 
+
+For this purpose a specification language, called Hacspec, was created. \cite{hacspec}Hacspec is a subset of the programming language Rust which sets certain restrictions on the code to allow code written in it, to compile into a Proof Assistant. %Rasmus kan nok skrive det her om meget kort
+
+The overall goal of this paper is to implement the Bulletrpoof protocol in Hacspec, while ensuring it functions identically to the existing Rust implementation, thus allowing the use of a Proof Assistant on the existing indirectly by using our Hacspec implementation. Additionally we also wish to write our implementation in a way that allows future devealopers to implement other cryptographic protocols using various modules from our implementation.
+
+In this paper we will briefly go over the prerequisites for understanding the bulletproofs protocol, the protocol itself, as well as relevant material for understanding the implementation and finally everything we implemented. We finalize this paper by discussing possible future work that can be done on the back of our work, concluding the overall project.
+
+
+%Background: Hacspec.
+
+%Problem: Bulletproofs implementation is not proven to function as the protocol says it should. If it does not there might be double-spend vulnerabilities. 
+
+%Goals: Implement Bulletproofs in Hacspec, in such a way that allows for other Hacspec protocols to be implemented using our modules.
+
+%Map out the paper.
+
+
+\textbf{Problem:}
+
+Bla bla vulnerabilities.
+
+Sources of vulnerabilities could for example be inflation bugs or Frozen Heart.
+
+One way to minimize the odds of vulnerabilities is using proof assistance. 
+
+However, you cannot implement protocols that can be used by proof assistance programs and execute efficiently.
+
+
+
+
 \section{Prerequisites:}
 
 In this section we will be going over the necessary background knowledge
@@ -1132,7 +1165,6 @@ This protocol in transcript form would be the following:
 This can be visualized using a graph:
 
 \includegraphics[scale=0.505]{img/multi-party protocol.png}
-
 
 \subsection{Fiat-Shamir Heuristic}\label{fiat-shamir-heuristic}
 
