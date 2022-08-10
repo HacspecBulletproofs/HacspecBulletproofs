@@ -1570,11 +1570,15 @@ fn transmute_state_to_u8(state: StateU64) -> StateU8 {
 }
 \end{lstlisting}
 
-This implementation is significantly slower, as expected, but functions correctly.
+This implementation is significantly slower, as expected, but functions
+correctly.
+
+\textbf{Testing:}
 
 \subsection{Implementing Inner Product Proof:}
 
-We'll start by presenting the prover's algorithm as implemented in pseudocode. Note that we index at 1:
+We'll start by presenting the prover and verifier's algorithms as
+implemented in pseudocode. Note that we index at 1:
 
 \begin{algorithm}[H]
 	\caption{IPP: The Prover's Algorithm}
@@ -1609,6 +1613,35 @@ We'll start by presenting the prover's algorithm as implemented in pseudocode. N
 
 	\Return{$(a_1, b_1, \vec{L}, \vec{R})$}
 
+\end{algorithm}
+
+\begin{algorithm}[H]
+	\caption{IPP: The Verifiers's Algorithm}
+
+	\SetKwFunction{len}{.len()}
+	\SetKwFunction{assertIsPowerOfTwo}{assert($n$.is\_power\_of\_two())}
+	\SetKwFunction{assertLengths}{assert($n = \vec{a}\len = \vec{b}\len = \vec{G}\len = \vec{H}\len$)}
+	\SetKwFunction{appendN}{transcript.append($n$)}
+	\SetKwFunction{appendL}{transcript.append($L_i$)}
+	\SetKwFunction{appendR}{transcript.append($R_i$)}
+	\SetKwFunction{challenge}{transcript.challenge\_scalar()}
+
+	\KwIn{$a \in \Z_p, b \in \Z_p, n \in \Z, P' \in \G, Q \in \G, \vec{G} \in \G^n, \vec{H} \in\G^n$}
+
+	$k := \log_2(n)$ \\
+	\For{$i \in [1 : k+1]$}{
+		$\appendL$ \\
+		$\appendR$ \\
+		$u_i := \challenge$ \\
+	}
+	\For{$i \in [1 : n+1]$}{
+		$s_i  := u^{b(i,k)}_k \cdots u^{b(i,1)}_1$ \\
+		$s_i' := s_i^{-1}$
+	}
+
+	$\opn{Result} := P' \stackrel{?}{=} \dotp{a\vec{s}}{\vec{G}} + \dotp{b\vec{s'}}{\vec{H}} + abQ - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i)$
+
+	\Return{$\opn{Result}$}
 \end{algorithm}
 
 We tried to find a way to incorperate the linear algebra library into
@@ -1703,7 +1736,9 @@ to other bottlenecks. The file structure here is notable:
 
 We created a \texttt{transcript.rs} file that implemented wrapper
 functions over the Fiat-Shamir mechanism introduced by the Merlin
-library. This file needed access to defined errors needed access to the same errors as the \texttt{transcript.rs} file. Normally in Rust the solution would be:
+library. This file needed access to defined errors needed access to
+the same errors as the \texttt{transcript.rs} file. Normally in Rust
+the solution would be:
 
 \begin{lstlisting}
 use crate::errors::*;
@@ -1711,34 +1746,16 @@ use crate::errors::*;
 
 But this is not valid hacspec code. We resorted to doing:
 
-\begin{algorithm}[H]
-	\caption{IPP: The Verifiers's Algorithm}
+\begin{lstlisting}
+mod errors;
+use errors::*;
+\end{lstlisting}
 
-	\SetKwFunction{len}{.len()}
-	\SetKwFunction{assertIsPowerOfTwo}{assert($n$.is\_power\_of\_two())}
-	\SetKwFunction{assertLengths}{assert($n = \vec{a}\len = \vec{b}\len = \vec{G}\len = \vec{H}\len$)}
-	\SetKwFunction{appendN}{transcript.append($n$)}
-	\SetKwFunction{appendL}{transcript.append($L_i$)}
-	\SetKwFunction{appendR}{transcript.append($R_i$)}
-	\SetKwFunction{challenge}{transcript.challenge\_scalar()}
+And creating the \textbf{transcript} folder with a symbolic link
+\texttt{\textit{errors.rs}} $\rightarrow$ \texttt{errors.rs}. This lets
+us run the tests and avoids code duplication.
 
-	\KwIn{$a \in \Z_p, b \in \Z_p, n \in \Z, P' \in \G, Q \in \G, \vec{G} \in \G^n, \vec{H} \in\G^n$}
 
-	$k := \log_2(n)$ \\
-	\For{$i_ \in [1 : k+1]$}{
-		$\appendL$ \\
-		$\appendR$ \\
-		$u_i := \challenge$ \\
-	}
-	\For{$i_ \in [1 : n+1]$}{
-		$s_i  := u^{b(i,k)}_k \cdots u^{b(i,1)}_1$ \\
-		$s_i' := s_i^{-1}$
-	}
-
-	$\opn{Result} := P' \stackrel{?}{=} \dotp{a\vec{s}}{\vec{G}} + \dotp{b\vec{s'}}{\vec{H}} + abQ - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i)$
-
-	\Return{$\opn{Result}$}
-\end{algorithm}
 
 \textbf{Testing:}
 
