@@ -496,7 +496,7 @@ it does \textit{not} refer to exponentiation:
 This redefinition will be useful, because it will allow us redefine
 $\vec{a}, \vec{b}, \vec{G}, \vec{H}$ ($\vec{a}^{(k)}, \vec{b}^{(k)},
 \vec{G}^{(k)}, \vec{H}^{(k)}$) into a shorter format, while keeping the
-properties in equation \ref{def2} as invariants.
+properties in equation \ref{ipp-def2} as invariants.
 
 \eq{
 	\vec{a}^{(k-1)} &= \veclo{a^{\text{(k)}}} &&\cdot \ran{u}_k      &&+ \ran{u}^{-1}_k &&\cdot \vechi{a^{\text{(k)}}} \\
@@ -950,7 +950,7 @@ non-interactive.
 
 $\V$ has access to the following values:
 
-\eqn{def1-ver}{
+\eqn{range-def1-ver}{
 	\ran{y}, \ran{z}, \ran{x}, \widetilde{e} &\in \Z_p \\
 	\vec{L}, \vec{R} &\in \G_p^{k} \\
 	\vec{G}, \vec{H}, \vec{H'} &\in \G^n \\
@@ -1877,9 +1877,19 @@ Additionally, while it is not actually much of an issue, Hacspec did not allow u
 
 Finally the code we test against uses structs to keep hold of the values for each party and the dealer. This ensures that a potential client cannot accidentally perform the steps out of order, due to the next step being integrated in the struct itself. Hacspec does not allow for the use of structs. As such we instead use simple type-aliases which \textit{could} be forged and done out of order. This, in combination with how slow it is, practically disqulifies it from being put into use for creating bulletproofs properly. However this code is not designed for actual use by clients as a cryptographic algorithm, but rather it is supposed to be used for the purposes of creating proofs about the original code we test against.
 
-\subsection{Conclusions on our work:}
 
 \section{Future work:}
+
+In this section we will briefly describe the parts of the project that are currently still being worked on as well as what would be interesting to further work on.
+
+Currently our implementation functions as intended, however it has yet to be properly merged into Hacspec. This is currently still being worked on in collaboration with the Hacspec team. This process is lengthy and can involve refactoring parts of the code to allign with the rest of the Hacspec examples.
+
+After this is completed the work which we intended is finished and thus the opportunity for others to pick up our work arises. The most obvious next step is to use our implementation of the bulletproofs protocol with a Proof Assistant such as Coq to show various aspects about the original Rust implementation, which works identically to our own, only much more effectively. This would in turn improve the chances that the bulletproof protocol has no vulnerabilities. 
+
+Another possible path to pursue is the implementation of various other cryptographic protocols in Hacspec, which can use our implementations of Ristretto and Merlin without the need to implement them once more.
+
+
+\section{Conclusions on our work:}
 
 \section{Acknowledgements:}
 
