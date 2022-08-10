@@ -136,6 +136,15 @@ Department of Computer Science, Aarhus University\\
 
 \subsection*{Abstract:}
 
+In 2017, a cryptographic protocol called bulletproofs was created. This protocol sought to safely and compactly encrypt monetary transactions relating to the purchase of cryptocurrency. The protocol was implemented in 2019, in the programming language Rust, however, this implementation has a chance of including certain programming vulnerabilities. In fact, shortly after its creation a vulnerability was discovered in the form of the so-called Frozen Heart vulnerability. To this end, we have implemented the bulletproofs protocol, using the specification language, Hacspec, a subset of Rust, which is designed to function in the exact same manner as the original. The reasoning for this is that Hacspec allows the programs written in it to be compiled to so-called Proof Assistants such as Coq, which will be able to prove various properties of the code. A significant amount of our time during the project was spent reading up on the various theoretical concepts involved in the project, such as Finite Field Arithmatic, Elliptic Curves, Elliptic Curve Cryptography and naturally the mathetmatics behind Bulletproof protocol which allows it to function as it does. In the future, once our work has been integrated into Hacspec others may use a Proof Assistant such as Coq to prove certain properties for our code. These properties, will also hold for the equivalent, but more efficient, original implementation, since the two work identically to each other. This will improve the odds that it has no vulnerabilities.
+
+\subsection*{Acknowledgements:}
+
+We would like to express our gratitude and thanks towards all who have helped us with making this project possible.
+
+Firstly we would like to thank Bas Spitters, our supervisor, for his excellent guidance and expertise on the subject. Without him this project would not have been possible to this extent. Secondly we thank Franziskus Kiefer for his helpfulness in answering questions about various Hacspec-related quirks, issues, as well being swift in these responses in spite his large workload. Thirdly we want to thank Las Safin Dana, a personal friend of Rasmus Kirk, who was very helpful in proof-reading and asking insightful questions during the process of writing this paper. Finally we thank everyone who helped with small things at various stages of the project. Your assistance is greatly appreciated. 
+
+
 \tableofcontents
 
 \newpage
@@ -164,18 +173,15 @@ In this paper we will briefly go over the prerequisites for understanding the bu
 %Map out the paper.
 
 
-\textbf{Problem:}
+%\textbf{Problem:}
 
-Bla bla vulnerabilities.
+%Bla bla vulnerabilities.
 
-Sources of vulnerabilities could for example be inflation bugs or Frozen Heart.
+%Sources of vulnerabilities could for example be inflation bugs or Frozen Heart.
 
-One way to minimize the odds of vulnerabilities is using proof assistance. 
+%One way to minimize the odds of vulnerabilities is using proof assistance. 
 
-However, you cannot implement protocols that can be used by proof assistance programs and execute efficiently.
-
-
-
+%However, you cannot implement protocols that can be used by proof assistance programs and execute efficiently.
 
 \section{Prerequisites:}
 
@@ -1888,13 +1894,17 @@ After this is completed the work which we intended is finished and thus the oppo
 
 Another possible path to pursue is the implementation of various other cryptographic protocols in Hacspec, which can use our implementations of Ristretto and Merlin without the need to implement them once more.
 
+\section{Conclusion:}
 
-\section{Conclusions on our work:}
+Cryptation of cryptocurrency purchases need to be encrypted securely and effectively. To this end, the bulletproofs protocol was created, and subsequently implemented in Rust. However this implementation cannot be proven to be free of vulnerabilities. This is the problem that our project has begun to help ensure. 
 
-\section{Acknowledgements:}
+Throughout this project we have worked to gain an understanding of Elliptic Curve Cryptography, including the basics of Finite Field Arithmatics, and the Elliptic Curves in general. As well as gain a firm understanding of the theory behind the Bulletproofs protocol on a mathematical level, such as why it is not only a complete proof, but is also Sound and Zero-knowledge. 
 
-%% TAK TIL FRANZISKUS
-%% Lasse?
+In order to complete our task of helping to show that the Rust bulletproof implementation does not have any vulnerabilities we have implemented the bulletproofs protocol in a subset of Rust, Hacspec, a specification language which allows for its code to be compatible with Proof Assistants such as Coq. This implementation of Bulletproofs is constructed in a way that makes it function identically to the standard Rust implementation, and thus by proving properties about our implementation those same properties will hold for the Rust implementation.
+
+After gaining an understanding of the mathematics behind the Bulletproofs protocol, the implementation of the protocol itself was simple, with the only real roadblocks being that we also had to implement both Ristretto25519 and Merlin in order for our code to function identically to the original implementation. 
+
+In essence we have laid nearly all the groundwork for the future work of actually using a Proof Assistant to prove various properties about the Rust implementation, and we are quite satisfied with the results of our project. 
 
 \section{References}
 \printbibliography
