@@ -1757,8 +1757,8 @@ correctly.
 
 \subsection{Implementing Inner Product Proof:} \label{implementing-inner-product-proof}
 For testing the library we created one test that runs
-the \texttt{append_message()}, \texttt{append_u64()} and
-\texttt{challenge_bytes()} for both implementations and asserts that
+the \texttt{append\_message()}, \texttt{append\_u64()} and
+\texttt{challenge\_bytes()} for both implementations and asserts that
 the challenge bytes returned are equivelent. These functions are
 sufficient to test equivelence as these three functions utilizes all
 other functions implemented. The entire test can be seen below:
@@ -1796,7 +1796,6 @@ fn merl_test_all_funcs() {
 	}
 	quickcheck(helper as fn(Vec<u8>, u64, u8) -> TestResult);
 }
-
 \end{lstlisting}
 
 \subsection{Implementing Inner Product Proof:}
