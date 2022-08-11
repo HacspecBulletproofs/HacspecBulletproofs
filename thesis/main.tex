@@ -234,6 +234,8 @@ of our work, concluding the overall project.
 
 % NOTE: afprøv hacspec/lead the way for zeroknowledge protocols for hacspec
 
+\newpage
+
 \section{Notation:} \label{notation}
 
 A table of notation used throughout this report:
@@ -1685,9 +1687,14 @@ random points. It is also tested individually.
 
 \subsection{Implementing Merlin:} \label{implementing-merlin}
 
-Merlin \cite{merlin} is for the most part a wrapper over the Strobe protocol
-\cite{strobe}. It performs the Fiat-Shamir Heuristic by keeping
-a running hash of the transcript. Importantly, it does this in a way so algorithms implemented using it will appear to interact with a verifier, while remaining non-interactive. It achieves this by only allowing he algorithm to commit or receive challenge scalars from the transcript. This allows for simpler code that is less error prone than if the Fiat-Shamir Heuristic were done without it.
+Merlin \cite{merlin} is for the most part a wrapper over the Strobe
+protocol \cite{strobe}. It performs the Fiat-Shamir Heuristic by
+keeping a running hash of the transcript. Importantly, it does this
+in a way so algorithms implemented using it will appear to interact
+with a verifier, while remaining non-interactive. It achieves this
+by only allowing he algorithm to commit or receive challenge scalars
+from the transcript. This allows for simpler code that is less error
+prone than if the Fiat-Shamir Heuristic were done without it.
 
 Most of the work was implementing strobe. There were no great
 difficulties in translating most functions, except that the
@@ -1698,10 +1705,11 @@ were supported by the Secret Integer hacspec type, we naturally used
 this over the less secure Public Integers.
 
 Merlin uses Keccakf1600 for its hashing, fortunately this cryptographic
-function was already defined in another hacspec library. We ran into issues however, since Keccakf1600 is defined for 64
-bit integers and strobe operates on bytes. Therefore we had to transmute
-the \texttt{state} object, from a list of bytes into a shorter list
-of 64 bit integers. In the Dalek Rust Merlin implementation this was simple:
+function was already defined in another hacspec library. We ran into
+issues however, since Keccakf1600 is defined for 64 bit integers
+and strobe operates on bytes. Therefore we had to transmute the
+\texttt{state} object, from a list of bytes into a shorter list of 64
+bit integers. In the Dalek Rust Merlin implementation this was simple:
 
 \begin{lstlisting}
 fn transmute_state(st: &mut AlignedKeccakState) -> &mut [u64; 25] {
@@ -1924,12 +1932,16 @@ use errors::*;
 \end{lstlisting}
 
 And creating the \textbf{transcript} folder with a symbolic link
-\texttt{\textit{errors.rs}} $\rightarrow$ \texttt{errors.rs}. This lets both \texttt{ipp.rs} and \texttt{transcript.rs} access the \texttt{errors.rs} file without code duplication. This approach is not ideal  
-
-% NOTE: talk more here
+\texttt{\textit{errors.rs}} $\rightarrow$ \texttt{errors.rs}. This
+lets both \texttt{ipp.rs} and \texttt{transcript.rs} access the
+\texttt{errors.rs} file without code duplication. This approach is not
+ideal, but we have been unable to find any functional issues with it. If
+there should come objections during the merge process it could be solved
+using code duplication, by copying the error constants to both files.
 
 \textbf{Testing:}
 
+To test the inner product 
 % NOTE: Write about testing
 ...
 
