@@ -1610,6 +1610,8 @@ bit must be set to 0, therefore we mod the most significant byte by
 
 This interaction was tested thoroughly to ensure it functions as we intended it to.
 
+
+
 % NOTE: more about testing.
 
 \subsection{Implementing Merlin:} \label{implementing-merlin}
@@ -2069,19 +2071,27 @@ Bulletproofs protocol, the implementation of the protocol itself was
 relatively simple. Some major roadblocks included the necessity to 
 implement both Ristretto25519 and Merlin in order for our code to
 function identically to the original implementation. 
-A positive consequence of this roadblock may be that these modules may 
+A positive consequence of this roadblock is that these modules may 
 help others who want to specify cryptographic protocols, by building 
 on our work.
 
 Additionally by creating this specification, in Hacspec we have also 
 highlighted how a somewhat abstract cryptographic protocol, would need 
-to be implemented in Hacspec.
+to be implemented in Hacspec. It can thus act as a reference for how 
+such a protocol might need to be implemented as well as an example on 
+how to integrate the various modules we have implemented. For example, 
+if a future devealoper wishes to see make use of Ristretto for their 
+implemenation they may use the Inner-Product-Proof module to see 
+how it is utilized and also be able to use our Ristretto25519 
+module for thier implementation. 
 
 In essence we have laid nearly all the groundwork for the future work
 of actually using a Proof Assistant to prove various properties about
 the Rust implementation, and we have laid out a few powerful 
 building blocks allowing future devealopers to more easily implement 
-other cryptographic algorithms.
+other zero-knowledge cryptographic algorithms, by allowing them to use 
+our Ristretto25519 and Merlin modules for implementing Elliptic Curve 
+Cryptography protocols and Zero-Knowledge Proof protocols resepctively.
 
 % NOTE:
 
