@@ -2055,25 +2055,33 @@ of equivelence.
 %a mathematical level, such as why it is not only a complete proof,
 %but is also Sound and Zero-knowledge.
 
-In order to complete our task of helping to show that the Rust
-bulletproof implementation does not have any vulnerabilities we have
-implemented the bulletproofs protocol in Hacspec. This implementation of
-Bulletproofs is constructed in a way that makes it function identically
-to the standard Rust implementation, and thus by proving properties
-about our implementation those same properties will hold for the Rust
+In order to complete our task of helping to improve the security of the 
+Rust bulletproof implementation does not have any vulnerabilities we 
+have implemented the bulletproofs protocol in Hacspec. This 
+implementation of Bulletproofs is constructed in a way that makes it 
+function identically to the Rust implementation, with high probability, 
+due to the property-based testing and thus by proving properties about 
+our implementation those same properties will hold for the Rust 
 implementation.
 
-Given a thoughrough understanding of the mathematics behind the
-Bulletproofs protocol, the implementation of the protocol itself is
-relatively simple. However some major roadblocks were that we also had
-to implement both Ristretto25519 and Merlin in order for our code to
-function identically to the original implementation. Nonetheless these
-modules may help others who want to specify cryptographic protocols,
-by building on our work.
+Given a thorough understanding of the mathematics behind the
+Bulletproofs protocol, the implementation of the protocol itself was
+relatively simple. Some major roadblocks included the necessity to 
+implement both Ristretto25519 and Merlin in order for our code to
+function identically to the original implementation. 
+A positive consequence of this roadblock may be that these modules may 
+help others who want to specify cryptographic protocols, by building 
+on our work.
+
+Additionally by creating this specification, in Hacspec we have also 
+highlighted how a somewhat abstract cryptographic protocol, would need 
+to be implemented in Hacspec.
 
 In essence we have laid nearly all the groundwork for the future work
 of actually using a Proof Assistant to prove various properties about
-the Rust implementation.
+the Rust implementation, and we have laid out a few powerful 
+building blocks allowing future devealopers to more easily implement 
+other cryptographic algorithms.
 
 % NOTE:
 
