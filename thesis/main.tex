@@ -1090,16 +1090,16 @@ of values, $\vec{v} \in \Z^m$, lie within a certain range:
 for some integer $n$. This is done by aggregating $m$ range-proofs for
 each individual value $v_j$ into a single proof which, if verified,
 proves that each $v_j$ given lies within the range $[0,2^n)$, while
-giving away no more information about any $v_j$. This is done by using
-a multi-party computation (MPC) protocol where each party $\P_{(j)}$, takes on the
-role of an independant prover $\P$, meaning it has a value $v_j$ it
-needs to prove lies within the range (\ref{agg-range}). Each $\P_{(j)}$
-will converse with the so-called dealer $\D$, who takes on the role
-of $\V$, thus being responsible for collecting the various commitments
-from each $\P_{(j)}$ and generating challenges which will be used by all
-$\P_{(j)}$'s. At the very end, $\D$ will then collect all the individual
-rangeproofs for each value and aggregate them. It is important to note
-that all parties are in agreement over a specific $n$.
+giving away no more information about the values. This is done by using
+a multi-party computation (MPC) protocol where each party $\P_{(j)}$,
+takes on the role of an independant prover $\P$, meaning it has a value
+$v_j$ it needs to prove lies within the range (\ref{agg-range}). Each
+$\P_{(j)}$ will converse with the so-called dealer $\D$, who takes on
+the role of $\V$, thus being responsible for collecting the various
+commitments from each $\P_{(j)}$ and generating challenges which will
+be used by all $\P_{(j)}$'s. At the very end, $\D$ will then collect
+all the individual rangeproofs for each value and aggregate them. It is
+important to note that all parties are in agreement over a specific $n$.
 
 The steps used to do this are the same steps used in the construction
 of a rangeproof with a few additional steps which aggregate the proofs
@@ -1111,18 +1111,19 @@ the needed values to the dealer in order to convince them that their
 value lie within the range, with one key difference. Each party uses
 an offset to ensure the order matters to the dealer, preventing the
 parties from working together to 'cheat'. This offset is defined as
-such for the jth party:
+such for the $j$th party:
 
 \eq{
-	z_{(j)}   &= z^j \cdot \vec{y^n_{(j)}} \\
-	y^n_{(j)} &= y^{n \cdot m}[j \cdot n:(j+1) \cdot n]
+	&z_{(j)}   = z^j \cdot \vec{y^n_{(j)}} \\
+	&\textbf{where:}\\
+	&\vec{y^n_{(j)}} = \vec{y^{n \cdot m}}[j \cdot n:(j+1) \cdot n]
 }
 
-The evaluation point $\ran{x}$ is the same for all parties. The choice
+The evaluation point $x$ is the same for all parties. The choice
 of $\ran{y}, \ran{z}$ and $\ran{x}$ is done where it would ordinarily
-be done, but only once $\D$ has received the needed values from ALL
+be done, but only once $\D$ has received the needed values from \textit{all}
 $\P_{(j)}$. Once again, this can also be done using the Fiat-Shamir
-Heuristic. (\ref{fiat-shamir-heuristic})
+Heuristic (\ref{fiat-shamir-heuristic}).
 
 After each party has created $t_{(j)}(x) =
 \dotp{\vec{l}_{(j)}(x)}{\vec{r}_{(j)}(x)}$ it would be sufficient
@@ -1130,7 +1131,7 @@ to perform the proving steps from \ref{range-proofs} for each
 party. However this will require $\D$ to make $m$ checks to see if each
 $v_j$ lies within the range (\ref{agg-range}). However $\D$ can do a
 few more computations to create a singular proof which requires a single
-check to see that ALL $v_j$ lie within the range. (\ref{agg-range})
+check to see that \textit{all} $v_j$ lie within the range. (\ref{agg-range})
 
 For $\P_{(j)}$ to prove that its polynomial $t_{(j)}(x)$ is correct
 means proving that $t_{0,(j)}$ is correct as well as proving that
@@ -1156,7 +1157,7 @@ t(x)B &= \sum^{m-1}_{j = 0} t_{j}(x)B\\
 \tt(x)\tB &= \sum^{m-1}_{j = 0} \tt_{j}(x)\tB
 }
 
-And finally convince themselves that for ALL $t_{0,(j)}$ are correct
+And finally convince themselves that for all $t_{0,(j)}$ are correct
 by performing the following check:
 
 \eq{
@@ -1197,7 +1198,7 @@ which $\D$ can then combine in the following manner:
 Additionally $\D$ can construct the following:
 
 \eq{
-	\vecran{y^n_{(j)}} &= \ran{y^{n \cdot m}}[j \cdot n : (j+1) \cdot n]\\
+	\vecran{y^n_{(j)}} &= \vecran{y^{n \cdot m}}[j \cdot n : (j+1) \cdot n]\\
 	\ran{z_{(j)}} &= \ran{z^j}\\
 	\widetilde{e} &= \sum^{m-1}_{j = 0} \widetilde{e}_{(j)}\\
 	A &= \sum^{m-1}_{j = 0} A_{(j)}\\
@@ -1371,10 +1372,10 @@ macros, for example the following Scalar:
 
 \begin{lstlisting}
 public_nat_mod!(
-    type_name: Scalar,
-    type_of_canvas: ScalarCanvas,
-    bit_size_of_field: 256,
-    modulo_value: "1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed"
+	type_name: Scalar,
+	type_of_canvas: ScalarCanvas,
+	bit_size_of_field: 256,
+	modulo_value: "1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed"
 );
 \end{lstlisting}
 
@@ -1395,7 +1396,7 @@ It would be rewritten as:
 \begin{lstlisting}
 pub fn new<T>(rows: DimType, cols: DimType, seq: Seq<T>) -> MatRes<T>
 where
-    T: hacspec_lib::Integer, {
+	T: hacspec_lib::Integer, {
 ...
 \end{lstlisting}
 
@@ -1423,38 +1424,37 @@ operations on them and finally assert that the operations had the same
 effect. A simple example is the \texttt{zeros} function:
 
 \begin{lstlisting}
-#[test] fn test_nalg_zeros() {
-    fn helper(n: u8, m: u8) -> TestResult {
-        let n = n as usize; let m = m as usize;
+#[test]
+fn test_nalg_zeros() {
+	fn helper(n: u8, m: u8) -> TestResult {
+		let n = n as usize; let m = m as usize;
 
-        if n * m == 0 {
-            return TestResult::discard();
-        }
+		if n * m == 0 {
+		    return TestResult::discard();
+		}
 
-        let hac = zeros(n, m); let ext = DMatrix::zeros(n, m);
+		let hac = zeros(n, m); let ext = DMatrix::zeros(n, m);
 
-        TestResult::from_bool(assert_matrices(hac, ext))
-    } quickcheck(helper as fn(u8, u8) -> TestResult);
+		TestResult::from_bool(assert_matrices(hac, ext))
+	}
+	quickcheck(helper as fn(u8, u8) -> TestResult);
 }
 \end{lstlisting}
 
 Here the only operation that is performed is the construction of the
 vectors. The \texttt{assert\_matrices} function is simply a function
 that checks each element in the two vectors and assert them all to
-be equal.
+be equal. We also have simple unit tests that check our implementation
+against manually derived results.
 
 \subsection{Implementing Ristretto:} \label{implementing-ristretto}
 
-For the Ristretto implementation on Curve25519 we used an IETF-standard
-specification and the paper of exactly this, which was used as a guide
-for our implementation \cite{ristretto-ietf}.  This specification
-was very helpful when implemting, as it clearly defined the types and
-functionalities needed to implement Ristretto securely. However there
-was one operation that needed to be implemented, which did \textit{not}
-have a standard forumla for its implementation. This method was scalar
-multiplication. For this we used the specification from (Insert
-Reference to literature here). This proved to work perfectly, with
-the given tests and the IETF-standard methods.
+For the Ristretto Curve25519 implementation we used the Ristretto255
+IETF-standard \cite{ristretto-ietf} and the "Twisted Edwards Curves
+Revisited" paper \cite{edwards-curves} which was used as a guide for our
+implementation. This specification was very helpful when implemting,
+as it clearly defined the types and functionalities needed to implement
+Ristretto securely.
 
 Ristretto is, in essence, a prime-order subgroup of a non-prime-order
 Edwards curve which has a co-factor of 4 or 8. The subgroup formed
@@ -1486,21 +1486,22 @@ in a sub-group of order $2^{252} + 2774231777737235353585$, which has
 a co-factor of $8$, thus meeting the criteria for using Ristretto to
 eliminate this co-factor.
 
-Each internal point representation is composed of four field elements
-$(X : Y : Z : T)$. Field-elements, as defined by the standard are
-values modulo $p$, with $p$ being the prime field for Curve25519,
-$2^{255} - 19$. This was achieved using the \texttt{public\_nat\_mod!}
-macro which defines finite fields over a given modulo. Conveniently it
-accepts hex values as modulo values, which allowed us to easily make
-the modulo value $2^{255} - 19$. Most of the standard integer operators
-like addition, subtraction and multiplication are also implemented for
-these field elements. During testing we discovered that the internal
-calculations for division is done using integer arithmetic rather than
-finite field arithmetic, discussion with the Hacspec team confirmed
-that this was an oversight and we raised an issue. This was fortunately
-not a problem for us as the few times where division is used directly
-it is ensured that the result in finite field arithmetic is equal to
-the integer arithmetic solution.
+Each internal representation of a Ristretto point is an Edwards point
+composed of four field elements $(X : Y : Z : T)$. Field-elements,
+as defined by the standard are values modulo $p$, with $p$ being the
+prime field for Curve25519, $2^{255} - 19$. This was achieved using
+the \texttt{public\_nat\_mod!} macro which defines finite fields over
+a given modulo. Conveniently it accepts hex values as modulo values,
+which allowed us to easily make the modulo value $2^{255} - 19$:
+
+\begin{lstlisting}
+public_nat_mod!(
+	type_name: FieldElement,
+	type_of_canvas: FieldCanvas,
+	bit_size_of_field: 256,
+	modulo_value: "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed"
+);
+\end{lstlisting}
 
 Additionally the standard, specified a series of constants. These
 constants were too large to be implemented as integers and hacspec
@@ -1508,7 +1509,19 @@ did not allow for the use \texttt{from\_hex()} method. As such, after
 converting each of these constants into their corresponding hex-values,
 we built them as byte sequences for which we had an equivalent
 \texttt{from\_byte\_seq\_be} which created the correct constants. This
-worked as intended but invevitably reduced readability of the code.
+worked as intended but invevitably reduced readability of the code. An
+example of such a constant definition can be seen below:
+
+\begin{lstlisting}
+fn P() -> FieldElement {
+	FieldElement::from_byte_seq_be(&byte_seq!(
+		0x7fu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8,
+		0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8,
+		0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8,
+		0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xffu8, 0xedu8
+	))
+}
+\end{lstlisting}
 
 While it is impossible for a legal point to be encoded and then have the
 decoding on its encoding fail, the decoding method has several checks
@@ -1534,55 +1547,66 @@ Additionally we ran into two issues with using \texttt{public\_nat\_mod!}. The f
 
 \begin{lstlisting}
 	pub fn decode(u: RistrettoPointEncoded) -> DecodeResult {
-    let mut ret = DecodeResult::Err(DECODING_ERROR);
+	let mut ret = DecodeResult::Err(DECODING_ERROR);
 
-    let s = FieldElement::from_byte_seq_le(u);
+	let s = FieldElement::from_byte_seq_le(u);
 
-    if !geq_p(u.to_le_bytes()) && !is_negative(s)
+	if !geq_p(u.to_le_bytes()) && !is_negative(s)
 
 	[...]
 
 	fn geq_p(x: Seq<U8>) -> bool {
-    let p_seq = byte_seq!([....]);
-    let mut res = true;
+		let p_seq = byte_seq!([....]);
+		let mut res = true;
 
-    for index in 0..p_seq.len() {
-        let x_index = x[index].declassify();
-        let p_index = p_seq[index].declassify();
-        if x_index != p_index {
-            res = x_index > p_index;
-        }
-    }
-    res
+		for index in 0..p_seq.len() {
+			let x_index = x[index].declassify();
+			let p_index = p_seq[index].declassify();
+			if x_index != p_index {
+				res = x_index > p_index;
+			}
+		}
+		res
 }
 \end{lstlisting}
 
-This check involves checking to see if the inputted byte sequence, if interpreted as a field element is larger than $p$. This is naturally not possible to do directly given that all field elements in our implementation are integers mod $p$. As such it is done in this manner to circumvent this issue.
+This check involves checking to see if the inputted byte sequence, if
+interpreted as a field element is larger than $p$. This is naturally
+not possible to do directly given that all field elements in our
+implementation are integers mod $p$. As such it is done in this manner
+to circumvent this issue.
 
-Another more significant issue we encountered was in the implementation of the one-way map, in which, we must mod the 255 least significant bits of both halves of a ByteString object. However the two halves of the ByteString are each 256 bits. This means that the most significant bit must be set to 0. in the code this is as follows:
+Another more significant issue we encountered was in the implementation
+of the one-way map, in which, we must mod the 255 least significant
+bits of both halves of a ByteString object. However the two halves of
+the ByteString are each 256 bits. This means that the most significant
+bit must be set to 0, therefore we mod the most significant byte by
+128:
 
 \begin{lstlisting}
 	pub fn one_way_map(b: ByteString) -> RistrettoPoint {
-    let r0_bytes = b.slice(0, 32);
-    let r1_bytes = b.slice(32, 32);
+		let r0_bytes = b.slice(0, 32);
+		let r1_bytes = b.slice(32, 32);
 
-    let mut r0_bytes = r0_bytes.declassify();
-    let mut r1_bytes = r1_bytes.declassify();
+		let mut r0_bytes = r0_bytes.declassify();
+		let mut r1_bytes = r1_bytes.declassify();
 
-    // The specification states:
-    // Set r0 to the low 255 bits of b[ 0..32], taken mod p
-    // Set r1 to the low 255 bits of b[32..64], taken mod p
-    // Note the low 255 bits. NOT 256 bits! This is why we mod the most significant byte
-    r0_bytes[31] = r0_bytes[31] % 128u8;
-    r1_bytes[31] = r1_bytes[31] % 128u8;
+		// The specification states:
+		// Set r0 to the low 255 bits of b[ 0..32], taken mod p
+		// Set r1 to the low 255 bits of b[32..64], taken mod p
+		// Note the low 255 bits. NOT 256 bits! This is why we mod the most significant byte
+		r0_bytes[31] = r0_bytes[31] % 128u8;
+		r1_bytes[31] = r1_bytes[31] % 128u8;
 
-    let r0 = FieldElement::from_public_byte_seq_le(r0_bytes);
-    let r1 = FieldElement::from_public_byte_seq_le(r1_bytes);
+		let r0 = FieldElement::from_public_byte_seq_le(r0_bytes);
+		let r1 = FieldElement::from_public_byte_seq_le(r1_bytes);
 
 	[...]
 \end{lstlisting}
 
-This interaction was tested thoroughly to ensure it functions as we intended it to. 
+This interaction was tested thoroughly to ensure it functions as we intended it to.
+
+% NOTE: more about testing.
 
 \subsection{Implementing Merlin:} \label{implementing-merlin}
 
@@ -1615,31 +1639,31 @@ But in our implementation we instead do the following:
 \begin{lstlisting}
 // Turns a stateU8 into a StateU64
 fn transmute_state_to_u64(state: StateU8) -> StateU64 {
-    let mut new_state = StateU64::new();
+	let mut new_state = StateU64::new();
 
-    for i in 0..new_state.len() {
-        let mut word = U64Word::new();
-        for j in 0..word.len() {
-            word[j] = state[i * 8 + j];
-        }
-        new_state[i] = U64_from_le_bytes(word);
-    }
+	for i in 0..new_state.len() {
+		let mut word = U64Word::new();
+		for j in 0..word.len() {
+			word[j] = state[i * 8 + j];
+		}
+		new_state[i] = U64_from_le_bytes(word);
+	}
 
-    new_state
+	new_state
 }
 
 // Turns a stateU64 into a StateU8
 fn transmute_state_to_u8(state: StateU64) -> StateU8 {
-    let mut new_state = StateU8::new();
+	let mut new_state = StateU8::new();
 
-    for i in 0..state.len() {
-        let bytes = state[i].to_le_bytes();
-        for j in 0..bytes.len() {
-            new_state[i * 8 + j] = bytes[j]
-        }
-    }
+	for i in 0..state.len() {
+		let bytes = state[i].to_le_bytes();
+		for j in 0..bytes.len() {
+			new_state[i * 8 + j] = bytes[j]
+		}
+	}
 
-    new_state
+	new_state
 }
 \end{lstlisting}
 
@@ -1725,10 +1749,10 @@ built-in linear algebra functions. If we take the actual implementation:
 
 \begin{lstlisting}
 for i in 0..n {
-    a_L[i] = a_L[i] * u + u_inv * a_R[i];
-    b_L[i] = b_L[i] * u_inv + u * b_R[i];
-    G_L[i] = add(mul(u_inv, G_L[i]), mul(u, G_R[i]));
-    H_L[i] = add(mul(u, H_L[i]), mul(u_inv, H_R[i]));
+	a_L[i] = a_L[i] * u + u_inv * a_R[i];
+	b_L[i] = b_L[i] * u_inv + u * b_R[i];
+	G_L[i] = add(mul(u_inv, G_L[i]), mul(u, G_R[i]));
+	H_L[i] = add(mul(u, H_L[i]), mul(u_inv, H_R[i]));
 }
 \end{lstlisting}
 
@@ -1772,38 +1796,38 @@ the performance increase, while noticable was not significant compared
 to other bottlenecks. The file structure here is notable:
 
 \begin{forest}
-  for tree={
-    font=\rmfamily,
-    grow'=0,
-    child anchor=west,
-    parent anchor=south,
-    anchor=west,
-    calign=first,
-    edge path={
-      \noexpand\path [draw, \forestoption{edge}]
-      (!u.south west) +(7.5pt,0) |- node[fill,inner sep=1.25pt] {} (.child anchor)\forestoption{edge label};
-    },
-    before typesetting nodes={
-      if n=1
-        {insert before={[,phantom]}}
-        {}
-    },
-    fit=band,
-    before computing xy={l=15pt},
-  }
+	for tree={
+		font=\rmfamily,
+		grow'=0,
+		child anchor=west,
+		parent anchor=south,
+		anchor=west,
+		calign=first,
+		edge path={
+			\noexpand\path [draw, \forestoption{edge}]
+			(!u.south west) +(7.5pt,0) |- node[fill,inner sep=1.25pt] {} (.child anchor)\forestoption{edge label};
+		},
+		before typesetting nodes={
+			if n=1
+				{insert before={[,phantom]}}
+				{}
+		},
+		fit=band,
+		before computing xy={l=15pt},
+	}
 [\textbf{inner-product-proof}
-  [\textbf{src}
-    [\textbf{transcript}
-      [\texttt{\textit{errors.rs}}]
-    ]
-    [\texttt{errors.rs}]
-    [\texttt{ipp.rs}]
-    [\texttt{transcript.rs}]
-  ]
-  [\textbf{tests}
-    [\texttt{test\_prop\_ipp.rs}]
-  [\texttt{Cargo.toml}]
-  ]
+	[\textbf{src}
+		[\textbf{transcript}
+			[\texttt{\textit{errors.rs}}]
+		]
+		[\texttt{errors.rs}]
+		[\texttt{ipp.rs}]
+		[\texttt{transcript.rs}]
+	]
+	[\textbf{tests}
+		[\texttt{test\_prop\_ipp.rs}]
+	[\texttt{Cargo.toml}]
+	]
 ]
 \end{forest}
 
@@ -1826,10 +1850,11 @@ use errors::*;
 
 And creating the \textbf{transcript} folder with a symbolic link
 \texttt{\textit{errors.rs}} $\rightarrow$ \texttt{errors.rs}. This lets
-us run the tests and avoids code duplication.
+us run the tests and avoids code duplication. % NOTE: talk more here
 
 \textbf{Testing:}
 
+% NOTE: Write about testing
 ...
 
 \subsection{Implementing Bulletproofs:}
@@ -1875,31 +1900,29 @@ us run the tests and avoids code duplication.
 	\caption{Bulletproof algorithm}
 \end{algorithm}
 
-The final part of the project was the implementation of the
-Bulletproofs protocol. The code was heavily based on the code we
-were testing against as well as the mathematical formulas explained
-in \ref{Bulletproofs}. The implementation followed the pseudo-code
-format as seen above just like the implementation we test against
-did. The implementation ran into a few roadblocks during devealopment,
-some relating specifically to Hacspec.
+The final part of the project was the implementation of the Bulletproofs
+protocol. The code was heavily based on the code we were testing
+against as well as the mathematical formulas explained in section
+\ref{Bulletproofs}. The implementation followed the pseudo-code format
+as seen above just like the implementation we test against did. The
+implementation ran into a few roadblocks during development, some
+relating specifically to Hacspec.
 
 The first big roadblock was the immense length it would have. This
 meant that writing any sort of test for the code would require it to
-be finished in nearly its entirety. This resulted in many tests being
-performed before the code was finished through the simple method of
-printing out every value on the screen and checking if they match what
-we are testing against, in order to ensure that our code was working
-correctly. But this in and of itself was an issue as the library we
-test against, naturally does not print all values on the screen. For
-this reason we forked their library and inserted the needed print
-statements. However yet another issue with this was the fact that their
-library has built-in randomness. This meant that our code had no way
-to utlize the exact same random values, something that is vital when
-testing to see if it works in the same way. Therefore we refactored all
-random values into inputs in their library. This in no way changes the
-functionality of their code, but instead it allows us to control the
-random values it uses, which we can then match to our own, and thus
-allowing us to test against it.
+be finished in nearly its entirety. This resulted in much debugging
+throught simply printing out every value on the screen and checking if
+they match what we are testing against, in order to ensure that our code
+was working correctly. This was an issue as the library we test against,
+also needed to have print statements. For this reason we forked their
+library and inserted the needed print statements. Yet another issue
+with this was the fact that their library has built-in randomness. This
+meant that our code had no way to utlize the exact same random values,
+something that is vital when comparing the implementations. Therefore we
+refactored all random values as function inputs in their library. This
+in no way changes the functionality of their code, but instead it
+allows us to control the random values it uses, which we can then
+match to our own, and thus allowing us to test against it.
 
 To keep our implementation as simple as possible we only implemented
 what would be equivalent to the \texttt{prove\_multiple\_with\_rng}
@@ -1908,16 +1931,14 @@ as the \texttt{prove\_multiple}, \texttt{prove\_single\_with\_rng}
 and \texttt{prove\_single} methods would all call
 \texttt{prove\_multiple\_with\_rng} in some way.
 
-\subsubsection{Hacspec-related problems:}
-
 Outside of a few indexing errors and wrong calculation occationally,
 the implementation of the methods in a way that worked correctly
 was not much of an issue outside of how long it took to fully
 implement. The biggest issue with our implementation itself was making
-it hacspec compliant. Specifically there were many problems involving
+it hacspec compliant. Specifically there were significant problems involving
 \texttt{Seq} objects. Most cumbersome of which were the fact that a
 \texttt{Seq} could not be a part of a tuple, if said tuple was going
-to be unwrapped. This resulted in \texttt{prove()} being somewhat
+to be unwrapped. This resulted in \texttt{prove()} being somewhat % NOTE: Describe tuple problem better
 bloated with sequences, whenever a \texttt{party} method was going to
 be performed for each party. Ordinarily we would simply make a single
 \texttt{Seq} and store the tuple in this sequence, however this was not
@@ -1959,7 +1980,7 @@ Rather than the much more simple:
 
 Additionally, while it is not actually much of an issue, Hacspec did
 not allow us to use iterators, and so we instead have an abundance
-of for-loops in our code. This results in our code being much slower
+of for-loops in our code. This results in our code being much slower % NOTE: This is not why it is slow
 than the library which we test against, which \textit{did} turn out to
 be somewhat of a problem when it came to testing correctness. While
 the code we test against runs in mere seconds, ours takes several
@@ -1973,7 +1994,7 @@ a lot longer than we would have liked, as running all tests, at the
 current moment, takes approximately 22 hours to run to completion on
 our PC with the fastest of the 18 tests taking 5 minutes.
 
-Finally the code we test against uses structs to keep hold of the values
+Finally the code we test against uses structs to keep hold of the values % NOTE: Rewrite this, tuples
 for each party and the dealer. This ensures that a potential client
 cannot accidentally perform the steps out of order, due to the next
 step being integrated in the struct itself. Hacspec does not allow for
@@ -1984,7 +2005,6 @@ for creating bulletproofs properly. However this code is not designed
 for actual use by clients as a cryptographic algorithm, but rather it
 is supposed to be used for the purposes of creating proofs about the
 original code we test against.
-
 
 \section{Future work:}
 
