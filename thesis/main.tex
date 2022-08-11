@@ -69,14 +69,14 @@
 \newcommand{\vecl}[1]{\vec{#1_{\opn{L}}}}
 \newcommand{\vecr}[1]{\vec{#1_{\opn{R}}}}
 \newcommand{\blind}[1]{\widetilde{#1}}
-\newcommand{\vecblind}[1]{\vec{\blind{#1}}}
 
-% Blinded points
-\newcommand{\tB}{\widetilde{B}}
-\renewcommand{\tt}{\widetilde{t}}
-\newcommand{\tv}{\widetilde{v}}
-\newcommand{\ba}{\widetilde{a}}
-\newcommand{\bB}{\widetilde{B}}
+% Blinded vars
+\newcommand{\bt}{\blind{t}}
+\newcommand{\bv}{\blind{v}}
+\newcommand{\ba}{\blind{a}}
+\newcommand{\bB}{\blind{B}}
+\newcommand{\be}{\blind{e}}
+\newcommand{\bs}{\blind{s}}
 
 
 \newcommand{\len}[1]{\Call{len}{#1}}
@@ -148,10 +148,10 @@ Department of Computer Science, Aarhus University\\
 	To this end, we have implemented the bulletproofs protocol,
 	using the specification language Hacspec. The reasoning for
 	this is that Hacspec allows the programs written in it to be
-	compiled to so-called Proof Assistants such as Coq, which
+	compiled to so-called proof assistants such as Coq, which
 	will be able to prove various properties of the code. Our
-	implementation can later be transpiled to one such Proof
-	Assistant. Given the rigerous testing which ensures that the
+	implementation can later be transpiled to a proof
+	assistant. Given the rigerous testing which ensures that the
 	two implementations function identically, The properties proven
 	for our implementation, will also hold for the more efficient,
 	original Rust implementation. This will, in turn, improve the
@@ -174,6 +174,7 @@ bulletproof. Finally we thank everyone who helped answer questions
 over the various stages of the project. Your assistance is greatly
 appreciated.
 
+\newpage
 \tableofcontents
 
 \newpage
@@ -193,7 +194,7 @@ already had such vulnerabilities \cite{cryptonote} \cite{zcash}. Both of
 these cryptocurrencies have marketcaps over a billion dollars, therefore
 it is crucial to minimize the attack surface. One way of doing this
 is by using proof assistants, such as Coq, on the implemenations of
-these protocols.
+these protocols, proving that necessary properties holds.
 
 Effective implementations are often unfeasible to implement and run
 in proof assistant languages however. A relatively new tool in this
@@ -212,25 +213,25 @@ al. \cite{bulletproofs}, in Hacspec. The protocol creates a compact and
 secure zero-knowledge proof to show that one or more values lie within
 a range of $[0:2^n)$ for a provided $n$, without revealing any other
 information about the values themselves. A variant of this protocol
-is currently utilized in the Monero cryptocurrency. Additionally we
+is currently utilized in the cryptocurrency Monero. Additionally we
 also wish to write our implementation in a modular fashion that allows
 future cryptographic protocols specified in hacspec to utilize parts
 of our specification.
 
 We will be testing our implementation against the current Rust
-Bulletproofs crate \cite{dalek}, using property-based testing to ensure 
-with high probability that our implementation of the Bulletproofs 
-protocol is equivalent to the Rust Bulletproofs crate. This will mean
-that using a Proof Assistant on our implemenation will be equivalent
-to using it on the Rust implementation.
+Bulletproofs crate \cite{dalek} by the Dalek team, using property-based
+testing to ensure, with high probability, that our implementation
+of the Bulletproofs protocol is equivalent to the Rust Bulletproofs
+crate. This will mean that using a proof assistant on our implemenation
+will be approximately equivalent to using it on the Rust implementation.
 
 In this paper we will briefly go over the prerequisites for
-understanding the bulletproofs protocol, describe the protocol itself, 
-as well as relevant material for understanding the implementation and
-finally everything we implemented including discussions about the
-implementation hurdles encountered in the process. We finalize this
-paper by discussing possible future work that can be done on the back
-of our work, concluding the overall project.
+understanding the bulletproofs protocol, describe the protocol itself,
+as well as relevant material for understanding the implementation
+and finally everything we implemented including discussions about the
+implementation hurdles encountered in the process. We end this paper
+by discussing possible future work that can be done on the back of
+our work, concluding the overall project.
 
 % NOTE: afprøv hacspec/lead the way for zeroknowledge protocols for hacspec
 
@@ -249,9 +250,10 @@ A table of notation used throughout this report:
 	$\ran{a}$                   & A scalar random variable \\
 	$\vecran{a}$                & A vector of scalar random variables \\
 	$\vecran{A}$                & A vector of random curve points \\
+	$\vec{A}_{[b : c]}$            & The slice $[A_b, A_{b+1}, \cdots  A_c]$ \\ 
 	$\veclo{a}$                 & The first half of vector $\vec{a}$, ($\veclo{a} = [a_{1}, \cdots, a_{n/2}]$) \\
 	$\vechi{a}$                 & The second half of vector $\vec{a}$, ($\vechi{a} = [a_{n/2+1}, \cdots, a_{n}]$) \\
-	$\vec{a^n}$                 & A vector of scalars which are made up of powers of $a$ i.e. $[1,a,a^2... a^{n-1}]$\\
+	$\vec{a^n}$                 & A vector of scalars which are made up of powers of $a$ i.e. $[1,a,a^2, \cdots, a^{n-1}]$\\
 	$\vec{a} \concat \vec{b}$   & A vector, $\vec{a}$, concatinated with another vector, $\vec{b}$\\
 	$\mathbb{A}$                & A set \\
 	$\mathbb{A}^n$              & A vector space of dimension $n$ \\ 
@@ -270,10 +272,9 @@ to understand the results of the work in this project.
 
 \subsection{Finite Field Arithmetic:} \label{Finite Field Arithmetic}
 
-We start with \textit{fields} and the operations defined within
-them, as the operations over elliptic
-curve points are built on fields. The definitions presented here are largely
-from \cite{elliptic-curves}.
+We start with \textit{fields} and the operations defined within them,
+as the operations over elliptic curve points are built on fields. The
+definitions presented here are largely from \cite{elliptic-curves}.
 
 \begin{definition}[Field]
 	A field is a set $\F$, along with the \textit{addition} and
@@ -410,27 +411,27 @@ by Torben Pryds Pedersen \cite{pedersen}. The essence of
 Pedersen commitments is the so called \textit{Additive Homomorphism}
 \ref{pedersen-additive-homomorphism} defined later. For our purposes we
 redefine the scheme to work with commitments to elliptic curve points
-rather than a value. First a two points $B$ and $\tB$ on an elliptic curve,
+rather than a value. First a two points $B$ and $\bB$ on an elliptic curve,
 are chosen. $B$ will be the standard generator, called the base point, with
-$\tB$ being the so-called 'blinding point' to $B$.
+$\bB$ being the so-called 'blinding point' to $B$.
 
 \begin{definition}[Pedersen Commitment]
 	A Pedersen commitment, to some message, $a$, with a randomly chosen
 	integer, $\ba$, is defined as:
 
-	$$aB + \ba\blind{B}$$
+	$$aB + \ba\bB$$
 
-	where $B$ is a canonical generator for the curve and $\tB$
-	is a curve point where no one knows $q$ such that $\tB = qB$.
+	where $B$ is a canonical generator for the curve and $\bB$
+	is a curve point where no one knows $q$ such that $\bB = qB$.
 \end{definition}
 
-Here $\widetilde{a}$ serves as our perfect hiding. The construction
-of $\tB$ ensures perfect hiding as there is a nearly infinite amount
+Here $\ba$ serves as our perfect hiding. The construction
+of $\bB$ ensures perfect hiding as there is a nearly infinite amount
 of possible combinations of two points that can add to any given
 point. However, while that is true, it does not provide perfect binding
 by definition of binding and hiding. From here on we will refer to
-a commitment to a message, $a$, with random value, $\widetilde{a}$,
-as $C(a,\widetilde{a})$.
+a commitment to a message, $a$, with random value, $\ba$,
+as $C(a,\ba)$.
 
 The most important property of Pedersen commitments is
 that Pedersen commitments have the property of Additive Homomorphism:
@@ -446,8 +447,8 @@ This is simple to show by applying the definition of Pedersen
 commitments: 
 
 \eq{
-	C(a_1,\ba_1) + C(a_2,\ba_2) &= \ba_1\tB + a_1B  + \ba_2\tB + a_2B \\
-	                            &= (\ba_1 + \ba_2)\tB + (a_1 + a_2)B \\
+	C(a_1,\ba_1) + C(a_2,\ba_2) &= \ba_1\bB + a_1B  + \ba_2\bB + a_2B \\
+	                            &= (\ba_1 + \ba_2)\bB + (a_1 + a_2)B \\
 	                            &= C(a_1 + a_2, \ba_1 + \ba_2)
 }
 
@@ -788,7 +789,7 @@ To start, the prover, $\P$, is given the following values:
 \eqn{def1}{
 	v &\in \Z_p \\
 	n &\in \Z\\
-	B, \tB &\in \G\\
+	B, \bB &\in \G\\
 	\vec{G}, \vec{H} &\in \G^n \\
 }
 
@@ -798,10 +799,10 @@ within the range $[0,2^n)$.
 The first step towards this is for $\P$ to commit to $v$ using
 a Pedersen commitment $V$, and sending this to the $\V$, as well
 commiting to the desired range $n$, which is not blinded. With the
-Pedersen-commitment having base-point $B$ and blinding point $\tB$:
+Pedersen-commitment having base-point $B$ and blinding point $\bB$:
 
 \eq{
-	V = vB + \tv \tB
+	V = vB + \bv \bB
 }
 
 If we let $\vec{a}$ be $v$ expressed in bits then we know the following:
@@ -814,7 +815,7 @@ Additionally, as we also need a guarantee that $\vec{a}$ consists
 entirely of bits i.e. $\vec{a} \in \{0,1\}^n$. This can be
 proven by the following property:
 
-\eq{\vec{a}\circ (\vec{a} - \vec{1}) = \vec{0}}
+\eq{\vec{a} \circ (\vec{a} - \vec{1}) = \vec{0}}
 
 This property will only hold if $\vec{a}$ has entries that are either
 0 or 1. Due to needing to commit to both $\vec{a}$ and $\vec{a}
@@ -837,8 +838,8 @@ $\ran{y}$ we get a new set of properties:
 
 \eq{
 	\dotp{\vecl{a}}{\vec{2^n}} = v \\
-	\dotp{\vecl{a} - \vec{1} - \vecr{a}}{\vecran{y^n}} = 0 \\
-	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y^n}} = 0
+	\dotp{\vecl{a} - \vec{1} - \vecr{a}}{\vecran{y}^{\vec{n}}} = 0 \\
+	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y}^{\vec{n}}} = 0
 }
 
 Next $\P$ lets $\V$ chose another random scalar $\ran{z}$, and using
@@ -848,8 +849,8 @@ statement:
 \eq{
 	\ran{z^2}v = 
 	\ran{z^2}\dotp{\vecl{a}}{\vec{2^n}} +
-	\ran{z}\dotp{\vecl{a} - \vec{1} - \vecr{a}}{\vecran{y^n}} +
-	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y^n}}
+	\ran{z}\dotp{\vecl{a} - \vec{1} - \vecr{a}}{\vecran{y}^{\vec{n}}} +
+	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y}^{\vec{n}}}
 }
 
 With this we have condensed the properties we wish to describe into
@@ -863,43 +864,43 @@ First we can rewrite the middle term:
 \eq{	
 	&\ran{z^2}v &&= 
 	\ran{z^2}\dotp{\vecl{a}}{\vec{2^n}} +
-	\ran{z}\dotp{\vecl{a}}{\vecran{y^n}} -
-	\ran{z}\dotp{\vec{1}}{\vecran{y^n}} -
-	\ran{z}\dotp{\vecr{a}}{\vecran{y^n}} +
-	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y^n}} \\
-	&\ran{z^2}v + \ran{z}\dotp{\vec{1}}{\vecran{y^n}} 
+	\ran{z}\dotp{\vecl{a}}{\vecran{y}^{\vec{n}}} -
+	\ran{z}\dotp{\vec{1}}{\vecran{y}^{\vec{n}}} -
+	\ran{z}\dotp{\vecr{a}}{\vecran{y}^{\vec{n}}} +
+	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y}^{\vec{n}}} \\
+	&\ran{z^2}v + \ran{z}\dotp{\vec{1}}{\vecran{y}^{\vec{n}}} 
 	&&= \ran{z^2}\dotp{\vecl{a}}{\vec{2^n}} +
-	\ran{z}\dotp{\vecl{a}}{\vecran{y^n}} -
-	\ran{z}\dotp{\vec{1}}{\vecr{a}\circ\vecran{y^n}} +
-	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y^n}} \\
-	&\ran{z^2}v + \ran{z}\dotp{\vec{1}}{\vecran{y^n}} 
+	\ran{z}\dotp{\vecl{a}}{\vecran{y}^{\vec{n}}} -
+	\ran{z}\dotp{\vec{1}}{\vecr{a}\circ\vecran{y}^{\vec{n}}} +
+	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y}^{\vec{n}}} \\
+	&\ran{z^2}v + \ran{z}\dotp{\vec{1}}{\vecran{y}^{\vec{n}}} 
 	&&= \dotp{\vecl{a}}{\ran{z^2}\vec{2^n}} +
-	\dotp{\vecl{a}}{\ran{z}\vecran{y^n}} +
-	\dotp{-\ran{z}\vec{1}}{\vecr{a}\circ\vecran{y^n}} +
-	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y^n}} \\
-	&\ran{z^2}v + \ran{z}\dotp{\vec{1}}{\vecran{y^n}} 
-	&&= \dotp{\vecl{a}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n} + \vecr{a}\circ \vecran{y^n}} +
-	\dotp{-\ran{z}\vec{1}}{\vecr{a}\circ\vecran{y^n}}
+	\dotp{\vecl{a}}{\ran{z}\vecran{y}^{\vec{n}}} +
+	\dotp{-\ran{z}\vec{1}}{\vecr{a}\circ\vecran{y}^{\vec{n}}} +
+	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y}^{\vec{n}}} \\
+	&\ran{z^2}v + \ran{z}\dotp{\vec{1}}{\vecran{y}^{\vec{n}}} 
+	&&= \dotp{\vecl{a}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y}^{\vec{n}} + \vecr{a}\circ \vecran{y}^{\vec{n}}} +
+	\dotp{-\ran{z}\vec{1}}{\vecr{a}\circ\vecran{y}^{\vec{n}}}
 }
 
 For the final step towards combining all the conditions into a single
 inner product we add $\dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} +
-\ran{z}\vecran{y^n}}$ to both sides and simplify again:
+\ran{z}\vecran{y}^{\vec{n}}}$ to both sides and simplify again:
 
 \eq{
-	&\ran{z^2}v + \ran{z}\dotp{\vec{1}}{\vecran{y^n}} + \dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n}}
-	&&= \dotp{\vecl{a}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n} + \vecr{a}\circ \vecran{y^n}} +
-	\dotp{-z\vec{1}}{\vecr{a}\circ\vecran{y^n}} + \dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n}} \\ 
-	&\ran{z^2}v + (\ran{z} - \ran{z^2})\dotp{\vec{1}}{\vecran{y^n}} - \ran{z^3}\dotp{\vec{1}}{\vec{2^n}} &&= \dotp{\vecl{a}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n} + \vecr{a}\circ \vecran{y^n}} + \dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n}+\ran{z}\vecran{y^n} + \vecr{a}\circ\vecran{y^n}}
+	&\ran{z^2}v + \ran{z}\dotp{\vec{1}}{\vecran{y}^{\vec{n}}} + \dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y}^{\vec{n}}}
+	&&= \dotp{\vecl{a}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y}^{\vec{n}} + \vecr{a}\circ \vecran{y}^{\vec{n}}} +
+	\dotp{-z\vec{1}}{\vecr{a}\circ\vecran{y}^{\vec{n}}} + \dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y}^{\vec{n}}} \\ 
+	&\ran{z^2}v + (\ran{z} - \ran{z^2})\dotp{\vec{1}}{\vecran{y}^{\vec{n}}} - \ran{z^3}\dotp{\vec{1}}{\vec{2^n}} &&= \dotp{\vecl{a}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y}^{\vec{n}} + \vecr{a}\circ \vecran{y}^{\vec{n}}} + \dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n}+\ran{z}\vecran{y}^{\vec{n}} + \vecr{a}\circ\vecran{y}^{\vec{n}}}
 	\\
-	&\ran{z^2}v + (\ran{z} - \ran{z^2})\dotp{\vec{1}}{\vecran{y^n}} - \ran{z^3}\dotp{\vec{1}}{\vec{2^n}} &&= \dotp{\vecl{a}- \ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y^n} + \vecr{a}\circ \vecran{y^n}}
+	&\ran{z^2}v + (\ran{z} - \ran{z^2})\dotp{\vec{1}}{\vecran{y}^{\vec{n}}} - \ran{z^3}\dotp{\vec{1}}{\vec{2^n}} &&= \dotp{\vecl{a}- \ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y}^{\vec{n}} + \vecr{a}\circ \vecran{y}^{\vec{n}}}
 }
 
 We define a function $\delta(y,z) = (z - z^2)\dotp{\vec{1}}{\vec{y^n}}
 - z^3\dotp{\vec{1}}{\vec{2^n}}$ and finish simplifying:
 
 \eq{
-	\ran{z^2}v + \delta(\ran{y},\ran{z}) = \dotp{\vecl{a} - \ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + (\vecr{a} + \ran{z}\vec{1})\circ\vecran{y^n}}
+	\ran{z^2}v + \delta(\ran{y},\ran{z}) = \dotp{\vecl{a} - \ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + (\vecr{a} + \ran{z}\vec{1})\circ\vecran{y}^{\vec{n}}}
 }
 
 From here on we will refer to the first argument of the inner product
@@ -925,7 +926,7 @@ in the following way:
 
 \eq{
 	\vec{l}(x) &= \vec{l_0} + \vec{l_1}x \\ &= (\vecl{a} - \ran{z}\vec{1}) + \vecl{s}x \\ &= (\vecl{a} + \vecl{s}x) - \ran{z}\vec{1}\\&\\
-	\vec{r}(x) &= \vec{r_0} + \vec{r_1}x \\ &= (\ran{z^2}\vec{2^n} + (\vecr{a} + \ran{z}\vec{1})\circ\vecran{y^n}) + \vecr{s}x\circ\vecran{y^n} \\ &= ((\vecr{a} + \vecr{s}x) + \ran{z}\vec{1}) \circ \vecran{y^n} + \ran{z}^2\vec{2^n}
+	\vec{r}(x) &= \vec{r_0} + \vec{r_1}x \\ &= (\ran{z^2}\vec{2^n} + (\vecr{a} + \ran{z}\vec{1})\circ\vecran{y}^{\vec{n}}) + \vecr{s}x\circ\vecran{y}^{\vec{n}} \\ &= ((\vecr{a} + \vecr{s}x) + \ran{z}\vec{1}) \circ \vecran{y}^{\vec{n}} + \ran{z}^2\vec{2^n}
 }
 
 Now $\P$ can construct $t(x)$ as follows:
@@ -954,20 +955,20 @@ starts by making commitments to each of the coefficients of $t(x)$. Here
 we make note of the fact that $\P$ has already commited $t_0$. Namely,
 commitment, $V$, made at the very start, is also a commitment to $t_0$
 as per the construction of $t_0$. $\P$ makes commitments to $T_1 =
-C(t_1, \tt_1)$ and $T_2 = C(t_2, \tt_2)$. After commiting these values
+C(t_1, \bt_1)$ and $T_2 = C(t_2, \bt_2)$. After commiting these values
 to $\V$, $\V$ sends back a challenge scalar $\ran{x}$. We know from
 the definitions of $V, T_1, T_2$ that these commitments relate in the
 following manner:
 
 \eq{
 	t(\ran{x})B                   &= \ran{z^2}vB      &&+ \delta(\ran{y},\ran{z})B &&+ \ran{x}t_1B       &&+ \ran{x^2}t_2B \\
-	\tt(\ran{x})\tB               &= \ran{z^2}\tv \tB &&+ 0\tB                     &&+ \ran{x} \tt_1 \tB &&+ \ran{x^2} \tt_2 \tB\\
-	t(\ran{x})B + \tt(\ran{x})\tB &= \ran{z^2}V       &&+ \delta(\ran{y},\ran{z})B &&+ \ran{x}T_1        &&+ \ran{x^2}T_2
+	\bt(\ran{x})\bB               &= \ran{z^2}\bv \bB &&+ 0\bB                     &&+ \ran{x} \bt_1 \bB &&+ \ran{x^2} \bt_2 \bB\\
+	t(\ran{x})B + \bt(\ran{x})\bB &= \ran{z^2}V       &&+ \delta(\ran{y},\ran{z})B &&+ \ran{x}T_1        &&+ \ran{x^2}T_2
 }
 
 The sum of the two top-most coefficients in each 'column' is also
 equal to the bottom coefficient of that column. To convince $\V$, $\P$
-sends $t(\ran{x})B$ and $\tt(\ran{x})\tB$, evaluated at $\ran{x}$
+sends $t(\ran{x})B$ and $\bt(\ran{x})\bB$, evaluated at $\ran{x}$
 to $\V$. This is enough to convince $\V$ that $t_0 = \ran{z^2}v +
 \delta(\ran{y},\ran{z})$, which is seen in The Verifier Algorithm.
 (\ref{verifier-range-proof})
@@ -980,7 +981,7 @@ $\V$ to relate $\vec{l}(x)$ and $\vec{r}(x)$ to $\vecl{a}, \vecl{s},
 \vecr{a}$ and $\vecr{s}$. It is not that simple however. As seen here:
 
 \eq{
-	\vec{r}(x) = \ran{z^2}\vec{2^n} + ((\vecr{a} + \vecr{s}x) + \ran{z}\vec{1})\circ\vecran{y^n}
+	\vec{r}(x) = \ran{z^2}\vec{2^n} + ((\vecr{a} + \vecr{s}x) + \ran{z}\vec{1})\circ\vecran{y}^{\vec{n}}
 }
 
 This means we want $\P$ to make commitments to $\vec{y^n}\circ
@@ -990,30 +991,30 @@ challenge $\ran{y}$ from $\V$. To fix this issue $\P$ will make a
 special commitment to $\vecl{a}$ and $\vecr{a}$ as follows:
 
 \eq{
-	C(\vecl{a}, \vecr{a}, \widetilde{a}) = \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecr{a}}{\vec{H}} + \widetilde{a}\tB
+	C(\vecl{a}, \vecr{a}, \ba) = \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecr{a}}{\vec{H}} + \ba\bB
 }
 
 This same construction is used for the commitment to $C(\vecl{s},
-\vecr{s}, \widetilde{s})$. Here we notice that:
+\vecr{s}, \bs)$. Here we notice that:
 
 \eq{
-	C(\vecl{a}, \vecr{a}, \widetilde{a}) &= \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecr{a}}{\vec{H}} + \widetilde{a}\tB \\
-	&= \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecran{y^n}\circ \vecr{a}}{\vecran{y^{-n}}\circ \vec{H}} + \widetilde{a}\tB
+	C(\vecl{a}, \vecr{a}, \ba) &= \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecr{a}}{\vec{H}} + \ba\bB \\
+	&= \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecran{y}^{\vec{n}}\circ \vecr{a}}{\vecran{y^{-n}}\circ \vec{H}} + \ba\bB
 }
 
 We define $\vec{H'} = \vecran{y^{-n}}\circ\vec{H}$, $A =
-C(\vecl{a},\vecr{a}, \widetilde{a})$ and $S = C(\vecl{s}, \vecr{s},
-\widetilde{s})$ and can now construct our argument similarly to what
+C(\vecl{a},\vecr{a}, \ba)$ and $S = C(\vecl{s}, \vecr{s},
+\bs)$ and can now construct our argument similarly to what
 was done in the previous segment:
 
 \eq{
 	\dotp{\vec{l}(\ran{x})}{\vec{G}} &= \dotp{\vecl{a}}{\vec{G}} &&+ \ran{x}\dotp{\vecl{s}}{\vec{G}} &&+ \dotp{-\ran{z}\vec{1}}{\vec{G}} \\
-	\dotp{\vec{r}(\ran{x})}{\vec{H'}} &= \dotp{\vecr{a}}{\vec{H}} &&+ \ran{x}\dotp{\vecr{s}}{\vec{H}} &&+ \dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}}{\vec{H'}}\\
-	\widetilde{e}\tB &= \widetilde{a}\tB &&+ \ran{x}\widetilde{s}\tB &&+ 0 \tB \\
-	\dotp{\vec{l}(\ran{x})}{\vec{G}} + \dotp{\vec{r}(\ran{x})}{\vec{H'}} + \widetilde{e}\tB &= A &&+ \ran{x}S &&+ (\dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}}{\vec{H'}} - \ran{z}\dotp{\vec{1}}{\vec{G}})
+	\dotp{\vec{r}(\ran{x})}{\vec{H'}} &= \dotp{\vecr{a}}{\vec{H}} &&+ \ran{x}\dotp{\vecr{s}}{\vec{H}} &&+ \dotp{\ran{z}\vecran{y}^{\vec{n}} + \ran{z^2}\vec{2^n}}{\vec{H'}}\\
+	\be\bB &= \ba\bB &&+ \ran{x}\bs\bB &&+ 0 \bB \\
+	\dotp{\vec{l}(\ran{x})}{\vec{G}} + \dotp{\vec{r}(\ran{x})}{\vec{H'}} + \be\bB &= A &&+ \ran{x}S &&+ (\dotp{\ran{z}\vecran{y}^{\vec{n}} + \ran{z^2}\vec{2^n}}{\vec{H'}} - \ran{z}\dotp{\vec{1}}{\vec{G}})
 }
 
-From here, using the same argument as above $\P$ sends $\widetilde{e}$
+From here, using the same argument as above $\P$ sends $\be$
 to $\V$. This will be enough to convince $\V$ that $\vec{l}(x)$
 and $\vec{r}(x)$ are correctly constructed and that $t(x) =
 \dotp{\vec{l}(x)}{\vec{r}(x)}$ and together with the previous
@@ -1028,7 +1029,7 @@ the following:
 	\V \rightarrow \P &: \ran{y}, \ran{z} \\
 	\P \rightarrow \V &: T_1, T_2 \\
 	\V \rightarrow \P &: \ran{x} \\
-	\P \rightarrow \V &: t(\ran{x})B, \tt(\ran{x})\tB, \widetilde{e} \hspace*{1cm}\text{($t(x)$ evaluated with challenge $\ran{x}$)}\\
+	\P \rightarrow \V &: t(\ran{x})B, \bt(\ran{x})\bB, \be \hspace*{1cm}\text{($t(x)$ evaluated with challenge $\ran{x}$)}\\
 }
 
 Just as with the inner product the Fiat-Shamir Heuristic
@@ -1040,11 +1041,11 @@ non-interactive.
 $\V$ has access to the following values:
 
 \eqn{range-def1-ver}{
-	\ran{y}, \ran{z}, \ran{x}, \widetilde{e} &\in \Z_p \\
+	\ran{y}, \ran{z}, \ran{x}, \be &\in \Z_p \\
 	\vec{L}, \vec{R} &\in \G_p^{k} \\
 	\vec{G}, \vec{H}, \vec{H'} &\in \G^n \\
-	V, A, B, T_0, T_1, B, \tB &\in \G \\
-	t(\ran{x})B, \tt(\ran{x})\tB &\in \G \hspace*{1cm} \text{(evaluated at x)}
+	V, A, B, T_0, T_1, B, \bB &\in \G \\
+	t(\ran{x})B, \bt(\ran{x})\bB &\in \G \hspace*{1cm} \text{(evaluated at x)}
 }
 
 $\V$ needs to make a check for the two properties that $\P$ want to
@@ -1054,7 +1055,7 @@ To check the first property $\V$ simply checks if the following
 equation holds:
 
 \eq{
-	t(\ran{x})B + \tt(\ran{x})\tB \stackrel{?}{=} \ran{z^2} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
+	t(\ran{x})B + \bt(\ran{x})\bB \stackrel{?}{=} \ran{z^2} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
 }
 
 And if it does then that will convince $\V$ that $t(x) = \ran{z^2}v +
@@ -1065,8 +1066,8 @@ Similarly to become convinced of the second property $\V$ checks if
 this equation holds:
 
 \eq{
-	P &= -\widetilde{e}\tB &&+ A &&+ \ran{x}S &&+ \dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}}{\vec{H'}} &&- \ran{z}\dotp{\vec{1}}{\vec{\vec{G}}} \\
-	&= -\widetilde{e}\tB &&+ A &&+ \ran{x}S &&+ \dotp{\ran{z}\vecran{y^n} + \ran{z^2}\vec{2^n}\circ\vecran{y^{-n}}}{\vec{H}} &&- \ran{z}\dotp{\vec{1}}{\vec{G}}
+	P &= -\be\bB &&+ A &&+ \ran{x}S &&+ \dotp{\ran{z}\vecran{y}^{\vecran{n}} + \ran{z^2}\vec{2^n}}{\vec{H'}} &&- \ran{z}\dotp{\vec{1}}{\vec{\vec{G}}} \\
+	&= -\be\bB &&+ A &&+ \ran{x}S &&+ \dotp{\ran{z}\vecran{y}^{\vecran{n}} + \ran{z^2}\vec{2^n}\circ\vecran{y^{-n}}}{\vec{H}} &&- \ran{z}\dotp{\vec{1}}{\vec{G}}
 }
 
 From the column-sum argument we can deduce that $P =
@@ -1089,7 +1090,7 @@ zero-knowledge. The proof also needs to be Zero-knowledge. If we look
 at all the values availible to $\V$ we can see that it has only two
 of these values have any direct relation to $v$, these being $V$ and
 $t(\ran{x})B$. It is trivial to see that $\V$ cannot learn anything
-about $v$ from $V$ without knowledge of $\tv$ which $\V$ does not
+about $v$ from $V$ without knowledge of $\bv$ which $\V$ does not
 know. If we look at the definition of $t(\ran{x})B$ we can see that
 it DOES use $v$ in the calculation directly. However the definition
 of $t(x)$ uses $t_2$, which is blinded using $\vecran{s_L}$ and
@@ -1125,18 +1126,17 @@ The steps used to do this are the same steps used in the construction
 of a rangeproof with a few additional steps which aggregate the proofs
 into a single rangeproof.
 
-Each $P_{(j)}$ is
-also assigned a 'position' $j$. Each party will individually commit
-the needed values to the dealer in order to convince them that their
-value lie within the range, with one key difference. Each party uses
-an offset to ensure the order matters to the dealer, preventing the
-parties from working together to 'cheat'. This offset is defined as
-such for the $j$th party:
+Each $P_{(j)}$ is also assigned a 'position' $j$. Each party will
+individually commit the needed values to the dealer in order to
+convince them that their value lie within the range, with one key
+difference. Each party uses an offset to ensure the order matters to the
+dealer, preventing the parties from working together to 'cheat'. This
+offset is defined as such for the $j$th party:
 
 \eq{
-	&z_{(j)}   = z^j \cdot \vec{y^n_{(j)}} \\
+	&\ran{z}_{(j)}   = \ran{z}^j \cdot \vecran{y}^{\vec{n}}_{(j)} \\
 	&\textbf{where:}\\
-	&\vec{y^n_{(j)}} = \vec{y^{n \cdot m}}[j \cdot n:(j+1) \cdot n]
+	&\vecran{y}^{\vec{n}}_{(j)} = \vecran{y}^{\vec{n \cdot m}}_{[j \cdot n:(j+1) \cdot n]}
 }
 
 The evaluation point $x$ is the same for all parties. The choice
@@ -1145,18 +1145,19 @@ be done, but only once $\D$ has received the needed values from \textit{all}
 $\P_{(j)}$. Once again, this can also be done using the Fiat-Shamir
 Heuristic (\ref{fiat-shamir-heuristic}).
 
-After each party has created $t_{(j)}(x) =
-\dotp{\vec{l}_{(j)}(x)}{\vec{r}_{(j)}(x)}$ it would be sufficient
+After each party has created $t(x)_{(j)} =
+\dotp{\vec{l}(x)_{(j)}}{\vec{r}(x)_{(j)}}$ it would be sufficient
 to perform the proving steps from \ref{range-proofs} for each
-party. However this will require $\D$ to make $m$ checks to see if each
-$v_j$ lies within the range (\ref{agg-range}). However $\D$ can do a
-few more computations to create a singular proof which requires a single
-check to see that \textit{all} $v_j$ lie within the range. (\ref{agg-range})
+party. However this will require $\D$ to make $m$ checks to see if
+each $v_j$ lies within the range (\ref{agg-range}). However $\D$ can
+do a few more computations to create a singular proof which requires
+a single check to see that \textit{all} $v_j$ lie within the range
+(\ref{agg-range}).
 
-For $\P_{(j)}$ to prove that its polynomial $t_{(j)}(x)$ is correct
+For $\P_{(j)}$ to prove that its polynomial $t(x)_{(j)}$ is correct
 means proving that $t_{0,(j)}$ is correct as well as proving that
-$\vec{l}_{(j)}(x)$ and $\vec{r}_{(j)}(x)$ are created correctly and
-that $t_{(j)} = \dotp{\vec{l}_{(j)}(x)}{\vec{r}_{(j)}(x)}$.
+$\vec{l}(x)_{(j)}$ and $\vec{r}(x)_{(j)}$ are created correctly and
+that $t(x)_{(j)} = \dotp{\vec{l}(x)_{(j)}}{\vec{r}(x)_{(j)}}$.
 
 Each $\P_{(j)}$ sends their $T_{1,(j)}$ and $T_{2,(j)}$, to the dealer,
 which can then compute:
@@ -1167,27 +1168,26 @@ which can then compute:
 	\delta(y,z) &= \sum^{m-1}_{j = 0} \delta_{(j)}(y,z)
 }
 
-and from here $\D$ sends back the challenge
-$\ran{x}$ and $\P_{(j)}$ will return $t_{(j)}(\ran{x})B$ and
-$\tt_{(j)}(\ran{x})\tB$. $\D$ can then sum these
-together as well:
+and from here $\D$ sends back the challenge $\ran{x}$ and $\P_{(j)}$
+will return $t(\ran{x})_{(j)}B$ and $\bt(\ran{x})_{(j)}\bB$. $\D$
+can then sum these together as well:
 
 \eq{
 t(x)B &= \sum^{m-1}_{j = 0} t_{j}(x)B\\
-\tt(x)\tB &= \sum^{m-1}_{j = 0} \tt_{j}(x)\tB
+\bt(x)\bB &= \sum^{m-1}_{j = 0} \bt_{j}(x)\bB
 }
 
 And finally convince themselves that for all $t_{0,(j)}$ are correct
 by performing the following check:
 
 \eq{
-	t(\ran{x})B + \widetilde{t}(\ran{x})\widetilde{B} \stackrel{?}{=} \ran{z^2}\sum^{m-1}_{j = 0} \ran{z_{(j)}} \cdot V_{(j)} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
+	t(\ran{x})B + \bt (\ran{x})\bB \stackrel{?}{=} \ran{z^2}\sum^{m-1}_{j = 0} \ran{z_{(j)}} \cdot V_{(j)} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
 }
 
 we know that $z_{(j)} = z^j$ we can make a small rewrite:
 
 \eq{
-	t(\ran{x})B + \widetilde{t}(\ran{x})\widetilde{B} \stackrel{?}{=} \sum^{m-1}_{j = 0} \ran{z^{j+2}} \cdot V_{(j)} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
+	t(\ran{x})B + \bt (\ran{x})\bB \stackrel{?}{=} \sum^{m-1}_{j = 0} \ran{z^{j+2}} \cdot V_{(j)} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
 }
 
 
@@ -1195,48 +1195,56 @@ And this check will then convince $\D$ that all $t_{0,(j)}$
 are correct.
 
 Just as with a singular rangeproof each $\P_{(j)}$ also wishes to prove
-that each $\vec{l_{(j)}(x)}$ and $\vec{r_{(j)}(x)}$ are constructed
+that each $\vec{l}(x)_{(j)}$ and $\vec{r}(x)_{(j)}$ are constructed
 correctly. This is done in a similar manner as proving $t_{0,(j)}$
-are all correct. Proving this property for the jth party would be
+are all correct. Proving this property for the $j$th party would be
 proving the following:
 
 \eq{
-	\dotp{\vec{l}_{(j)}(\ran{x})}{\vec{G}_{(j)}} + \dotp{\vec{r}_{(j)}(\ran{x})}{\vec{H'}_{(j)}} \stackrel{?}{=} -\widetilde{e}_{(j)}\widetilde{B} + A_{(j)} + \ran{x}S_{(j)} &&+ (\dotp{\ran{z}\vecran{y^n_{(j)}} + \ran{z^2}\ran{z_{(j)}}\vec{2^n}}{H'}_{(j)} - \ran{z}\dotp{\vec{1}}{\vec{G}_{(j)}})
+	\dotp{\vec{l}(\ran{x})_{(j)}}{\vec{G}_{(j)}} + \dotp{\vec{r}(\ran{x})_{(j)}}{\vec{H'}_{(j)}} \stackrel{?}{=}
+	-\be_{(j)}\bB + A_{(j)} + \ran{x}S_{(j)} +
+	(\dotp{\ran{z}\vecran{y}^{\vec{n}}_{(j)} +
+	\ran{z}^2\ran{z}_{(j)}\vec{2^n}}{H'}_{(j)} -
+	\ran{z}\dotp{\vec{1}}{\vec{G}_{(j)}})
 }
 
-$\P_{(j)}$ will send their $\dotp{\vec{l}_{(j)}(\ran{x})}{\vec{G}_{(j)}},
-\dotp{\vec{r}_{(j)}(\ran{x})}{\vec{H'}_{(j)}}$ and $\widetilde{e}_{(j)}$
+$\P_{(j)}$ will send their $\dotp{\vec{l}(\ran{x})_{(j)}}{\vec{G}_{(j)}},
+\dotp{\vec{r}(\ran{x})_{(j)}}{\vec{H'}_{(j)}}$ and $\be_{(j)}$
 which $\D$ can then combine in the following manner:
 
 \eq{
-	\vec{l}(x) &= \vec{l_0}(x) &&\concat \vec{l_1}(x) &&\concat \dots &&\concat \vec{l_{m-1}}(x)\\
-	\vec{r}(x) &= \vec{r_0}(x) &&\concat \vec{r_1}(x) &&\concat \dots &&\concat \vec{r_{m-1}}(x)\\
-	\vec{G} &= \vec{G_0} &&\concat \vec{G_1} &&\concat \dots &&\concat \vec{G_{m-1}}\\
-	\vec{H'} &= \vec{H'_0} &&\concat \vec{H'_1} &&\concat \dots &&\concat \vec{H'_{m-1}}
+	\vec{l}(x) &= \vec{l}(x)_{(0)} &&\concat \vec{l}(x)_{(1)} &&\concat \dots &&\concat \vec{l}(x)_{(m-1)}\\
+	\vec{r}(x) &= \vec{r}(x)_{(0)} &&\concat \vec{r}(x)_{(1)} &&\concat \dots &&\concat \vec{r}(x)_{(m-1)}\\
+	\vec{G}    &= \vec{G}_{(0)}    &&\concat \vec{G}_{(1)}    &&\concat \dots &&\concat \vec{G}_{(m-1)}\\
+	\vec{H'}   &= \vec{H'}_{(0)}   &&\concat \vec{H'}_{(1)}   &&\concat \dots &&\concat \vec{H'}_{(m-1)}
 }
+% NOTE: Skal dette ikke være l_{(0)}...
 
 Additionally $\D$ can construct the following:
 
 \eq{
-	\vecran{y^n_{(j)}} &= \vecran{y^{n \cdot m}}[j \cdot n : (j+1) \cdot n]\\
+	\vecran{y}^{\vec{n}}_{(j)} &= \vecran{y}^{\vec{n \cdot m}}_{[j \cdot n : (j+1) \cdot n]}\\
 	\ran{z_{(j)}}      &= \ran{z^j}\\
-	\widetilde{e}      &= \sum^{m-1}_{j = 0} \widetilde{e}_{(j)}\\
+	\be      &= \sum^{m-1}_{j = 0} \be_{(j)}\\
 	A                  &= \sum^{m-1}_{j = 0} A_{(j)}\\
 	S                  &= \sum^{m-1}_{j = 0} S_{(j)}
 }
 
 Note that $\D$ has already recieved $A_{(j)}$ and $S_{(j)}$ from the
 first step of the transcript. $\D$ can then use the following check
-to convince itself that all $\vec{l_{(j)}}(x)$ and $\vec{r_{(j)}}(x)$
+to convince itself that all $\vec{l}(x)_{(j)}$ and $\vec{r}(x)_{(j)}$
 are correctly constructed:
 
 \eq{
-	\vec{l_{(j)}}(\ran{x}) + \vec{r_{(j)}}(\ran{x}) \stackrel{?}{=} -\widetilde{e}\widetilde{B} + A + \ran{x}S - \ran{z}\dotp{\vec{1}}{\vec{G}} + \ran{z}\dotp{\vecran{y^{n \cdot m}}}{\vec{H'}} + \sum^{m-1}_{j = 0}\dotp{\ran{z^{j+2}} \cdot \vec{2^n}}{\vec{H'}[j \cdot n: (j+1) \cdot n]}
+	\vec{l}(\ran{x})_{(j)} + \vec{r}(\ran{x})_{(j)} \stackrel{?}{=}
+	-\be\bB + A + \ran{x}S - \ran{z}\dotp{\vec{1}}{\vec{G}} +
+	\ran{z}\dotp{\vecran{y}^{\vec{n \cdot m}}}{\vec{H'}} +
+	\sum^{m-1}_{j = 0}\dotp{\ran{z^{j+2}} \cdot \vec{2^n}}{\vec{H'}_{[j \cdot n: (j+1) \cdot n]}}
 }
 
-And if this holds then $\D$ is convinced that $\vec{l_{(j)}}(x)$ and
-$\vec{r_{(j)}}(x)$ are correctly constructed and that $l_{(j)}(x)
-= \dotp{\vec{l}_{(j)}(x)}{\vec{r}_{(j)}(x)}$. This, along with
+And if this holds then $\D$ is convinced that $\vec{l}(x)_{(j)}$ and
+$\vec{r}(x)_{(j)}$ are correctly constructed and that $t(x)_{(j)}
+= \dotp{\vec{l}(x)_{(j)}}{\vec{r}(x)_{(j)}}$. This, along with
 the previous part on top $\D$ is now convinced that all parties'
 $v_{(j)}$ are within the range (\ref{agg-range}) and thus the
 proof is complete. Additionally, using the same arguments as in
@@ -1250,7 +1258,7 @@ This protocol in transcript form would be the following:
 	&\D &&\rightarrow \P_{(j)} &&: \ran{y}, \ran{z}, j \\
 	&\P_{(j)} &&\rightarrow \V &&: T_{1, (j)}, T_{2,(j)} \\
 	&\D &&\rightarrow \P_{(j)} &&: \ran{x} \\
-	&\P_{(j)} &&\rightarrow \V &&: t_{(j)}(\ran{x})B, \tt_{(j)}(\ran{x})\tB, \widetilde{e} \hspace*{1cm}\text{($t_{(j)}(x)$ and $\tt_{(j)}(\ran{x})\tB$ both evaluated with challenge $\ran{x}$)}\\
+	&\P_{(j)} &&\rightarrow \V &&: t(\ran{x})_{(j)} B, \bt(\ran{x})_{(j)}\bB, \be \hspace*{1cm}\text{($t(x)_{(j)}$ and $\bt(x)_{(j)}$ both evaluated with challenge $\ran{x}$)}\\
 }
 
 \subsection{Fiat-Shamir Heuristic}\label{fiat-shamir-heuristic}
@@ -1308,21 +1316,24 @@ to create the challenges. In essence when a challenge is needed
 all parties will send their values to this local overseer
 who can then generate the challenges using the Fiat-Shamir
 Heuristic. Specifically $y = \textbf{H}(\vec{V},\vec{A},\vec{S}),
-z = \textbf{H}(\vec{V},\vec{A},\vec{S}, y)$ and $x =
+\ z = \textbf{H}(\vec{V},\vec{A},\vec{S}, y)$ and $x =
 \textbf{H}(\vec{V},\vec{A},\vec{S}, y, \vec{T_1},\vec{T_2})$. This
 will result in the following final transcript:
 
 \eq{
-	&\P_{(j)} &&\rightarrow \D &&: V_{(j)}, n, A_{(j)}, S_{(j)}, j, T_{1, (j)}, T_{2,(j)}, t_{(j)}(\ran{x})B, \tt_{(j)}(\ran{x})\tB, \widetilde{e}
+	&\P_{(j)} &&\rightarrow \D &&: V_{(j)}, n, A_{(j)}, S_{(j)}, j, T_{1, (j)}, T_{2,(j)}, t_{(j)}(\ran{x})B, \bt_{(j)}(\ran{x})\bB, \be
 }
 
-Finally, the recently discovered Frozen Heart vulnerability
-\cite{frozen-heart} describes how in the Fiat-Shamir Heuristic suggested
-in \cite{bulletproofs}, a malicious prover could cheat
-successfully. This was because in the original paper the Fiat-Shamir
-Heuristic did not include $\vec{V}$ in their hash function which
-allowed a malicious $\P$ to get a proof verified even if one or more
-$v$'s did not lie within the range. The paper has since been updated,
+Worth noting is that a recently found vulnerability, the Frozen
+Heart vulnerability \cite{frozen-heart}, describes how in the
+Fiat-Shamir Heuristic suggested in the original bulletproofs paper
+\cite{bulletproofs}, a malicious prover could cheat successfully. This
+was because in the original paper the Fiat-Shamir Heuristic did not
+include $\vec{V}$ in their hash function which allowed a malicious
+$\P$ to get a proof verified even if one or more $v$'s did not lie
+within the range. This is not a problem for the Dalek implementation as
+they include $V$ in the transcript, therefore our implementation also
+does not have this vulnerability. The paper has since been updated,
 but any implementation that has followed the old paper's Fiat-Shamir
 specification could still be vulnerable.
 
@@ -1555,8 +1566,6 @@ however we used the specification from \cite{elliptic-curves}. This
 proved to work perfectly, with the given tests and the IETF-standard
 methods.
 
-\subsubsection{Hacspec related problems:}
-
 Due to the need for comparing points scalars had to be implemented using \texttt{public\_nat\_mod!} rather than the more secure \texttt{nat\_mod!} which has nearly identical functionality except over secret integers. However secret integers cannot be compared, something that was required by the IETF-standard.
 
 Additionally we ran into two issues with using \texttt{public\_nat\_mod!}. The first was one of the checks in decode:
@@ -1623,6 +1632,8 @@ bit must be set to 0, therefore we mod the most significant byte by
 This interaction was tested thoroughly to ensure it functions as we 
 intended it to.
 
+\textbf{Testing:}
+
 When testing our implementation we made two series of tests. 
 One was unit-tests, defined by the IETF-standard which were designed 
 to catch edge-cases in the various functions. Once such test can be 
@@ -1646,20 +1657,19 @@ seen below, testing if various one-way-maps all map to the same point:
 	}
 \end{lstlisting}
 
-There were four of these tests in total, testing the one-way-map, 
-encoding, and both succcessful decoding, as well as examples where 
+There were four of these tests in total, testing the one-way-map,
+encoding, and both succcessful decoding, as well as examples where
 decoding must fail, thus ensuring our implementation works as intended.
 
-The second series of tests were meant to randomly check if our 
-implementation functioned equivalently to the Rust implementation of 
-Ristretto25519, for each function. This was done by making a test for 
-every public method, the one-way-map, encoding, decoding, point negation, 
-point addition and scalar multiplication functions, and generating a 
-random input and creating equivalent points for both the Rust 
-implementation and our own and running the same operations and then 
-comparing the results.
-Below is an example of one of these tests, testing that our point 
-negation function works identically:
+The second series of tests were meant to randomly check if our
+implementation functioned equivalently to the Rust implementation
+of Ristretto25519, for each function. This was done by making a
+test for every public method, the one-way-map, encoding, decoding,
+point negation, point addition and scalar multiplication functions,
+and generating a random input and creating equivalent points for both
+the Rust implementation and our own and running the same operations
+and then comparing the results.  Below is an example of one of these
+tests, testing that our point negation function works identically:
 
 \begin{lstlisting}
 #[test]
@@ -1682,8 +1692,6 @@ fn test_dalek_point_negation() {
 
 The \texttt{create\_points(v)} method uses the one-way-map to generate 
 random points. It is also tested individually.
-
-% NOTE: more about testing.
 
 \subsection{Implementing Merlin:} \label{implementing-merlin}
 
@@ -1904,11 +1912,15 @@ G_L = G_L * u_inv + u     * G_R;
 H_L = H_L * u     + u_inv * H_R;
 \end{lstlisting}
 
-This is indeed more intuitive and closer to the math, but it is not
-possible in hacspec due to the absence of structs. Even if this were
+This is indeed more intuitive and closer to the math, but it
+is not possible in hacspec due to the absence of structs. While
+Hacspec supports limited structs, it does \textit{not} support the
+\texttt{impl} keyword needed for this, and it is at least not on the
+roadmap currently, and may not ever be implemented. Even if this were
 solved by introducing limited structs we would still have to deal with
 the fact that linear algebra operations are defined over two vectors
-of the \textit{same} type.
+of the \textit{same} type. This could be solved by extending the
+hypothetical linear algebra vector struct as a sort of helper function.
 
 In our implementation we also have the inputs \texttt{G\_factors}
 and \texttt{H\_factors}, which is simply factors applied to $\vec{G}$
@@ -2021,17 +2033,17 @@ however.
 \begin{algorithm}[H]
 	\DontPrintSemicolon
 	\SetAlgoLined
-	\KwIn{$n \in \Z, \vec{v}\in \Z^n_p, \vec{\tv} \in \Z^n_p, B\in\G, \tB\in\G, \vec{G}\in\G^n, \vec{H} \in\G^n$}
+	\KwIn{$n \in \Z, \vec{v}\in \Z^n_p, \vec{\bv} \in \Z^n_p, B\in\G, \bB\in\G, \vec{G}\in\G^n, \vec{H} \in\G^n$}
 	\SetKwFunction{len}{.len()}
 	\SetKwFunction{performChecks}{perform\_checks()}
-	\SetKwFunction{createDealer}{create\_dealer($B,\tB,\vec{G},\vec{H},n,m$)}
-	\SetKwFunction{createParty}{create\_Party($B,\tB,\vec{G},\vec{H},v,\tv,n$)}
+	\SetKwFunction{createDealer}{create\_dealer($B,\bB,\vec{G},\vec{H},n,m$)}
+	\SetKwFunction{createParty}{create\_Party($B,\bB,\vec{G},\vec{H},v,\bv,n$)}
 	\SetKwFunction{computeAS}{create\_bit\_commitment($party\_step1, j$)}
 	\SetKwFunction{firstaggregate}{receive\_bit\_commitments($dealer\_step1, \vec{V}, \vec{A},\vec{S}$)}
 	\SetKwFunction{computeTs}{create\_poly\_commitment($party_j\_step1, \ran{y},\ran{z}$)}
 	\SetKwFunction{secondaggregate}{receive\_poly\_commitments($dealer\_step2, \vec{T_1}, \vec{T_2}$)}
 	\SetKwFunction{computetxB}{create\_proofshare($party_j\_step2,\ran{x}$)}
-	\SetKwFunction{thirdaggregate}{receive\_proofshares($dealer\_step3,\vec{t(\ran{x})B}, \vec{\vec{\tt(\ran{x})\tB}}$)}
+	\SetKwFunction{thirdaggregate}{receive\_proofshares($dealer\_step3,\vec{t(\ran{x})B}, \vec{\vec{\bt(\ran{x})\bB}}$)}
 	$\performChecks$\\
 	$m := \vec{v}\len$\\
 	$dealer\_step1 := \createDealer$ \\
@@ -2049,7 +2061,7 @@ however.
 	$(dealer\_step3, \ran{x}) := \secondaggregate$\\
 
 	\For{$j\in [1 : m+1]$}{
-		$t(\ran{x})_jB, \tt (\ran{x})_j\tB := \computetxB$ 
+		$t(\ran{x})_jB, \bt (\ran{x})_j\bB := \computetxB$ 
 	}
 
 	$aggregated\_rangeproof := \thirdaggregate$
@@ -2162,24 +2174,7 @@ more abstract modules with the faster Dalek implementations. This could
 allow for much more tests to be run and thus much greater guarantees
 of equivelence.
 
-%Future cryptographic protocols in Hacspec, which can use our
-%implementations of Ristretto and Merlin without the need to implement
-%them once more.
-
 \section{Conclusion:}
-
-%Cryptation of cryptocurrency purchases need to be encrypted securely
-%and effectively. To this end, the bulletproofs protocol was created,
-%and subsequently implemented in Rust. However this implementation
-%cannot be proven to be free of vulnerabilities. This is the problem
-%that our project has begun to help ensure.
-
-%Throughout this project we have worked to gain an understanding of
-%Elliptic Curve Cryptography, including the basics of Finite Field
-%Arithmatics, and the Elliptic Curves in general. As well as gain a
-%firm understanding of the theory behind the Bulletproofs protocol on
-%a mathematical level, such as why it is not only a complete proof,
-%but is also Sound and Zero-knowledge.
 
 In order to complete our task of helping to improve the security of the 
 Rust bulletproof implementation does not have any vulnerabilities we 
@@ -2205,25 +2200,19 @@ to be implemented in Hacspec. It can thus act as a reference for how
 such a protocol might need to be implemented as well as an example on 
 how to integrate the various modules we have implemented. For example, 
 if a future devealoper wishes to see make use of Ristretto for their 
-implemenation they may use the Inner-Product-Proof module to see 
+implemenation they may use the inner-product-proof module to see 
 how it is utilized and also be able to use our Ristretto25519 
 module for thier implementation. 
 
 In essence we have laid nearly all the groundwork for the future work
-of actually using a Proof Assistant to prove various properties about
+of actually using a proof assistant to prove various properties about
 the Rust implementation, and we have laid out a few powerful 
 building blocks allowing future devealopers to more easily implement 
 other zero-knowledge cryptographic algorithms, by allowing them to use 
-our Ristretto25519 and Merlin modules for implementing Elliptic Curve 
-Cryptography protocols and Zero-Knowledge Proof protocols resepctively.
+our Ristretto25519 and Merlin modules for implementing elliptic-curve 
+cryptography protocols and zero-knowledge proof protocols resepctively.
 
-% NOTE:
-
-\textbf{Something about laying groundwork for zero knowledge proofs to be implemented in hacspec (Merlin, Ristretto)}
-
-\textbf{Stress testing hacspec using an high-level cryptographic protocol such as bulletproofs}
-
-\textbf{Remaining code review}
+% NOTE: maybe more about code review
 
 \section{References}
 \printbibliography
