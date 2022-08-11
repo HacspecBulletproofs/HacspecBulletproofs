@@ -1756,6 +1756,50 @@ correctly.
 \textbf{Testing:}
 
 \subsection{Implementing Inner Product Proof:} \label{implementing-inner-product-proof}
+For testing the library we created one test that runs
+the \texttt{append_message()}, \texttt{append_u64()} and
+\texttt{challenge_bytes()} for both implementations and asserts that
+the challenge bytes returned are equivelent. These functions are
+sufficient to test equivelence as these three functions utilizes all
+other functions implemented. The entire test can be seen below:
+
+\begin{lstlisting}
+// Tests all merlin functions against the external merlin counterparts.
+#[test]
+fn merl_test_all_funcs() {
+	fn helper(msg: Vec<u8>, n: u64, buf_size: u8) -> TestResult {
+		let mut ret = true;
+		let mut t1 = new(b("str"));
+		let mut t2 = merlin::Transcript::new(b"str");
+		let mut buf = Vec::<u8>::new();
+		buf.resize(buf_size as usize, 0);
+
+		t1 = append_message(t1, b("msg"), to_seq(msg.clone()));
+		t1 = append_u64(t1, b("n"), U64::classify(n));
+
+		t2.append_message(b"msg", &msg);
+		t2.append_u64(b"n", n);
+
+		let (_, data) = challenge_bytes(t1, b("challenge_label"), to_seq(buf.clone()));
+		t2.challenge_bytes(b"challenge_label", &mut buf);
+
+		if data.len() != buf.len() {
+			ret = false
+		}
+		for i in 0..data.len() {
+			if data[i].declassify() != buf[i] {
+				ret = false;
+			}
+		}
+
+		TestResult::from_bool(ret)
+	}
+	quickcheck(helper as fn(Vec<u8>, u64, u8) -> TestResult);
+}
+
+\end{lstlisting}
+
+\subsection{Implementing Inner Product Proof:}
 
 We'll start by presenting the prover and verifier's algorithms as
 implemented in pseudocode. Note that we index at 1:
