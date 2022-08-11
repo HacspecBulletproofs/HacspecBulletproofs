@@ -18,14 +18,14 @@ type CreatePolyCommitmentRes = Result<(PartyAwaitingPolyChallenge,(RistrettoPoin
 type CreateProofShareRes = Result<ProofShare,u8>;
 
 
-
-pub type PartyAwaitingPosition = (
-    /*bp_gens:*/ BulletproofGens,
-    /*pc_gens:*/ PedersenGens,
+#[derive(Clone,Default)]
+pub struct PartyAwaitingPosition(
+    /*bp_gens:*/ pub BulletproofGens,
+    /*pc_gens:*/ pub PedersenGens,
     /*n: usize,*/
     /*v: u64,*/
     /*v_blinding: Scalar,*/
-    /*V:*/ RistrettoPointEncoded
+    /*V:*/ pub RistrettoPointEncoded
 );
 
 /*pub type PartyAwaitingBitChallenge = (
@@ -40,23 +40,25 @@ pub type PartyAwaitingPosition = (
         /*s_R: Seq<Scalar>*/
 );*/ //this is the type used by the rust implementation, but every value in here either unused or too trivial to store
 
-pub type BitChallengeInput = (
-    /*j:*/ usize, 
-    /*value:*/ u64, 
-    /*n:*/ usize, 
-    /*bit_challenge:*/ (Scalar,Scalar), 
-    /*pc_gens:*/ PedersenGens, 
-    /*t1_blinding:*/ Scalar, 
-    /*t2_blinding:*/ Scalar, 
-    /*s_L:*/ Seq<Scalar>, 
-    /*s_R:*/ Seq<Scalar>
+#[derive(Clone,Default)]
+pub struct BitChallengeInput(
+    /*j:*/ pub usize, 
+    /*value:*/ pub u64, 
+    /*n:*/ pub usize, 
+    /*bit_challenge:*/ pub (Scalar,Scalar), 
+    /*pc_gens:*/ pub PedersenGens, 
+    /*t1_blinding:*/ pub Scalar, 
+    /*t2_blinding:*/ pub Scalar, 
+    /*s_L:*/ pub Seq<Scalar>, 
+    /*s_R:*/ pub Seq<Scalar>
 );
 
-pub type PartyAwaitingPolyChallenge = (
-/*offset_zz:*/ Scalar,
-/*l_poly:*/ (Seq<Scalar>, Seq<Scalar>),
-/*r_poly:*/ (Seq<Scalar>, Seq<Scalar>),
-/*t_poly:*/ (Scalar, Scalar, Scalar),
+#[derive(Clone,Default)]
+pub struct PartyAwaitingPolyChallenge(
+/*offset_zz:*/ pub Scalar,
+/*l_poly:*/ pub (Seq<Scalar>, Seq<Scalar>),
+/*r_poly:*/ pub (Seq<Scalar>, Seq<Scalar>),
+/*t_poly:*/ pub (Scalar, Scalar, Scalar),
 /*v_blinding: Scalar,*/
 /*a_blinding: Scalar,*/
 /*s_blinding: Scalar,*/
@@ -122,7 +124,7 @@ pub fn create_party(
             let (base_point,blinding_point) = pc_gens;
             let pedersen_commitment = pedersen_commit(v_blinding, blinding_point, Scalar::from_literal(v as u128), base_point);
             let V = encode(pedersen_commitment);
-            res = CreatePartyRes::Ok(((party_capacity,gens_capacity,g_vec,h_vec),pc_gens,V));
+            res = CreatePartyRes::Ok(PartyAwaitingPosition((party_capacity,gens_capacity,g_vec,h_vec),pc_gens,V));
         }}
         res
 }
@@ -140,7 +142,7 @@ pub fn create_bit_commitment(
     #[allow(unused)]
     let mut res = CreateBitCommitmentRes::Err(0u8);
 
-    let (bp_gens,pc_gens,V) = party;
+    let PartyAwaitingPosition(bp_gens,pc_gens,V) = party;
 
     let (party_capacity, _,g_vec,h_vec) = bp_gens;
 
@@ -196,7 +198,7 @@ pub fn create_poly_commitment(party: BitChallengeInput) -> CreatePolyCommitmentR
     #[allow(unused)]
     let mut res = CreatePolyCommitmentRes::Err(0u8);
 
-    let (j, value, n, bit_challenge, pc_gens, t1_blinding, t2_blinding, s_L, s_R) = party;
+    let BitChallengeInput(j, value, n, bit_challenge, pc_gens, t1_blinding, t2_blinding, s_L, s_R) = party;
 
     let (base_point, blinding_point) = pc_gens;
     let (y, z) = bit_challenge;
@@ -251,7 +253,7 @@ pub fn create_poly_commitment(party: BitChallengeInput) -> CreatePolyCommitmentR
     
     let poly_commitment = (T_1, T_2);
 
-    let party_awaiting_poly_challenge = (
+    let party_awaiting_poly_challenge = PartyAwaitingPolyChallenge(
         offset_zz,
         (l_poly0, l_poly1),
         (r_poly0, r_poly1),
@@ -280,7 +282,7 @@ pub fn create_proofshare(party: PartyAwaitingPolyChallenge,
     }
 
     else { 
-        let (offset_zz,l_poly,r_poly,t_poly) = party;
+        let PartyAwaitingPolyChallenge(offset_zz,l_poly,r_poly,t_poly) = party;
 
         let (t_poly0, t_poly1, t_poly2) = t_poly;
 

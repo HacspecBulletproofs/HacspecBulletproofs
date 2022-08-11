@@ -76,25 +76,12 @@ pub fn prove(
             /* Party awaiting position = (bp_gens, pc_gens, n, v, v_blinding, V) 
             this needs to be unpacked to avoid borrows and cloning errors from hacspec 
             similarly bp_gens also needs to be unpacked for the same reasons*/
-
-            let mut bp_genss_party_capacity = Seq::<usize>::new(number_of_parties);
-            let mut bp_genss_gens_capacity = Seq::<usize>::new(number_of_parties);
-            let mut bp_genss_g_vec = Seq::<Seq<Seq<RistrettoPoint>>>::new(number_of_parties);
-            let mut bp_genss_h_vec = Seq::<Seq<Seq<RistrettoPoint>>>::new(number_of_parties);
-            let mut pc_genss = Seq::<PedersenGens>::new(number_of_parties);
-            let mut Vs = Seq::<RistrettoPointEncoded>::new(number_of_parties);
-
+            let mut parties = Seq::<PartyAwaitingPosition>::new(number_of_parties);
+            
             for i in 0..number_of_parties {
-                let ((new_party_capacity, new_gens_capacity, new_g_vec, new_h_vec),new_pc_gens,new_V) = 
+                let party = 
                     create_party((party_capacity, gens_capacity, g_vec.clone(), h_vec.clone()),pc_gens, values[i], v_blindings[i],n)?;
-                
-                bp_genss_party_capacity[i] = new_party_capacity;
-                bp_genss_gens_capacity[i] = new_gens_capacity;
-                bp_genss_g_vec[i] = new_g_vec;
-                bp_genss_h_vec[i] = new_h_vec;
-                pc_genss[i] = new_pc_gens;
-                Vs[i] = new_V;
-
+                parties[i] = party;
             }
             
             /* Create a bitcommitment */
@@ -106,9 +93,7 @@ pub fn prove(
             for i in 0..number_of_parties {
 
                 let bit_commitment = 
-                        create_bit_commitment(((bp_genss_party_capacity[i], bp_genss_gens_capacity[i],bp_genss_g_vec[i].clone(),bp_genss_h_vec[i].clone()),
-                                                pc_genss[i],
-                                                Vs[i]),
+                        create_bit_commitment(parties[i].clone(),
                                                 values[i],
                                                 n,
                                                 i, a_blinding[i], s_blinding[i],s_L[i].clone(),s_R[i].clone())?;
@@ -131,39 +116,28 @@ pub fn prove(
             /* party awaiting poly challenge = (offset_zz, l_poly, r_poly, t_poly, v_blinding, a_blinding, s_blinding, t_1_blinding, t_2_blinding) 
             As before this is unpacked to avoid trouble with hacspec compliance*/
 
-            let mut offsets = Seq::<Scalar>::new(number_of_parties);
-            let mut l_poly0s = Seq::<Seq<Scalar>>::new(number_of_parties);
-            let mut l_poly1s = Seq::<Seq<Scalar>>::new(number_of_parties);
-            let mut r_poly0s = Seq::<Seq<Scalar>>::new(number_of_parties);
-            let mut r_poly1s = Seq::<Seq<Scalar>>::new(number_of_parties);
-            let mut t_polys = Seq::<(Scalar,Scalar,Scalar)>::new(number_of_parties);
-
+            let mut poly_challenge_parties = Seq::<PartyAwaitingPolyChallenge>::new(number_of_parties);
             let mut poly_commitments = Seq::<(RistrettoPoint,RistrettoPoint)>::new(number_of_parties);
 
             for i in 0..number_of_parties{
-                let ((new_offset, (new_l_poly0, new_l_poly1), (new_r_poly0,new_r_poly1), new_t_poly), 
-                      poly_commitment) = 
-                        create_poly_commitment((i,
+                let (new_party, poly_commitment) = 
+                        create_poly_commitment(BitChallengeInput(i,
                                                values[i],
                                                n, 
                                                bit_challenge,
-                                               pc_genss[i],
+                                               pc_gens,
                                                t1_blinding[i],
                                                t2_blinding[i],
                                                s_L[i].clone(),
                                                s_R[i].clone()))?;
 
-                offsets[i] = new_offset;
-                l_poly0s[i] = new_l_poly0;
-                l_poly1s[i] = new_l_poly1;
-                r_poly0s[i] = new_r_poly0;
-                r_poly1s[i] = new_r_poly1;
-                t_polys[i] = new_t_poly;
+                poly_challenge_parties[i] = new_party.clone();
 
                 poly_commitments[i] = poly_commitment;
             }
 
             let (dealer_awaiting_proof_shares, poly_challenge) = receive_poly_commitments(dealer_awaiting_poly_commitments, poly_commitments)?;
+
 
             let mut t_xs = Seq::<Scalar>::new(number_of_parties);
             let mut t_x_blindings = Seq::<Scalar>::new(number_of_parties);
@@ -174,10 +148,7 @@ pub fn prove(
 
             for i in 0..number_of_parties{
                 let (new_t_x,new_t_x_blinding,new_e_blinding,new_l_vec, new_r_vec) = 
-                    create_proofshare((offsets[i], 
-                                        (l_poly0s[i].clone(),l_poly1s[i].clone()), 
-                                        (r_poly0s[i].clone(), r_poly1s[i].clone()), 
-                                        t_polys[i]),
+                    create_proofshare(poly_challenge_parties[i].clone(),
                                         v_blindings[i],
                                         a_blinding[i], 
                                         s_blinding[i],

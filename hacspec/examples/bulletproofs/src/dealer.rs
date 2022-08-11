@@ -18,45 +18,45 @@ type ReceiveBitsRes = Result<(DealerAwaitingPolyCommitments,(Scalar,Scalar)),u8>
 type ReceivePolyCommitmentsRes = Result<(DealerAwaitingProofShares, Scalar), u8>;
 type ReceiveSharesRes = Result<RangeProof, u8>;
 
-pub type DealerAwaitingBitCommitments = (
-    /*bp_gens:*/ BulletproofGens,
-    /*pc_gens:*/ PedersenGens,
-    /*transcript:*/ Transcript,
-    /*Initial transcript:*/ Transcript,
-    /*n:*/ usize,
-    /*m:*/ usize
+pub struct DealerAwaitingBitCommitments(
+    /*bp_gens:*/ pub BulletproofGens,
+    /*pc_gens:*/ pub PedersenGens,
+    /*transcript:*/ pub Transcript,
+    /*Initial transcript:*/ pub Transcript,
+    /*n:*/ pub usize,
+    /*m:*/ pub usize
 );
 
-pub type DealerAwaitingPolyCommitments = (
-    /*n:*/ usize,
-    /*m:*/ usize,
-    /*transcript:*/ Transcript,
-    /*initial_transcript:*/ Transcript,
-    /*bp_gens:*/ BulletproofGens,
-    /*pc_gens:*/ PedersenGens,
-    /*bit_challenge:*/ (Scalar,Scalar),
-    /*bit_commitments:*/ Seq<(RistrettoPointEncoded,RistrettoPoint,RistrettoPoint)>,
+pub struct DealerAwaitingPolyCommitments(
+    /*n:*/ pub usize,
+    /*m:*/ pub usize,
+    /*transcript:*/ pub Transcript,
+    /*initial_transcript:*/ pub Transcript,
+    /*bp_gens:*/ pub BulletproofGens,
+    /*pc_gens:*/ pub PedersenGens,
+    /*bit_challenge:*/ pub (Scalar,Scalar),
+    /*bit_commitments:*/ pub Seq<(RistrettoPointEncoded,RistrettoPoint,RistrettoPoint)>,
     /* Aggregated commitment to the parties' bits*/
-    /*A:*/ RistrettoPoint,
+    /*A:*/ pub RistrettoPoint,
     /* Aggregated commitment to the parties' bit blindings */
-    /*S:*/ RistrettoPoint
+    /*S:*/ pub RistrettoPoint
 );
 
-pub type DealerAwaitingProofShares = (
-    /*n:*/ usize,
-    /*m:*/ usize,
-    /*transcript:*/ Transcript,
-    /*initial_transcript:*/ Transcript,
-    /*bp_gens:*/ BulletproofGens,
-    /*pc_gens:*/ PedersenGens,
-    /*bit_challenge:*/ (Scalar, Scalar),
-    /*bit_commitments:*/ Seq<(RistrettoPointEncoded, RistrettoPoint, RistrettoPoint)>,
-    /*poly_challenge:*/ Scalar,
-    /*poly_commitments:*/ Seq<(RistrettoPoint,RistrettoPoint)>,
-    /*A:*/ RistrettoPoint,
-    /*S:*/ RistrettoPoint,
-    /*T_1:*/ RistrettoPoint,
-    /*T_2:*/ RistrettoPoint
+pub struct DealerAwaitingProofShares(
+    /*n:*/ pub usize,
+    /*m:*/ pub usize,
+    /*transcript:*/ pub Transcript,
+    /*initial_transcript:*/ pub Transcript,
+    /*bp_gens:*/ pub BulletproofGens,
+    /*pc_gens:*/ pub PedersenGens,
+    /*bit_challenge:*/ pub (Scalar, Scalar),
+    /*bit_commitments:*/ pub Seq<(RistrettoPointEncoded, RistrettoPoint, RistrettoPoint)>,
+    /*poly_challenge:*/ pub Scalar,
+    /*poly_commitments:*/ pub Seq<(RistrettoPoint,RistrettoPoint)>,
+    /*A:*/ pub RistrettoPoint,
+    /*S:*/ pub RistrettoPoint,
+    /*T_1:*/ pub RistrettoPoint,
+    /*T_2:*/ pub RistrettoPoint
 );
 
 pub type RangeProof = (
@@ -107,7 +107,9 @@ pub fn create_dealer(
 
         transcript = rangeproof_domain_sep(transcript, U64::classify(n as u64), U64::classify(m as u64));
 
-        res = CreateDealerRes::Ok(((party_capacity,gens_capacity,g_vec,h_vec), pc_gens, transcript, initial_transcript, n, m));
+        let new_dealer = DealerAwaitingBitCommitments((party_capacity,gens_capacity,g_vec,h_vec), pc_gens, transcript, initial_transcript, n, m);
+
+        res = CreateDealerRes::Ok(new_dealer);
     }}}}
     res
 }
@@ -119,7 +121,7 @@ pub fn receive_bit_commitments(
     #[allow(unused)]
     let mut res = ReceiveBitsRes::Err(0u8);
 
-    let (bp_gens,pc_gens, mut transcript,initial_transcript,n,m) = dealer;
+    let DealerAwaitingBitCommitments(bp_gens,pc_gens, mut transcript,initial_transcript,n,m) = dealer;
 
     if m != bit_commitments.len() {
         res = ReceiveBitsRes::Err(WRONG_NUMBER_OF_BIT_COMMITMENTS);
@@ -143,7 +145,7 @@ pub fn receive_bit_commitments(
         let (temp_transcript, y) = challenge_scalar(transcript, byte_seq!(121u8));
         let (new_transcript, z) = challenge_scalar(temp_transcript, byte_seq!(122u8));
 
-        let new_dealer = (n,m,new_transcript,initial_transcript,bp_gens,pc_gens,(y,z),bit_commitments,A,S);
+        let new_dealer = DealerAwaitingPolyCommitments(n,m,new_transcript,initial_transcript,bp_gens,pc_gens,(y,z),bit_commitments,A,S);
         res = ReceiveBitsRes::Ok((new_dealer,(y,z)));
     }
     res
@@ -157,7 +159,7 @@ pub fn receive_poly_commitments(
     #[allow(unused)]
     let mut res = ReceivePolyCommitmentsRes::Err(0u8);
 
-    let (n, m, transcript, initial_transcript, bp_gens, pc_gens, bit_challenge, bit_commitments, A, S) = dealer;
+    let DealerAwaitingPolyCommitments(n, m, transcript, initial_transcript, bp_gens, pc_gens, bit_challenge, bit_commitments, A, S) = dealer;
 
     if m != poly_commitments.len() {
         res = ReceivePolyCommitmentsRes::Err(WRONG_NUMBER_OF_POLY_COMMITMENTS);
@@ -178,7 +180,7 @@ pub fn receive_poly_commitments(
 
         let (new_transcript, poly_challenge) = challenge_scalar(transcript_temp_2, byte_seq!(120u8));
 
-        let new_dealer = (
+        let new_dealer = DealerAwaitingProofShares(
             n,
             m,
             new_transcript,
@@ -212,7 +214,7 @@ pub fn receive_shares(dealer: DealerAwaitingProofShares,
     #[allow(unused)]
     let mut res = ReceiveSharesRes::Err(0u8);
 
-    let (n,m, mut transcript,_,(party_capacity, gens_capacity,g_vec,h_vec),pc_gens,bit_challenge,_,_,_,A,S,T_1,T_2) = dealer;
+    let DealerAwaitingProofShares(n,m, mut transcript,_,(party_capacity, gens_capacity,g_vec,h_vec),pc_gens,bit_challenge,_,_,_,A,S,T_1,T_2) = dealer;
 
     if m != t_xs.len() { //all sequence inputs are the same length
         res = ReceiveSharesRes::Err(WRONG_NUMBER_OF_PROOF_SHARES);
