@@ -214,7 +214,11 @@ cryptographic protocols specified in hacspec to utilize parts of our
 specification.
 
 We will be testing our implementation against the current Rust
-Bulletproofs crate \cite{dalek}... %TBD
+Bulletproofs crate \cite{dalek}, using property-based testing to ensure 
+with high probability that our implementation of the Bulletproofs 
+protocol is equivalent to the Rust Bulletproofs crate. This will mean
+that using a Proof Assistant on our implemenation will be equivalent
+to using it on the Rust implementation.
 
 In this paper we will briefly go over the prerequisites for
 understanding the bulletproofs protocol, describe the protocol itself, 
