@@ -1608,9 +1608,65 @@ bit must be set to 0, therefore we mod the most significant byte by
 	[...]
 \end{lstlisting}
 
-This interaction was tested thoroughly to ensure it functions as we intended it to.
+This interaction was tested thoroughly to ensure it functions as we 
+intended it to.
 
+When testing our implementation we made two series of tests. 
+One was unit-tests, defined by the IETF-standard which were designed 
+to catch edge-cases in the various functions. Once such test can be 
+seen below, testing if various one-way-maps all map to the same point:
 
+\begin{lstlisting}
+	#[test]
+	fn unit_test_same_point_map() {
+		let input_hexs = Seq::<&str>::from_vec(vec![
+			"edffff [...] 000000",
+			"edffff [...] ffffff",
+			"000000 [...] ffff7f",
+			"000000 [...] 000080",
+		]);
+		let result_hex = "30428 [...] cb8e5ef0517f";
+		let result_point = decode(RistrettoPointEncoded::from_hex(result_hex)).unwrap();
+	
+		input_hexs
+			.iter()
+			.for_each(|x| assert!(equals(result_point, one_way_map(ByteString::from_hex(x)))))
+	}
+\end{lstlisting}
+
+There were four of these tests in total, testing the one-way-map, 
+encoding, and both succcessful decoding, as well as examples where 
+decoding must fail, thus ensuring our implementation works as intended.
+
+The second series of tests were meant to randomly check if our 
+implementation functioned equivalently to the Rust implementation of 
+Ristretto25519, for each function. This was done by making a test for 
+every public method, the one-way-map, encoding, decoding, point negation, 
+point addition and scalar multiplication functions, and generating a 
+random input and creating equivalent points for both the Rust 
+implementation and our own and running the same operations and then 
+comparing the results.
+Below is an example of one of these tests, testing that our point 
+negation function works identically:
+
+\begin{lstlisting}
+#[test]
+fn test_dalek_point_negation() {
+    fn helper(v: Vec<u8>) -> TestResult {
+        if v.len() < 64 {
+            return TestResult::discard();
+        }
+
+        let (hac_pnt, dal_pnt) = create_points(v);
+
+        let hac_neg = neg(hac_pnt);
+        let dal_neg = dal_pnt.neg();
+
+        TestResult::from_bool(cmp_points(hac_neg, dal_neg))
+    }
+    quickcheck(100, helper as fn(Vec<u8>) -> TestResult)
+}
+\end{lstlisting}
 
 % NOTE: more about testing.
 
