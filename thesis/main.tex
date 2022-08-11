@@ -138,20 +138,24 @@ Department of Computer Science, Aarhus University\\
 
 {\itshape
 	In 2017, a cryptographic protocol called bulletproofs was
-	released. This protocol sought to safely and compactly
-	encrypt amounts sent in cryptocurrency transactions.
-
-	About a year after the release of the bulletproofs protocol, an implementation was written in Rust. This implementation is efficient and fast. We wish to improve the security of this implementation, to avoid as many potential vulnerabilities as possible. 
+	released. This protocol sought to safely and compactly encrypt
+	amounts sent in cryptocurrency transactions. About a year after
+	the release of the bulletproofs protocol, an implementation
+	was written in Rust. This implementation is efficient and
+	fast. We wish to improve the security of this implementation,
+	to avoid as many potential vulnerabilities as possible.
 	
 	To this end, we have implemented the bulletproofs protocol,
 	using the specification language Hacspec. The reasoning for
 	this is that Hacspec allows the programs written in it to be
 	compiled to so-called Proof Assistants such as Coq, which
 	will be able to prove various properties of the code. Our
-	implementation can later be transpiled to one such Proof Assistant. Given the rigerous testing which ensures that the two implementations
-	function identically, The properties proven for our implementation,
-	will also hold for the more efficient, original Rust implementation. This will, in turn, improve the security
-	of the Rust bulletproofs implementation.
+	implementation can later be transpiled to one such Proof
+	Assistant. Given the rigerous testing which ensures that the
+	two implementations function identically, The properties proven
+	for our implementation, will also hold for the more efficient,
+	original Rust implementation. This will, in turn, improve the
+	security of the Rust bulletproofs implementation.
 }
 
 \subsection*{Acknowledgements:}
@@ -185,33 +189,33 @@ used today. However, these protocols can also carry vulnerabilities,
 potentially leading to particularily severe inflation bugs, which
 allows malicious actors to double-spend currency. Two of the currently
 most popular privacy-enhanced cryptocurrencies, Monero and Zcash, have
-already had such vulnerabilities \cite{cryptonote} \cite{zcash}. Both
-of these cryptocurrencies have marketcaps over a billion dollars,
-and with sums like these, it is crucial to minimize the attack surface. One
-way of doing this is by using proof assistants, such as Coq, on the 
-implemenations of these protocols.
+already had such vulnerabilities \cite{cryptonote} \cite{zcash}. Both of
+these cryptocurrencies have marketcaps over a billion dollars, therefore
+it is crucial to minimize the attack surface. One way of doing this
+is by using proof assistants, such as Coq, on the implemenations of
+these protocols.
 
 Effective implementations are often unfeasible to implement and run
 in proof assistant languages however. A relatively new tool in this
-space is Hacspec \cite{hacspec}, a subset of Rust that functions as
-a specification language. It implements cryptographic primitives allowing 
-for convenient implementation of cryptographic algorithms and supports
-transpiling into proof assistant languages, namely Coq and F*, such
-that properties can be proven about said implementation. This leads to
-greater security which can be transfered over to a Rust implementation
-using property based testing to ensure that the Hacspec and Rust 
-implementations work identically. 
+space is Hacspec \cite{hacspec}, a subset of Rust that functions
+as a specification language. It implements cryptographic primitives
+allowing for convenient implementation of cryptographic algorithms and
+supports transpiling into proof assistant languages, namely Coq and F*,
+such that properties can be proven about said implementations. This
+leads to greater security which can be transfered over to a Rust
+implementation using property based testing to ensure that the Hacspec
+and Rust implementations work identically.
 
-The overall goal of this paper is to implement the
-zero-knowledge rangeproof protocol: Bulletproofs, created by Bünz et
+The overall goal of this paper is to implement the zero-knowledge
+rangeproof protocol: Bulletproofs, created by Bünz et
 al. \cite{bulletproofs}, in Hacspec. The protocol creates a compact and
-secure zero-knowledge proof to show that one or more values lie within a
-range of $[0:2^n)$ for a provided $n$, without revealing any other 
-information about the values themselves. A variant of this protocol is 
-currently utilized in the Monero cryptocurrency. Additionally we also 
-wish to write our implementation in a modular fashion that allows future 
-cryptographic protocols specified in hacspec to utilize parts of our 
-specification.
+secure zero-knowledge proof to show that one or more values lie within
+a range of $[0:2^n)$ for a provided $n$, without revealing any other
+information about the values themselves. A variant of this protocol
+is currently utilized in the Monero cryptocurrency. Additionally we
+also wish to write our implementation in a modular fashion that allows
+future cryptographic protocols specified in hacspec to utilize parts
+of our specification.
 
 We will be testing our implementation against the current Rust
 Bulletproofs crate \cite{dalek}, using property-based testing to ensure 
@@ -228,24 +232,34 @@ implementation hurdles encountered in the process. We finalize this
 paper by discussing possible future work that can be done on the back
 of our work, concluding the overall project.
 
-%Background: Hacspec.
+% NOTE: afprøv hacspec/lead the way for zeroknowledge protocols for hacspec
 
-%Problem: Bulletproofs implementation is not proven to function as the protocol says it should. If it does not there might be double-spend vulnerabilities. 
+\section{Notation:} \label{notation}
 
-%Goals: Implement Bulletproofs in Hacspec, in such a way that allows for other Hacspec protocols to be implemented using our modules.
+A table of notation used throughout this report:
 
-%Map out the paper.
-
-
-%\textbf{Problem:}
-
-%Bla bla vulnerabilities.
-
-%Sources of vulnerabilities could for example be inflation bugs or Frozen Heart.
-
-%One way to minimize the odds of vulnerabilities is using proof assistance. 
-
-%However, you cannot implement protocols that can be used by proof assistance programs and execute efficiently.
+\begin{center}
+\begin{tabular}{ c l }
+	$a$                         & A scalar \\
+	$\vec{a}$                   & A vector \\
+	$A$                         & A curve point \\
+	$\vec{A}$                   & A vector of curve points \\
+	$\ran{a}$                   & A scalar random variable \\
+	$\vecran{a}$                & A vector of scalar random variables \\
+	$\vecran{A}$                & A vector of random curve points \\
+	$\veclo{a}$                 & The first half of vector $\vec{a}$, ($\veclo{a} = [a_{1}, \cdots, a_{n/2}]$) \\
+	$\vechi{a}$                 & The second half of vector $\vec{a}$, ($\vechi{a} = [a_{n/2+1}, \cdots, a_{n}]$) \\
+	$\vec{a^n}$                 & A vector of scalars which are made up of powers of $a$ i.e. $[1,a,a^2... a^{n-1}]$\\
+	$\vec{a} \concat \vec{b}$   & A vector, $\vec{a}$, concatinated with another vector, $\vec{b}$\\
+	$\mathbb{A}$                & A set \\
+	$\mathbb{A}^n$              & A vector space of dimension $n$ \\ 
+	$\mathbb{A}_n$              & A set whose elements are mod $n$ \\ 
+	$a(x)$                      & A function mapping integers mod p to integers mod p: $\Z_p \rightarrow \Z_p$ \\
+	$\vec{a}(x)$                & A function mapping integers mod p to vectors containing integers mod p: $\Z_p \rightarrow \Z^n_p$ \\
+	$\dotp{\vec{a}}{\vec{b}}$   & Dot product of $\vec{a}$ and $\vec{b}$ \\
+	$\dotp{\vec{a}}{\vec{A}}$   & The sum of scalar-point products of $\vec{a}$ and $\vec{A}$ ($\dotp{\vec{a}}{\vec{A}} = a_1 A_1 + a_2 A_2 + \cdots + a_n A_n$) \\
+\end{tabular}
+\end{center}
 
 \section{Prerequisites:}
 
@@ -1203,10 +1217,10 @@ Additionally $\D$ can construct the following:
 
 \eq{
 	\vecran{y^n_{(j)}} &= \vecran{y^{n \cdot m}}[j \cdot n : (j+1) \cdot n]\\
-	\ran{z_{(j)}} &= \ran{z^j}\\
-	\widetilde{e} &= \sum^{m-1}_{j = 0} \widetilde{e}_{(j)}\\
-	A &= \sum^{m-1}_{j = 0} A_{(j)}\\
-	S &= \sum^{m-1}_{j = 0} S_{(j)}
+	\ran{z_{(j)}}      &= \ran{z^j}\\
+	\widetilde{e}      &= \sum^{m-1}_{j = 0} \widetilde{e}_{(j)}\\
+	A                  &= \sum^{m-1}_{j = 0} A_{(j)}\\
+	S                  &= \sum^{m-1}_{j = 0} S_{(j)}
 }
 
 Note that $\D$ has already recieved $A_{(j)}$ and $S_{(j)}$ from the
@@ -1910,8 +1924,9 @@ use errors::*;
 \end{lstlisting}
 
 And creating the \textbf{transcript} folder with a symbolic link
-\texttt{\textit{errors.rs}} $\rightarrow$ \texttt{errors.rs}. This lets
-us run the tests and avoids code duplication. % NOTE: talk more here
+\texttt{\textit{errors.rs}} $\rightarrow$ \texttt{errors.rs}. This lets both \texttt{ipp.rs} and \texttt{transcript.rs} access the \texttt{errors.rs} file without code duplication. This approach is not ideal  
+
+% NOTE: talk more here
 
 \textbf{Testing:}
 
@@ -2130,31 +2145,5 @@ Cryptography protocols and Zero-Knowledge Proof protocols resepctively.
 \section{References}
 \printbibliography
 
-\section{Appendix A: Notation:} \label{notation}
-
-A table of notation used throughout this report:
-
-\begin{center}
-\begin{tabular}{ c l }
-	$a$                         & A scalar \\
-	$\vec{a}$                   & A vector \\
-	$A$                         & A curve point \\
-	$\vec{A}$                   & A vector of curve points \\
-	$\ran{a}$                   & A scalar random variable \\
-	$\vecran{a}$                & A vector of scalar random variables \\
-	$\vecran{A}$                & A vector of random curve points \\
-	$\veclo{a}$                 & The first half of vector $\vec{a}$, ($\veclo{a} = [a_{1}, \cdots, a_{n/2}]$) \\
-	$\vechi{a}$                 & The second half of vector $\vec{a}$, ($\vechi{a} = [a_{n/2+1}, \cdots, a_{n}]$) \\
-	$\vec{a^n}$                 & A vector of scalars which are made up of powers of $a$ i.e. $[1,a,a^2... a^{n-1}]$\\
-	$\vec{a} \concat \vec{b}$   & A vector, $\vec{a}$, concatinated with another vector, $\vec{b}$\\
-	$\mathbb{A}$                & A set \\
-	$\mathbb{A}^n$              & A vector space of dimension $n$ \\ 
-	$\mathbb{A}_n$              & A set whose elements are mod $n$ \\ 
-	$a(x)$                      & A function mapping integers mod p to integers mod p: $\Z_p \rightarrow \Z_p$ \\
-	$\vec{a}(x)$                & A function mapping integers mod p to vectors containing integers mod p: $\Z_p \rightarrow \Z^n_p$ \\
-	$\dotp{\vec{a}}{\vec{b}}$   & Dot product of $\vec{a}$ and $\vec{b}$ \\
-	$\dotp{\vec{a}}{\vec{A}}$   & The sum of scalar-point products of $\vec{a}$ and $\vec{A}$ ($\dotp{\vec{a}}{\vec{A}} = a_1 A_1 + a_2 A_2 + \cdots + a_n A_n$) \\
-\end{tabular}
-\end{center}
 
 \end{document}
