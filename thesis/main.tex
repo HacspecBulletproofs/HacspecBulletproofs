@@ -1941,9 +1941,37 @@ using code duplication, by copying the error constants to both files.
 
 \textbf{Testing:}
 
-To test the inner product 
-% NOTE: Write about testing
-...
+To test the inner product one big function was created. Only one
+function was really needed as this function both asserts that our
+constructs valid proofs by succeding the verification check on valid
+inputs and that the output of each public function matches that of the
+dalek rust implementation. This function creates an inner product for
+both implementations using random values for $\vec{a}, \vec{b}, \vec{G},
+\vec{H}, Q, n$ where $n$ is selected as a power of two. Quickcheck
+was not used for this randomness, as there is a significant amount of
+random values to be generated and with specific requirements.
+
+Since the $n \in {4, 8, 16, 32, 64}$ is chosen randomly some tests
+take longer since there are exponentially longer loops. While $n$
+could be arbitrarily large having \textit{very} large inputs does
+not help much more, hence the limited range for $n$. Various helper
+functions were also created to convert between types so we could more
+simply convert the random data to each respective implementation types.
+
+As the inner product part of the dalek implementation is not publically
+exposed we forked the library, simply changing the functions to be
+globally public instead of merely public within the crate. No other
+changes were made to the library to ensure it worked as closely to
+the actual dalek implementation.
+
+The tests are quite slow, reducing the guarantee that the two
+implementations are equivalent. To remedy this, a wrapper library
+could be created that runs the much faster dalek ristretto library
+instead of our own ristretto implementation. This would work as we
+have already tested our hacspec ristretto implementation against the dalek
+ristretto implementation, which should ensure that they are
+equivelent. This more rigerous testing is out of scope for this paper
+however.
 
 \subsection{Implementing Bulletproofs:}
 
