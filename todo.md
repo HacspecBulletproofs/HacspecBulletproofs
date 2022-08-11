@@ -1,5 +1,4 @@
 - Add images of elliptic curve operations
-- Shorten up pedersen
 
 # Las
 - Og du bør måske gøre det mere tydeligt hvad der er offentligt og hvad der er privat i Pedersen commitments delen

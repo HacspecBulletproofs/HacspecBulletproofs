@@ -136,14 +136,41 @@ Department of Computer Science, Aarhus University\\
 
 \subsection*{Abstract:}
 
-In 2017, a cryptographic protocol called bulletproofs was created. This protocol sought to safely and compactly encrypt monetary transactions relating to the purchase of cryptocurrency. The protocol was implemented in 2019, in the programming language Rust, however, this implementation has a chance of including certain programming vulnerabilities. In fact, shortly after its creation a vulnerability was discovered in the form of the so-called Frozen Heart vulnerability. To this end, we have implemented the bulletproofs protocol, using the specification language, Hacspec, a subset of Rust, which is designed to function in the exact same manner as the original. The reasoning for this is that Hacspec allows the programs written in it to be compiled to so-called Proof Assistants such as Coq, which will be able to prove various properties of the code. A significant amount of our time during the project was spent reading up on the various theoretical concepts involved in the project, such as Finite Field Arithmatic, Elliptic Curves, Elliptic Curve Cryptography and naturally the mathetmatics behind Bulletproof protocol which allows it to function as it does. In the future, once our work has been integrated into Hacspec others may use a Proof Assistant such as Coq to prove certain properties for our code. These properties, will also hold for the equivalent, but more efficient, original implementation, since the two work identically to each other. This will improve the odds that it has no vulnerabilities.
+{\itshape
+	In 2017, a cryptographic protocol called bulletproofs was
+	released. This protocol sought to safely and compactly
+	encrypt amounts sent in cryptocurrency transactions.
+
+	... \textbf{very short motivation} ...
+
+	To this end, we have implemented the bulletproofs protocol,
+	using the specification language Hacspec. The reasoning for
+	this is that Hacspec allows the programs written in it to be
+	compiled to so-called Proof Assistants such as Coq, which
+	will be able to prove various properties of the code. Our
+	implementation can later be transpiled to a Proof Assistant
+	such as Coq to prove certain properties. These properties,
+	given rigerous testing to check that the two implementations
+	function identically, will also hold for the more efficient,
+	original Rust implementation. This will improve the security
+	of the Rust bulletproofs implementation.
+}
 
 \subsection*{Acknowledgements:}
 
-We would like to express our gratitude and thanks towards all who have helped us with making this project possible.
+We would like to express our gratitude and thanks towards all who have
+helped us with making this project possible.
 
-Firstly we would like to thank Bas Spitters, our supervisor, for his excellent guidance and expertise on the subject. Without him this project would not have been possible to this extent. Secondly we thank Franziskus Kiefer for his helpfulness in answering questions about various Hacspec-related quirks, issues, as well being swift in these responses in spite his large workload. Thirdly we want to thank Las Safin Dana, a personal friend of Rasmus Kirk, who was very helpful in proof-reading and asking insightful questions during the process of writing this paper. Finally we thank everyone who helped with small things at various stages of the project. Your assistance is greatly appreciated. 
-
+Firstly, we would like to thank Bas Spitters, our supervisor, for his
+excellent guidance and expertise on the subject. Without him this
+project would not have been possible to this extent. Secondly, we
+thank Franziskus Kiefer for his helpfulness in answering questions
+about various Hacspec-related quirks, issues, as well being swift
+in these responses in spite his large workload. Thirdly, we want to
+thank Las Safin, who helped proof-reading and thus make this report more
+bulletproof. Finally we thank everyone who helped answer questions
+over the various stages of the project. Your assistance is greatly
+appreciated.
 
 \tableofcontents
 
@@ -153,15 +180,48 @@ Firstly we would like to thank Bas Spitters, our supervisor, for his excellent g
 
 \section{Introduction:} \label{Introduction}
 
-Transmission of data over the Internet can be incredibly risky, especially where transmitting money is concerned. This is the problem that cryptographic protocols seek to eliminate by ensuring that this data is transmitted with as little information as possible. The least possible information to transmit is a so-called Zero-knowledge proof where \textit{no} information can be infered from the outside, and only one piece of information can be discovered by the receiver. One of the newest cryptographic protocols is the Bulletproof Protocol, created by Bünz et al. (\cite{bulletproofs}). This protocol creates a short and secure way to show that a series of values lie within a range of $[0:2^n)$ for a provided n. Showing this will allow honest provers to encrypt information about the amount of money on their account when making online purchases, among other things, in a secure and compact way. 
+Privacy-enhanced cryptocurrencies use crytpographic protocols to hide
+sender, receiver and amount sent. Zero-knowledge proofs are very
+popular tool to solve some of these problems and is increasingly
+used. However, these protocols can also carry vulnerabilities,
+potentially leading to particularily severe inflation bugs, which
+allows malicious actors to double-spend currency. Two of the currently
+most popular privacy-enhanced cryptocurrencies, Monero and Zcash, have
+already had such vulnerabilities \cite{cryptonote} \cite{zcash}. Both
+of these cryptocurrencies have marketcaps over a billion dollars,
+and with these sums, it is crucial to minimize the attack surface. One
+way of doing this is by using proof assistants, such as Coq.
 
-Bulletproofs were implemented in Rust about three years ago. However this implementation may have certain vulnerabilities, which could allow for exploitation by malicious users. This may lead to inflation bugs (\cite{cryptonote}, \cite{zcash}) or the Frozen Heart vulnerability. (\cite{frozen-heart}) One way to minimize the odds of such vulnerabilities is using a Proof Assistant, such as Coq. The greatest issue with using such a Proof Assistant is that it is currently impossible to make an implementation of a cryptographic protocol which can both use a Proof Assistant and also execute effectively. 
+Effective implementations are often unfeasible to implement and run
+in proof assistant languages however. A reletively new tool in this
+space is Hacspec \cite{hacspec}, a subset of rust that functions as
+a specification language. It implements cryptographic primitives for
+conveneint implementation of cryptographic algorithms and supports
+transpiling into proof assistant langauges, namely Coq and F*, such
+that properties can be proven about said implementation. This leads to
+greater security which can be transfered over to a Rust implementation
+using property based testing.
 
-For this purpose a specification language, called Hacspec, was created. \cite{hacspec}Hacspec is a subset of the programming language Rust which sets certain restrictions on the code to allow code written in it, to compile into a Proof Assistant. %Rasmus kan nok skrive det her om meget kort
+The overall goal of this paper is to implement the
+zero-knowledge rangeproof protocol Bulletrpoof, created by Bünz et
+al. \cite{bulletproofs}, in Hacspec. The protocol creates a compact and
+secure zero-knowledge proof to show that one or more values lie within a
+range of $[0:2^n)$ for a provided $n$, without giving information about
+the values themselves. A variant of this protocol is currently utilized
+in the Monero cryptocurrency. Additionally we also wish to write our
+implementation in a modular fashion that allows future cryptographic
+protocols specified in hacspec to utilize parts of our specification.
 
-The overall goal of this paper is to implement the Bulletrpoof protocol in Hacspec, while ensuring it functions identically to the existing Rust implementation, thus allowing the use of a Proof Assistant on the existing indirectly by using our Hacspec implementation. Additionally we also wish to write our implementation in a way that allows future devealopers to implement other cryptographic protocols using various modules from our implementation.
+We will be testing our implementation against the current Rust
+Bulletproofs crate \cite{dalek}...
 
-In this paper we will briefly go over the prerequisites for understanding the bulletproofs protocol, the protocol itself, as well as relevant material for understanding the implementation and finally everything we implemented. We finalize this paper by discussing possible future work that can be done on the back of our work, concluding the overall project.
+In this paper we will briefly go over the prerequisites for
+understanding the bulletproofs protocol, the protocol itself, as
+well as relevant material for understanding the implementation and
+finally everything we implemented including discussions about the
+implementation hurdles encountered in the process. We finalize this
+paper by discussing possible future work that can be done on the back
+of our work, concluding the overall project.
 
 
 %Background: Hacspec.
@@ -326,9 +386,9 @@ From these definitions we can extrapolate two more definitions:
 \end{definition}
 
 \begin{definition}[EC Scalar Multiplication]
-	Let $m$ be a scalar and let $P$ be a point on $E$. The group operation:
-	Scalar multiplication is defined by adding $P$ to itself $m$ times and
-	denoted a $m\cdot P$.
+	Let $m$ be a scalar and let $P$ be a point on $E$. The group
+	operation: Scalar multiplication is defined by adding $P$
+	to itself $m$ times and denoted a $m\cdot P$.
 \end{definition}
 
 Due to the absence of scalar division it is impossible to multiply by
@@ -1054,7 +1114,7 @@ for some integer $n$. This is done by aggregating $m$ range-proofs for
 each individual value $v_j$ into a single proof which, if verified,
 proves that each $v_j$ given lies within the range $[0,2^n)$, while
 giving away no more information about any $v_j$. This is done by using
-a multi-party protocol (MPC) where each party $\P_{(j)}$, takes on the
+a multi-party computation (MPC) protocol where each party $\P_{(j)}$, takes on the
 role of an independant prover $\P$, meaning it has a value $v_j$ it
 needs to prove lies within the range (\ref{agg-range}). Each $\P_{(j)}$
 will converse with the so-called dealer $\D$, who takes on the role
@@ -1262,13 +1322,17 @@ will result in the following final transcript:
 	&\P_{(j)} &&\rightarrow \D &&: V_{(j)}, n, A_{(j)}, S_{(j)}, j, T_{1, (j)}, T_{2,(j)}, t_{(j)}(\ran{x})B, \tt_{(j)}(\ran{x})\tB, \widetilde{e}
 }
 
-Finally, recently there was a vulnerability within the Fiat-Shamir
-Heuristic suggested in \cite{bulletproofs}, in which a malicious
-prover could cheat successfully every time. This was because in the
-original paper the Fiat-Shamir Heuristic did not include $\vec{V}$
-in their hash function which allowed a malicious $\P$ to get a proof
-verified even if one or more $vs$ did not lie within the range. This
-vulnerability has since been fixed, and is thus not in effect anymore.
+Finally, the recently discovered Frozen Heart vulnerability
+\cite{frozen-heart} describes how in the Fiat-Shamir Heuristic suggested
+in \cite{bulletproofs}, a malicious prover could cheat
+successfully. This was because in the original paper the Fiat-Shamir
+Heuristic did not include $\vec{V}$ in their hash function which
+allowed a malicious $\P$ to get a proof verified even if one or more
+$v$'s did not lie within the range. The paper has since been updated,
+but any implementation that has followed the old paper's Fiat-Shamir
+specification could still be vulnerable.
+
+% NOTE: how does Prover cheat the verifier? Can he choose a value out of range?
 
 \section{Our Contributions:}
 
@@ -1291,7 +1355,7 @@ understood compared to a more obfuscated, but highly optimized
 implementation. We will use property based testing with QuickCheck
 \cite{quickcheck} where possible and convienient and test our
 Bulletproofs implementation against the Dalek-Cryptography group's
-Bulletproofs Rust implementation \cite{dalek}.  We have also created
+Bulletproofs Rust implementation \cite{dalek}. We have also created
 a minimal linear algebra library, in hacspec, as it was thought that
 it could help with the implementation while also creating a library
 to be used with other cryptographic algorithms.
@@ -1846,11 +1910,9 @@ And creating the \textbf{transcript} folder with a symbolic link
 \texttt{\textit{errors.rs}} $\rightarrow$ \texttt{errors.rs}. This lets
 us run the tests and avoids code duplication.
 
-
-
 \textbf{Testing:}
 
-Given that we 
+...
 
 \subsection{Implementing Bulletproofs:}
 
@@ -1930,7 +1992,20 @@ and \texttt{prove\_single} methods would all call
 
 \subsubsection{Hacspec-related problems:}
 
-Outside of a few indexing errors and wrong calculation occationally, the implementation of the methods in a way that worked correctly was not much of an issue outside of how long it took to fully implement. The biggest issue with our implementation itself was making it hacspec compliant. Specifically there were many problems involving \texttt{Seq} objects. Most cumbersome of which were the fact that a \texttt{Seq} could not be a part of a tuple, if said tuple was going to be unwrapped. This resulted in \texttt{prove()} being somewhat bloated with sequences, whenever a \texttt{party} method was going to be performed for each party. Ordinarily we would simply make a single \texttt{Seq} and store the tuple in this sequence, however this was not viable as the tuple would need to be unwrapped later, something Hacspec did not allow, due to some of the elements in these tuples having type \texttt{Seq}. Below is a coding example of how this is handled instead:
+Outside of a few indexing errors and wrong calculation occationally,
+the implementation of the methods in a way that worked correctly
+was not much of an issue outside of how long it took to fully
+implement. The biggest issue with our implementation itself was making
+it hacspec compliant. Specifically there were many problems involving
+\texttt{Seq} objects. Most cumbersome of which were the fact that a
+\texttt{Seq} could not be a part of a tuple, if said tuple was going
+to be unwrapped. This resulted in \texttt{prove()} being somewhat
+bloated with sequences, whenever a \texttt{party} method was going to
+be performed for each party. Ordinarily we would simply make a single
+\texttt{Seq} and store the tuple in this sequence, however this was not
+viable as the tuple would need to be unwrapped later, something Hacspec
+did not allow, due to some of the elements in these tuples having type
+\texttt{Seq}. Below is a coding example of how this is handled instead:
 
 \begin{lstlisting}
 	let mut bp_genss_party_capacity = Seq::<usize>::new(number_of_parties);
@@ -1962,34 +2037,109 @@ Rather than the much more simple:
 		let new_party = create_party((party_capacity, gens_capacity, g_vec.clone(), h_vec.clone()),pc_gens, values[i], v_blindings[i],n)?;
 		parties[i] = new_party;
 	}
-	\end{lstlisting}
+\end{lstlisting}
 
-Additionally, while it is not actually much of an issue, Hacspec did not allow us to use iterators, and so we instead have an abundance of for-loops in our code. This results in our code being much slower than the library which we test against, which \textit{did} turn out to be somewhat of a problem when it came to testing correctness. While the code we test against runs in mere seconds, ours takes several minutes to finish the same proof which made the checks bothersome. The approximate difference in run-time for our code, compared to the code we test against is 550-600 times slower depending on the inputs. There are multiple reasons for this, not least of which is that we avoid most of the optimizations that are done in the code we test against to make our code more readable. This speed made testing take quite a lot longer than we would have liked, as running all tests, at the current moment, takes approximately 22 hours to run to completion on our PC with the fastest of the 18 tests taking 5 minutes.
+Additionally, while it is not actually much of an issue, Hacspec did
+not allow us to use iterators, and so we instead have an abundance
+of for-loops in our code. This results in our code being much slower
+than the library which we test against, which \textit{did} turn out to
+be somewhat of a problem when it came to testing correctness. While
+the code we test against runs in mere seconds, ours takes several
+minutes to finish the same proof which made the checks bothersome. The
+approximate difference in run-time for our code, compared to the code
+we test against is 550-600 times slower depending on the inputs. There
+are multiple reasons for this, not least of which is that we avoid
+most of the optimizations that are done in the code we test against
+to make our code more readable. This speed made testing take quite
+a lot longer than we would have liked, as running all tests, at the
+current moment, takes approximately 22 hours to run to completion on
+our PC with the fastest of the 18 tests taking 5 minutes.
 
-Finally the code we test against uses structs to keep hold of the values for each party and the dealer. This ensures that a potential client cannot accidentally perform the steps out of order, due to the next step being integrated in the struct itself. Hacspec does not allow for the use of structs. As such we instead use simple type-aliases which \textit{could} be forged and done out of order. This, in combination with how slow it is, practically disqulifies it from being put into use for creating bulletproofs properly. However this code is not designed for actual use by clients as a cryptographic algorithm, but rather it is supposed to be used for the purposes of creating proofs about the original code we test against.
+Finally the code we test against uses structs to keep hold of the values
+for each party and the dealer. This ensures that a potential client
+cannot accidentally perform the steps out of order, due to the next
+step being integrated in the struct itself. Hacspec does not allow for
+the use of structs. As such we instead use simple type-aliases which
+\textit{could} be forged and done out of order. This, in combination
+with how slow it is, practically disqulifies it from being put into use
+for creating bulletproofs properly. However this code is not designed
+for actual use by clients as a cryptographic algorithm, but rather it
+is supposed to be used for the purposes of creating proofs about the
+original code we test against.
 
 
 \section{Future work:}
 
-In this section we will briefly describe the parts of the project that are currently still being worked on as well as what would be interesting to further work on.
+In this section we will briefly describe the parts of the project
+could be further worked on.
 
-Currently our implementation functions as intended, however it has yet to be properly merged into Hacspec. This is currently still being worked on in collaboration with the Hacspec team. This process is lengthy and can involve refactoring parts of the code to allign with the rest of the Hacspec examples.
+Currently our implementation functions as intended, however parts has
+yet to be properly merged into Hacspec. This is currently still being
+worked on in collaboration with the Hacspec team. This process can
+take time and will involve refactoring parts of the code to improve
+overall code quality.
 
-After this is completed the work which we intended is finished and thus the opportunity for others to pick up our work arises. The most obvious next step is to use our implementation of the bulletproofs protocol with a Proof Assistant such as Coq to show various aspects about the original Rust implementation, which works identically to our own, only much more effectively. This would in turn improve the chances that the bulletproof protocol has no vulnerabilities. 
+After this is completed the work which we intended is finished but
+the obvious next step is to use a proof assistant such as Coq on our
+implementation of the bulletproofs protocol to show various aspects
+about the original Rust implementation, which works identically to
+our own, only much more effectively. This would in turn improve the
+chances that the Rust bulletproof implementation has no vulnerabilities.
 
-Another possible path to pursue is the implementation of various other cryptographic protocols in Hacspec, which can use our implementations of Ristretto and Merlin without the need to implement them once more.
+More thorough testing could also be done to ensure that the two
+implementations function identically. This could involve writing more
+tests, running tests longer. Crucially, this could also involve testing
+the modules thoroughly individually and then replacing them in the
+more abstract modules with the faster Dalek implementations. This could
+allow for much more tests to be run and thus much greater guarantees
+of equivelence.
+
+%Future cryptographic protocols in Hacspec, which can use our
+%implementations of Ristretto and Merlin without the need to implement
+%them once more.
 
 \section{Conclusion:}
 
-Cryptation of cryptocurrency purchases need to be encrypted securely and effectively. To this end, the bulletproofs protocol was created, and subsequently implemented in Rust. However this implementation cannot be proven to be free of vulnerabilities. This is the problem that our project has begun to help ensure. 
+%Cryptation of cryptocurrency purchases need to be encrypted securely
+%and effectively. To this end, the bulletproofs protocol was created,
+%and subsequently implemented in Rust. However this implementation
+%cannot be proven to be free of vulnerabilities. This is the problem
+%that our project has begun to help ensure.
 
-Throughout this project we have worked to gain an understanding of Elliptic Curve Cryptography, including the basics of Finite Field Arithmatics, and the Elliptic Curves in general. As well as gain a firm understanding of the theory behind the Bulletproofs protocol on a mathematical level, such as why it is not only a complete proof, but is also Sound and Zero-knowledge. 
+%Throughout this project we have worked to gain an understanding of
+%Elliptic Curve Cryptography, including the basics of Finite Field
+%Arithmatics, and the Elliptic Curves in general. As well as gain a
+%firm understanding of the theory behind the Bulletproofs protocol on
+%a mathematical level, such as why it is not only a complete proof,
+%but is also Sound and Zero-knowledge.
 
-In order to complete our task of helping to show that the Rust bulletproof implementation does not have any vulnerabilities we have implemented the bulletproofs protocol in a subset of Rust, Hacspec, a specification language which allows for its code to be compatible with Proof Assistants such as Coq. This implementation of Bulletproofs is constructed in a way that makes it function identically to the standard Rust implementation, and thus by proving properties about our implementation those same properties will hold for the Rust implementation.
+In order to complete our task of helping to show that the Rust
+bulletproof implementation does not have any vulnerabilities we have
+implemented the bulletproofs protocol in Hacspec. This implementation of
+Bulletproofs is constructed in a way that makes it function identically
+to the standard Rust implementation, and thus by proving properties
+about our implementation those same properties will hold for the Rust
+implementation.
 
-After gaining an understanding of the mathematics behind the Bulletproofs protocol, the implementation of the protocol itself was simple, with the only real roadblocks being that we also had to implement both Ristretto25519 and Merlin in order for our code to function identically to the original implementation. 
+Given a thoughrough understanding of the mathematics behind the
+Bulletproofs protocol, the implementation of the protocol itself is
+relatively simple. However some major roadblocks were that we also had
+to implement both Ristretto25519 and Merlin in order for our code to
+function identically to the original implementation. Nonetheless these
+modules may help others who want to specify cryptographic protocols,
+by building on our work.
 
-In essence we have laid nearly all the groundwork for the future work of actually using a Proof Assistant to prove various properties about the Rust implementation, and we are quite satisfied with the results of our project. 
+In essence we have laid nearly all the groundwork for the future work
+of actually using a Proof Assistant to prove various properties about
+the Rust implementation.
+
+% NOTE:
+
+\textbf{Something about laying groundwork for zero knowledge proofs to be implemented in hacspec (Merlin, Ristretto)}
+
+\textbf{Stress testing hacspec using an high-level cryptographic protocol such as bulletproofs}
+
+\textbf{Remaining code review}
 
 \section{References}
 \printbibliography
