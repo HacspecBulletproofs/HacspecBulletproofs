@@ -5,6 +5,7 @@
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \usepackage{amsthm}
+\usepackage{float}
 \usepackage[utf8]{inputenc}
 \usepackage{listings,listings-rust}
 \usepackage{xcolor}
@@ -270,7 +271,7 @@ A table of notation used throughout this report:
 In this section we will be covering the necessary background knowledge
 to understand the results of the work in this project.
 
-\subsection{Finite Field Arithmetic:} \label{Finite Field Arithmetic}
+\subsection{Finite Field Arithmetic:} \label{finite-field-arithmetic}
 
 We start with \textit{fields} and the operations defined within them,
 as the operations over elliptic curve points are built on fields. The
@@ -537,7 +538,54 @@ does. However $s$ is blinded by $k$ meaning that $\V$ cannot infer $x$
 without knowing $k$. And $\V$ cannot infer $k$ from $K$ any easier
 than it can infer $x$ from $X$, thus this proof is also zero-knowledge.
 
-\section{The Bulletproofs protocol} \label{Bulletproofs}
+\subsection{Hacspec:} \label{hacspec}
+
+Hacspec is a subset of the programming language of Rust. It's purpose is
+to be a specification language for cryptographic algorithms, with the
+special properties that it is executable (since it is valid rust code),
+but also that it is defined such that it can easily be transpiled
+into theorem solvers, namely Coq and F*. The cost for having this
+property is certain syntactic enhancements that are available in Rust
+are not defined in Hacspec. This makes the language simpler, but it
+also makes it harder to simply express some concepts due to the lack
+of syntactic sugar. The language however is still in development,
+balancing and adding features.
+
+External crates are of course not allowed as they will inevitably
+fail to be hacspec compliant. However, Hacspec implements various
+cryptygraphic primitives, such as field elements, that allows for
+easier cryptographic specification. Some types and functions from the
+Rust standard library are not available, for example \texttt{Vec<T>},
+however some helpful wrapper types are defined in the Hacpsec standard
+library, for example \texttt{Seq<T>}, that implement most of the same
+functionality as their \texttt{Vec<T>} counterparts. When defining
+custom types, the Hacspec standard library differentiates between
+so-called \textit{secret integers}. Secret integers are protected
+from side-channel attacks, but do not implement certain operations,
+namely equality. We have used secret integers whereever possible but,
+while they are more secure, they are not always feasible.
+
+The hacspec repository have an array of examples of effective
+hacspec code. These examples can serve both as a guideline for future
+implementations, but can also be used as modules. In our project we
+utilize the Sha-3 hacspec example in our Merlin specification. It
+is our goal to merge the entirety of our Hacpsec code into the main
+repository. So far, all of the linear algebra library (section
+\ref{linear-algebra-library}) and about half of the ristretto
+specification (section \ref{implementing-ristretto})
+
+All code, except tests, written for this project was written to
+be Hacspec compliant. Our implementation is a specification meant
+to be simply understood compared to a more obfuscated, but highly
+optimized implementation. We will use property based testing with
+QuickCheck \cite{quickcheck} where possible and convienient and test
+our Bulletproofs implementation against the Dalek-Cryptography group's
+Bulletproofs Rust implementation \cite{dalek}. We have also created
+a minimal linear algebra library, in hacspec, with the intention of
+it aiding in our implementation while also creating a library to be
+used with other cryptographic algorithms.
+
+\section{The Bulletproofs protocol} \label{bulletproofs}
 
 The ultimate goal of this project has been to implement bulletproofs
 in Hacspec, using property-based testing to ensure it is equivalent to
@@ -1343,48 +1391,6 @@ specification could still be vulnerable.
 
 \section{Our Contributions:}
 
-\subsection{Hacspec:} \label{Hacspec}
-
-Hacspec is a subset of the programming language of Rust. It's purpose is
-to be a specification language for cryptographic algorithms, with the
-special properties that it is executable (since it is valid rust code),
-but also that it is defined such that it can easily be transpiled
-into theorem solvers, namely Coq and F*. The cost for having this
-property is certain syntactic enhancements that are available in Rust
-are not defined in Hacspec. This makes the language simpler, but it
-also makes it harder to simply express some concepts due to the lack
-of syntactic sugar. The language however is still in development,
-balancing and adding features.
-
-External crates are of course not allowed as they will inevitably
-fail to be hacspec compliant. However, Hacspec implements various
-cryptygraphic primitives, such as field elements, that allows for
-easier cryptographic specification. Some types and functions from the
-Rust standard library are not available, for example \texttt{Vec<T>},
-however some helpful wrapper types are defined in the Hacpsec standard
-library, for example \texttt{Seq<T>}, that implement most of the same
-functionality as their \texttt{Vec<T>} counterparts. When defining custom types, the Hacspec standard library differentiates between so-called \textit{secret integers}. Secret integers are protected from side-channel attacks, but do not implement certain operations, namely equality. We have used secret integers whereever possible but, while they are more secure, they are not always feasible.
-
-The hacspec repository have an array of examples of effective
-hacspec code. These examples can serve both as a guideline for future
-implementations, but can also be used as modules. In our project we
-utilize the Sha-3 hacspec example in our Merlin specification. It
-is our goal to merge the entirety of our Hacpsec code into the main
-repository. So far, all of the linear algebra library (section
-\ref{linear-algebra-library}) and about half of the ristretto
-specification (section \ref{implementing-ristretto})
-
-All code written for this project was written to be Hacspec
-compliant. Our implementation is a specification meant to be simply
-understood compared to a more obfuscated, but highly optimized
-implementation. We will use property based testing with QuickCheck
-\cite{quickcheck} where possible and convienient and test our
-Bulletproofs implementation against the Dalek-Cryptography group's
-Bulletproofs Rust implementation \cite{dalek}. We have also created
-a minimal linear algebra library, in hacspec, with the intention of
-it aiding in our implementation while also creating a library to be
-used with other cryptographic algorithms.
-
 \subsection{Linear Algebra Library:} \label{linear-algebra-library}
 It was decided that the specification should of course consist of what
 we need, but also of some general linear algebra functions that could
@@ -1468,7 +1474,7 @@ the these tests followed the same standard pattern, where we create a
 helper function that does the following: Construct two random matrices
 of random dimensions, make sure no dimension is set to 0, run equivelent
 operations on them and finally assert that the operations had the same
-effect. A simple example is the \texttt{zeros} function:
+effect. This was done for every function implemented. A simple example is the \texttt{zeros} function:
 
 \begin{lstlisting}
 #[test]
@@ -1491,7 +1497,8 @@ fn test_nalg_zeros() {
 Here the only operation that is performed is the construction of the
 vectors. The \texttt{assert\_matrices} function is simply a function
 that checks each element in the two vectors and assert them all to
-be equal. We also have simple unit tests that check our implementation
+be equal. We ran 100000 equivelence tests, taking 4.63 seconds in
+total. We also have simple unit tests that check our implementation
 against manually derived results.
 
 \subsection{Implementing Ristretto:} \label{implementing-ristretto}
@@ -1586,9 +1593,15 @@ however we used the specification from \cite{elliptic-curves}. This
 proved to work perfectly, with the given tests and the IETF-standard
 methods.
 
-Due to the need for comparing points scalars had to be implemented using \texttt{public\_nat\_mod!} rather than the more secure \texttt{nat\_mod!} which has nearly identical functionality except over secret integers. However secret integers cannot be compared, something that was required by the IETF-standard.
+Due to the need for comparing points scalars had to be implemented
+using \texttt{public\_nat\_mod!} rather than the more secure
+\texttt{nat\_mod!} which has nearly identical functionality except
+over secret integers. However, since secret integers cannot be compared,
+something that was required by the IETF-standard, we chose to use
+public integers.
 
-Additionally we ran into two issues with using \texttt{public\_nat\_mod!}. The first was one of the checks in decode:
+Additionally we ran into two issues with using
+\texttt{public\_nat\_mod!}. The first was one of the checks in decode:
 
 \begin{lstlisting}
 	pub fn decode(u: RistrettoPointEncoded) -> DecodeResult {
@@ -1615,18 +1628,17 @@ Additionally we ran into two issues with using \texttt{public\_nat\_mod!}. The f
 }
 \end{lstlisting}
 
-This check involves checking to see if the inputted byte sequence, if
-interpreted as a field element is larger than $p$. This is naturally
+This check involves checking to see if the input byte sequence, if
+interpreted as a field element, is larger than $p$. This is naturally
 not possible to do directly given that all field elements in our
 implementation are integers mod $p$. As such it is done in this manner
 to circumvent this issue.
 
-Another more significant issue we encountered was in the implementation
-of the one-way map, in which, we must mod the 255 least significant
-bits of both halves of a ByteString object. However the two halves of
-the ByteString are each 256 bits. This means that the most significant
-bit must be set to 0, therefore we mod the most significant byte by
-128:
+Another, issue we encountered was in the implementation of the one-way
+map, in which, we must mod the 255 least significant bits of both halves
+of a ByteString object. However the two halves of the ByteString are
+each 256 bits. This means that the most significant bit must be set
+to 0, therefore we mod the most significant byte by 128:
 
 \begin{lstlisting}
 	pub fn one_way_map(b: ByteString) -> RistrettoPoint {
@@ -1679,17 +1691,15 @@ seen below, testing if various one-way-maps all map to the same point:
 
 There were four of these tests in total, testing the one-way-map,
 encoding, and both succcessful decoding, as well as examples where
-decoding must fail, thus ensuring our implementation works as intended.
+decoding must fail, thus ensuring our implementation works as intended. % NOTE: Denne sætning er ikke korrekt
 
 The second series of tests were meant to randomly check if our
 implementation functioned equivalently to the Rust implementation
-of Ristretto25519, for each function. This was done by making a
-test for every public method, the one-way-map, encoding, decoding,
-point negation, point addition and scalar multiplication functions,
-and generating a random input and creating equivalent points for both
-the Rust implementation and our own and running the same operations
-and then comparing the results.  Below is an example of one of these
-tests, testing that our point negation function works identically:
+of Ristretto25519. This was done by making a test for every public
+method, generating a random input and creating equivalent points
+for both implementations, running the same operations and finally
+comparing the results. Below is an example of one of these tests,
+testing that both point negation methods works identically:
 
 \begin{lstlisting}
 #[test]
@@ -1710,8 +1720,17 @@ fn test_dalek_point_negation() {
 }
 \end{lstlisting}
 
-The \texttt{create\_points(v)} method uses the one-way-map to generate 
-random points. It is also tested individually.
+The \texttt{create\_points()} method uses the one-way-map to
+generate random points, which is also tested individually. We ran
+each function 10,000 times each with random input, except for the
+\texttt{mul()} function which were only run 1,000 times due to it being
+considerablyslower. In total these tests took 1,957.14 seconds to
+complete. The relatively few amount of tests, compared to the other
+modules, means this module has the least amount of equivelence tests
+run, which means it serves as a weak point, as there is greater risk
+of undiscovered edge cases. The fact that it was directly implemented
+from an IETF-standard, including relevant unit tests, mediates this
+weakness however.
 
 \subsection{Implementing Merlin:} \label{implementing-merlin}
 
@@ -1733,7 +1752,7 @@ were supported by the Secret Integer hacspec type, we naturally used
 this over the less secure Public Integers.
 
 Merlin uses Keccakf1600 for its hashing, fortunately this cryptographic
-function was already defined in another hacspec library. We ran into
+function was already defined in SHA-3 Hacspec library. We ran into
 issues however, since Keccakf1600 is defined for 64 bit integers
 and strobe operates on bytes. Therefore we had to transmute the
 \texttt{state} object, from a list of bytes into a shorter list of 64
@@ -1741,7 +1760,7 @@ bit integers. In the Dalek Rust Merlin implementation this was simple:
 
 \begin{lstlisting}
 fn transmute_state(st: &mut AlignedKeccakState) -> &mut [u64; 25] {
-    unsafe { &mut *(st as *mut AlignedKeccakState as *mut [u64; 25]) }
+	unsafe { &mut *(st as *mut AlignedKeccakState as *mut [u64; 25]) }
 }
 \end{lstlisting}
 
@@ -1778,12 +1797,13 @@ fn transmute_state_to_u8(state: StateU64) -> StateU8 {
 }
 \end{lstlisting}
 
-This implementation is significantly slower, as expected, but functions
-correctly.
+Although this methis is significantly slower, it's not a big problem
+as the overall runtime of this module is quite fast compared to other
+modules, namely the Ristretto module. It is therefore not a great
+bottleneck.
 
 \textbf{Testing:}
 
-\subsection{Implementing Inner Product Proof:} \label{implementing-inner-product-proof}
 For testing the library we created one test that runs
 the \texttt{append\_message()}, \texttt{append\_u64()} and
 \texttt{challenge\_bytes()} for both implementations and asserts that
@@ -1825,6 +1845,8 @@ fn merl_test_all_funcs() {
 	quickcheck(helper as fn(Vec<u8>, u64, u8) -> TestResult);
 }
 \end{lstlisting}
+
+We ran this test 100000 times with random \texttt{msg}'s, \texttt{n}'s and \texttt{buf\_size}'s, which took 119.81 seconds.
 
 \subsection{Implementing Inner Product Proof:} \label{implementing-inner-product-proof}
 
@@ -2026,9 +2048,9 @@ both implementations using random values for $\vec{a}, \vec{b}, \vec{G},
 was not used for this randomness, as there is a significant amount of
 random values to be generated and with specific requirements.
 
-Since the $n \in {4, 8, 16, 32, 64}$ is chosen randomly some tests
+Since the $n \in \{2, 4, 8, 16, 32, 64\}$ is chosen randomly some tests
 take longer since there are exponentially longer loops. While $n$
-could be arbitrarily large having \textit{very} large inputs does
+could be almost arbitrarily large having \textit{very} large inputs does
 not help much more, hence the limited range for $n$. Various helper
 functions were also created to convert between types so we could more
 simply convert the random data to each respective implementation types.
@@ -2041,14 +2063,31 @@ the actual dalek implementation.
 
 The tests are quite slow, reducing the guarantee that the two
 implementations are equivalent. To remedy this, a wrapper library
-could be created that runs the much faster dalek ristretto library
-instead of our own ristretto implementation. This would work as we
+was created that runs the much faster dalek ristretto library
+instead of our own ristretto implementation. This still works as we
 have already tested our hacspec ristretto implementation against the dalek
 ristretto implementation, which should ensure that they are
-equivelent. This more rigerous testing is out of scope for this paper
-however.
+equivelent. This ensures much more rigerous testing, as it leads to
+\textit{significant} performance increases. The table below compares
+runtimes using both for using our Hacspec Ristretto module and using
+the external Dalek Ristretto module:
 
-\subsection{Implementing Bulletproofs:} \label{implementing-bulletproofs}
+\begin{center}
+\begin{tabular}{ c|c|c } 
+          & Using Hacspec Ristretto & Using Dalek Ristretto \\ \hline\hline
+ $n = 2$  & 27.02 s   & 0.07 \\ \hline 
+ $n = 4$  & 61.78 s   & 0.12 \\ \hline 
+ $n = 8$  & 144.57 s  & 0.24 \\ \hline 
+ $n = 16$ & 260.30 s  & 0.33 \\ \hline 
+ $n = 32$ & 517.62 s  & 0.61 \\ \hline 
+ $n = 64$ & 1004.01 s & 1.08 \\ \hline 
+\end{tabular}
+\end{center}
+
+With these performance increases we ran \textbf{X} tests using
+randomized $n$'s, which passed succesfully, taking \textbf{Y} seconds.
+
+\subsection{Implementing Bulletproofs:}
 
 \begin{algorithm}[H]
 	\DontPrintSemicolon
@@ -2063,7 +2102,7 @@ however.
 	\SetKwFunction{computeTs}{create\_poly\_commitment($party_j\_step1, \ran{y},\ran{z}$)}
 	\SetKwFunction{secondaggregate}{receive\_poly\_commitments($dealer\_step2, \vec{T_1}, \vec{T_2}$)}
 	\SetKwFunction{computetxB}{create\_proofshare($party_j\_step2,\ran{x}$)}
-	\SetKwFunction{thirdaggregate}{receive\_proofshares($dealer\_step3,\vec{t(\ran{x})B}, \vec{\vec{\bt(\ran{x})\bB}}$)}
+	\SetKwFunction{thirdaggregate}{receive\_proofshares($dealer\_step3,\vec{t(\ran{x})B}, \vec{\vec{\tt(\ran{x})\bB}}$)}
 	$\performChecks$\\
 	$m := \vec{v}\len$\\
 	$dealer\_step1 := \createDealer$ \\
@@ -2081,7 +2120,7 @@ however.
 	$(dealer\_step3, \ran{x}) := \secondaggregate$\\
 
 	\For{$j\in [1 : m+1]$}{
-		$t(\ran{x})_jB, \bt (\ran{x})_j\bB := \computetxB$ 
+		$t(\ran{x})_jB, \tt (\ran{x})_j\bB := \computetxB$ 
 	}
 
 	$aggregated\_rangeproof := \thirdaggregate$
@@ -2094,7 +2133,7 @@ however.
 The final part of the project was the implementation of the Bulletproofs
 protocol. The code was heavily based on the code we were testing
 against as well as the mathematical formulas explained in section
-\ref{Bulletproofs}. The implementation followed the pseudo-code format
+\ref{bulletproofs}. The implementation followed the pseudo-code format
 as seen above just like the implementation we test against did. The
 implementation ran into a few roadblocks during development, some
 relating specifically to Hacspec.
@@ -2102,7 +2141,7 @@ relating specifically to Hacspec.
 The first big roadblock was the immense length it would have. This
 meant that writing any sort of test for the code would require it to
 be finished in nearly its entirety. This resulted in much debugging
-throught simply printing out every value on the screen and checking if
+through simply printing out every value on the screen and checking if
 they match what we are testing against, in order to ensure that our code
 was working correctly. This was an issue as the library we test against,
 also needed to have print statements. For this reason we forked their
@@ -2125,74 +2164,134 @@ and \texttt{prove\_single} methods would all call
 Outside of a few indexing errors and wrong calculation occationally,
 the implementation of the methods in a way that worked correctly
 was not much of an issue outside of how long it took to fully
-implement. We have used the same file-structure as the original 
+implement. We have used the same type-structure as the original 
 implementation as seen here:
 
-\includegraphics[scale=0.505]{img/multi-party protocol.png}
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.4]{img/multi-party protocol.png}
+	\caption{Graph over type and function interactions}
+\end{figure}
 
-The code we test against uses structs to keep hold of the values 
+The code we test against uses structs to keep hold of the values
 for each party and the dealer. This ensures that a potential client
 cannot accidentally perform the steps out of order, due to the next
-step being integrated in the struct itself. Originally we did not make 
-use of structs, as our implementation was never meant to be used for 
-anything other than transpiling it to a Proof Assistant. However this 
-caused severe code-bloating due to a problem with \texttt{Seq} not 
-implementing the Copy trait. As such we used structs. There is however one 
-place where our implementation differs from the above graph. 
-Namely with the \texttt{ProofShare} object. This is due to both the dealer 
-and party modules needing direct access to the structs definition, and due to 
-the modular structure of our implementation this was not possible as
-\texttt{ProofShare} objects created in party will have type 
-$party::types::ProofShare$ where the needed type is $types::ProofShare$.
-As such \texttt{ProofShare} is a simple type-alias. This \textit{does} allow 
-outside users to forge \texttt{ProofShare} objects without using the 
-proper methods. Additionally, due to the lack of optimizations in the 
-various parts of the code, including Ristretto, and Inner Product Proof 
-our implementation is also incredibly slow, to the point where testing 
-our full implementation takes no less than 22 hours to complete, while 
-the equivalent checks for the Rust implemenation takes a mere 2 minutes, 
-making our implementation approximately 600 times slower than the Rust 
-Implementation. This, in combination with the fact that the user can forge 
-proofshares out of order, practically disqulifies it from being put into 
-use for creating bulletproofs properly. However this code is not designed 
-for actual use by clients as a cryptographic algorithm, but rather it is 
-supposed to be used for the purposes of creating proofs about the original 
-code we test againstusing Proof Assistants.
+step being integrated in the struct itself. Originally we did not
+make use of structs, as our implementation was never meant to be used
+for anything other than transpiling it to a Proof Assistant. However
+this caused severe code-bloating due to a problem with typles not
+implementing the Copy trait. As such we used structs. This also
+preserved the property of the original implementation where no function
+could be called out of order since the type system requires that each
+function takes a type created by the formerly called function.
 
-In order to avoid needing to spend 22 hours per test we instead tested 
-each part individually, using the tests described in 
-\ref{implementing-ristretto} and \ref{implementing-inner-product-proof} 
-and when testing our implementation we simply made a wrapper, using the 
-much more efficient Rust Implementation to substitute for all the methods 
-that have already been tested. This significantly boosted the speed of our 
-implementation and thus allowed us to perform more than a single test for 
-each of the 18 input sizes.
+There is however one place where our implementation differs from the
+above graph. Namely with the \texttt{ProofShare} object. This is due to
+both the dealer and party modules needing direct access to the structs
+definition, and due to the modular structure of our implementation
+this was not possible as \texttt{ProofShare} objects created in party
+will have type \texttt{party::types::ProofShare} where the needed
+type is \texttt{types::ProofShare}. As such \texttt{ProofShare} is a
+simple type-alias. This unfortunately allows anyone building on our
+implementation input incorrect \texttt{ProofShare} objects not using
+the proper methods. This is not a great problem as our implementation
+is not meant to be used by others, since it is mostly meant to prove
+properties about the Dalek implementation that \textit{is} meant to
+be used by others.
 
-\section{Future work:}
+\textbf{Testing:}
 
-In this section we will briefly describe the parts of the project
-could be further worked on.
+To test the code we created a main helper function \texttt{fn
+test\_bulletproofs(m:usize, n:usize)}:
 
-Currently our implementation functions as intended, however parts has
-yet to be properly merged into Hacspec. This is currently still being
-worked on in collaboration with the Hacspec team. This process can
-take time and will involve refactoring parts of the code to improve
-overall code quality.
+\begin{lstlisting}
+fn test_bulletproofs(m: usize, n: usize) {
+	let (bp_gens_hac, bp_gens_rust) = create_bp_gens(number_of_values, n);
+	let (pc_gens_hac, pc_gens_rust) = create_pc_gens();
+	let (transcript_hac, mut transcript_rust) = create_transcript();
 
-After this is completed the work which we intended is finished but
-the obvious next step is to use a proof assistant such as Coq on our
-implementation of the bulletproofs protocol to show various aspects
-about the original Rust implementation, which works identically to
-our own, only much more effectively. This would in turn improve the
-chances that the Rust bulletproof implementation has no vulnerabilities.
+	let (values_hac, values_rust) = generate_random_values(number_of_values, n);
+	let (blindings_hac, blindings_rust) = generate_random_scalars(number_of_values);
+	let (a_blindings_hac, a_blindings_rust) = generate_random_scalars(number_of_values);
+	let (s_blindings_hac, s_blindings_rust) = generate_random_scalars(number_of_values);
+	let (s_L_hac, s_L_rust) = generate_many_random_scalars(n, number_of_values);
+	let (s_R_hac, s_R_rust) = generate_many_random_scalars(n, number_of_values);
+	let (t1_blindings_hac, t1_blindings_rust) = generate_random_scalars(number_of_values);
+	let (t2_blindings_hac, t2_blindings_rust) = generate_random_scalars(number_of_values);
+\end{lstlisting}
 
-More thorough testing could also be done to ensure that the two
-implementations function identically. This could involve writing more
-tests, running tests longer. Crucially, this could also involve testing
-the modules thoroughly individually and then replacing them in the
-more abstract modules with the faster Dalek implementations. This could
-allow for much more tests to be run and thus much greater guarantees
-of equivelence.
+\texttt{BulletproofGens} and \texttt{PedersonGens} are generated from
+the using dalek implementation and the transcripts are initialized
+with the same label. The rest of the values, except \texttt{n} and
+\texttt{m}, are generated randomly using helper functions. The values
+\texttt{n} and \texttt{m} are taken as function parameters. This lets
+us run many short test functions testing for different \texttt{m}'s
+and \texttt{n}'s:
+
+\begin{lstlisting}
+#[test]
+fn i2j8() {
+    test_bulletproofs(2,8);
+}
+
+#[test]
+fn i2j16() {
+    test_bulletproofs(2,16);
+}
+...
+\end{lstlisting}
+
+Due to the lack of optimizations in the various
+parts of the code, including Ristretto, and Inner Product Proof our
+implementation is also incredibly slow, to the point where testing our
+full implementation takes no less than 22 hours to complete, while the
+equivalent checks for the Rust implemenation takes a mere 2 minutes,
+making our implementation approximately 600 times slower than the
+Rust Implementation. This, practically disqulifies it from being put
+into use for creating bulletproofs properly. However this code is not
+designed for actual use as a cryptographic algorithm, but
+rather it is supposed to be used for the purposes of creating proofs
+about the original code we test against using Proof Assistants.
+
+In order to avoid needing to spend 22 hours per test we instead
+tested each part individually, using the tests described in
+\ref{implementing-ristretto} and \ref{implementing-inner-product-proof}
+and when testing our implementation we simply made a wrapper, using
+the much more efficient Rust Implementation to substitute for all the
+methods that have already been tested. This significantly boosted the
+speed of our implementation and thus allowed us to perform more than
+a single test for each of the 18 input sizes.
+
+\begin{center}
+\begin{tabular}{ c|c|c } 
+	& Using Hacspec Ristretto & Using Dalek Ristretto \\ \hline\hline
+	$n = 8, m = 2$   & 27.02 s    & 0.57  \\ \hline 
+	$n = 16, m = 2$  & 27.02 s    & 0.97  \\ \hline 
+	$n = 32, m = 2$  & 27.02 s    & 1.83  \\ \hline 
+	$n = 64, m = 2$  & 27.02 s    & 3.56  \\ \hline 
+	\hline\hline
+	$n = 8, m = 4$   & 27.02 s    & 0.97  \\ \hline 
+	$n = 16, m = 4$  & 27.02 s    & 1.79  \\ \hline 
+	$n = 32, m = 4$  & 27.02 s    & 3.32  \\ \hline 
+	$n = 64, m = 4$  & 27.02 s    & 6.55  \\ \hline 
+	\hline\hline
+	$n = 8, m = 8$   & 27.02 s    & 1.85  \\ \hline 
+	$n = 16, m = 8$  & 27.02 s    & 3.49  \\ \hline 
+	$n = 32, m = 8$  & 27.02 s    & 6.63  \\ \hline 
+	$n = 64, m = 8$  & 27.02 s    & 12.69 \\ \hline 
+	\hline\hline
+	$n = 8, m = 16$   & 27.02 s   & 3.63  \\ \hline 
+	$n = 16, m = 16$  & 27.02 s   & 7.20  \\ \hline 
+	$n = 32, m = 16$  & 27.02 s   & 13.56 \\ \hline 
+	$n = 64, m = 16$  & 27.02 s   & 26.06 \\ \hline 
+	\hline\hline
+	$n = 64, m = 32$  & 27.02 s   & 41.70 \\ \hline 
+	\hline\hline
+	$n = 64, m = 64$  & 27.02 s   & 64.59 \\ \hline 
+\end{tabular}
+\end{center}
+
+% NOTE: specify performace increases
 
 \section{Conclusion:}
 
@@ -2236,6 +2335,5 @@ cryptography protocols and zero-knowledge proof protocols resepctively.
 
 \section{References}
 \printbibliography
-
 
 \end{document}
