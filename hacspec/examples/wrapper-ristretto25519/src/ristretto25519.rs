@@ -40,6 +40,88 @@ bytes!(ByteString, 64);
 
 pub type Scalar = curve25519_dalek_ng::scalar::Scalar;
 
+pub trait ExtPoint {
+    fn to_le_bytes(self) -> Seq<U8>; 
+    fn from_public_array(arr: [u8;32]) -> Self;
+}
+
+impl ExtPoint for RistrettoPointEncoded {
+    fn to_le_bytes(self) -> Seq<U8> {
+        let mut seq = Seq::<U8>::new(32usize);
+        let slice = self.to_bytes();
+        for i in 0..32 {
+            seq[i] = U8::classify(slice[i]);
+        }
+        seq
+    }
+    fn from_public_array(arr: [u8;32]) -> Self {
+
+        RistrettoPointEncoded::from_slice(&arr)
+    }
+
+}
+
+pub trait Ext {
+    fn ZERO() -> Self;
+    fn ONE() -> Self;
+    fn inv(&self) -> Self;
+    fn pow(&self, p: u128) -> Self;
+    fn from_byte_seq_le(seq: Seq<U8>) -> Self;
+    fn to_byte_seq_le(self) -> Seq<U8>;
+    fn from_literal(u: u128) -> Self;
+    fn to_le_bytes(self) -> Vec<u8>;
+}
+
+impl Ext for Scalar {
+    fn ZERO() -> Self{
+        Scalar::zero()
+    }
+    fn ONE() -> Self{
+        Scalar::one()
+    }
+    fn inv(&self) -> Self{
+        self.invert()
+    }
+    fn pow(&self, p: u128) -> Self{
+        let mut res = Scalar::one();
+        for _ in 0..(p as usize) {
+            res = res * self;
+        }
+        res
+    }
+    fn from_byte_seq_le(seq: Seq<U8>) -> Self {
+
+        let mut arr: [u8; 32] = [0; 32];
+
+        for i in 0..32 {
+            arr[i] = seq[i].declassify();
+        }
+        Scalar::from_bytes_mod_order(arr)
+    }
+    fn to_byte_seq_le(self) -> Seq<U8> {
+        let arr = self.as_bytes();
+        let mut seq = Seq::<U8>::new(32usize);
+
+        for i in 0..32{
+            seq[i] = U8::classify(arr[i])
+        }
+        seq
+    }
+    fn from_literal(u: u128) -> Self {
+        Scalar::from(u)
+    }
+    fn to_le_bytes(self) -> Vec<u8> {
+        let mut vec = Vec::<u8>::new();
+        let bytes = self.as_bytes();
+        for i in 0..32 {
+            vec.push(bytes[i]);
+        }
+        vec
+    }
+}
+
+
+
 // === Constants === //
 
 const DECODING_ERROR: u8 = 10;

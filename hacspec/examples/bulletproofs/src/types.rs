@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use hacspec_lib::*;
-use hacspec_ristretto::*;
+use wrapper_hacspec_ristretto::*;
 
 pub type PedersenGens = ( 
     /*Base point:*/ RistrettoPoint, 

@@ -11,7 +11,7 @@ path = "src/bulletproofs.rs"
 hacspec-lib = { path = "../../lib" }
 hacspec-merlin = { path = "../merlin" }
 hacspec-ipp = { path = "../inner-product-proof" }
-hacspec-ristretto = { path = "../ristretto25519" }
+wrapper-hacspec-ristretto = { path = "../wrapper-ristretto25519" }
 hacspec-pedersen = { path = "../pedersen" }
 
 [dev-dependencies]

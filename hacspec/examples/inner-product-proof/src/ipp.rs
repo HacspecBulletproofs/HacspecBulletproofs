@@ -4,7 +4,7 @@
 
 use hacspec_lib::*;
 use hacspec_merlin::*;
-use hacspec_ristretto::*;
+use wrapper_hacspec_ristretto::*;
 
 mod transcript;
 use transcript::*;

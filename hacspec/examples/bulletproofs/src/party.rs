@@ -8,7 +8,7 @@ use types::*;
 
 use hacspec_lib::*;
 //use hacspec_merlin::*;
-use hacspec_ristretto::*;
+use wrapper_hacspec_ristretto::*;
 //use hacspec_ipp::*;
 use hacspec_pedersen::*;
 
@@ -77,15 +77,14 @@ fn inner_product(left: Seq<Scalar>, right: Seq<Scalar>) -> Scalar {
     res
 }
 
-fn scalar_exp(mut result: Scalar, x: Scalar, exp: Scalar) -> Scalar{
+fn scalar_exp(mut result: Scalar, x: Scalar, exp: u64) -> Scalar{
     let mut ret = result;
     let mut aux = x; // x, x^2, x^4, x^8, ...
     let mut n = exp;
-    let one = Scalar::from_literal(1u128);
 
-    if n > Scalar::from_literal(0u128) {
-        let bit = n & one;
-        if bit == one {
+    if n > 0 {
+        let bit = n & 1;
+        if bit == 1 {
             result = result * aux;
             n = n >> 1;
             aux = aux * aux;
@@ -203,8 +202,8 @@ pub fn create_poly_commitment(party: BitChallengeInput) -> CreatePolyCommitmentR
     let (base_point, blinding_point) = pc_gens;
     let (y, z) = bit_challenge;
 
-    let offset_y = scalar_exp(Scalar::from_literal(1u128), y,Scalar::from_literal((j*n) as u128));
-    let offset_z = scalar_exp(Scalar::from_literal(1u128), z, Scalar::from_literal(j as u128));
+    let offset_y = scalar_exp(Scalar::from_literal(1u128), y,(j*n) as u64);
+    let offset_z = scalar_exp(Scalar::from_literal(1u128), z, j as u64);
 
     // Calculate t by calculating vectors l0, l1, r0, r1 and multiplying
     let mut l_poly0 = Seq::<Scalar>::new(n);

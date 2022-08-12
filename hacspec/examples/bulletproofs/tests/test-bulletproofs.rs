@@ -3,8 +3,9 @@
 // code in the README.md is actually run as part of the test suite.
 #![allow(non_snake_case)]
 use hacspec_lib::*;
-use hacspec_ristretto::*;
-use hacspec_ristretto::Scalar as hac_scalar;
+use wrapper_hacspec_ristretto as ristretto_module;
+use ristretto_module::*;
+use ristretto_module::Scalar as hac_scalar;
 use hacspec_ipp::InnerProductProof as hac_ipp;
 
 extern crate rand;
@@ -43,7 +44,7 @@ fn create_bp_gens(number_of_values: usize, n:usize) -> ((usize, usize, Seq<Seq<R
 
 fn create_pc_gens() -> ((RistrettoPoint,RistrettoPoint), PedersenGens) {
     let pc_gens_rust = PedersenGens::default();
-    let pc_gens_blinding_hac =  decode(RistrettoPointEncoded::from_hex("8c9240b456a9e6dc65c377a1048d745f94a08cdb7f44cbcd7b46f34048871134")).unwrap(); //This is the hex for the point used by PedersenGens::default()
+    let pc_gens_blinding_hac =  convert(pc_gens_rust.B_blinding);
     let pc_gens_base_hac = BASE_POINT();
     ((pc_gens_base_hac,pc_gens_blinding_hac), pc_gens_rust)
 }
@@ -125,7 +126,7 @@ fn generate_many_random_scalars(n:usize, number_of_arrays: usize) -> (Seq<Seq<ha
 
 }
 
-fn compare_encoded_points(hac: hacspec_ristretto::RistrettoPointEncoded, rust: curve25519_dalek_ng::ristretto::CompressedRistretto) -> bool {
+fn compare_encoded_points(hac: ristretto_module::RistrettoPointEncoded, rust: curve25519_dalek_ng::ristretto::CompressedRistretto) -> bool {
 
     let hac_bytes = hac.to_le_bytes();
     let hac_native = hac_bytes.to_native();

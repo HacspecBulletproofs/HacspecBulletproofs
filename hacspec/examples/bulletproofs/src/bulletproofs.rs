@@ -12,7 +12,7 @@ use types::*;
 
 use hacspec_lib::*;
 use hacspec_merlin::*;
-use hacspec_ristretto::*;
+use wrapper_hacspec_ristretto::*;
 use hacspec_ipp::*;
 //use hacspec_pedersen::*;
 

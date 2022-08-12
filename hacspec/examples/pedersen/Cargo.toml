@@ -9,7 +9,7 @@ path = "src/pedersen.rs"
 
 [dependencies]
 hacspec-lib = { path = "../../lib" }
-hacspec-ristretto = { path = "../ristretto25519" }
+wrapper-hacspec-ristretto = { path = "../wrapper-ristretto25519" }
 hacspec-linalg-field= { path = "../linalg-field" }
 
 [dev-dependencies]

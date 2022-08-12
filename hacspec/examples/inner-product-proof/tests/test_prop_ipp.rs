@@ -3,7 +3,7 @@ use rand::{distributions::Uniform, Rng};
 
 use hacspec_ipp::*;
 use hacspec_lib::*;
-use hacspec_ristretto::*;
+use wrapper_hacspec_ristretto::*;
 
 use curve25519_dalek_ng::ristretto::CompressedRistretto as DalekRistrettoPointEncoded;
 use curve25519_dalek_ng::ristretto::RistrettoPoint as DalekRistrettoPoint;
@@ -104,7 +104,7 @@ fn testquick() {
 
         // Generate n as a random bounded power of 2
         let n = (2 as usize).pow(rng.sample(&n_range));
-        let n = 4;
+        let n = 8;
 
         // Initialize input variables
         let mut G: Vec<Vec<u8>> = Vec::with_capacity(n);
@@ -292,5 +292,5 @@ fn testquick() {
 
         TestResult::from_bool(true)
     }
-    quickcheck(1, helper as fn() -> TestResult)
+    quickcheck(100000, helper as fn() -> TestResult)
 }
