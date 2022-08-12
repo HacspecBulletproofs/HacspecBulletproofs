@@ -970,8 +970,7 @@ The sum of the two top-most coefficients in each 'column' is also
 equal to the bottom coefficient of that column. To convince $\V$, $\P$
 sends $t(\ran{x})B$ and $\bt(\ran{x})\bB$, evaluated at $\ran{x}$
 to $\V$. This is enough to convince $\V$ that $t_0 = \ran{z^2}v +
-\delta(\ran{y},\ran{z})$, which is seen in The Verifier Algorithm.
-(\ref{verifier-range-proof})
+\delta(\ran{y},\ran{z})$, as seen in section \ref{verifier-range-proof}.
 
 Next $\P$ wishes to convince $\V$ that $\vec{l}(x)$ and
 $\vec{r}(x)$ are both constructed correctly and that $t(x) =
@@ -986,9 +985,9 @@ $\V$ to relate $\vec{l}(x)$ and $\vec{r}(x)$ to $\vecl{a}, \vecl{s},
 
 This means we want $\P$ to make commitments to $\vec{y^n}\circ
 \vecr{a}$ and $\vec{y^n}\circ\vecr{s}$. This is a problem as these
-commitments need to be made and sent to $\V$ BEFORE $\P$ gets the
-challenge $\ran{y}$ from $\V$. To fix this issue $\P$ will make a
-special commitment to $\vecl{a}$ and $\vecr{a}$ as follows:
+commitments need to be made and sent to $\V$ \textit{before} $\P$
+gets the challenge $\ran{y}$ from $\V$. To fix this issue $\P$ will
+make a special commitment to $\vecl{a}$ and $\vecr{a}$ as follows:
 
 \eq{
 	C(\vecl{a}, \vecr{a}, \ba) = \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecr{a}}{\vec{H}} + \ba\bB
@@ -1032,8 +1031,8 @@ the following:
 	\P \rightarrow \V &: t(\ran{x})B, \bt(\ran{x})\bB, \be \hspace*{1cm}\text{($t(x)$ evaluated with challenge $\ran{x}$)}\\
 }
 
-Just as with the inner product the Fiat-Shamir Heuristic
-(\ref{fiat-shamir-heuristic}) can be used to make this process
+Just as with the inner product the Fiat-Shamir heuristic
+(section \ref{fiat-shamir-heuristic}) can be used to make this process
 non-interactive.
 
 \subsubsection{Verifier's Algorithm:} \label{verifier-range-proof}
@@ -1181,13 +1180,17 @@ And finally convince themselves that for all $t_{0,(j)}$ are correct
 by performing the following check:
 
 \eq{
-	t(\ran{x})B + \bt (\ran{x})\bB \stackrel{?}{=} \ran{z^2}\sum^{m-1}_{j = 0} \ran{z_{(j)}} \cdot V_{(j)} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
+	t(\ran{x})B + \bt (\ran{x})\bB \stackrel{?}{=}
+	\ran{z^2}\sum^{m-1}_{j = 0} \ran{z_{(j)}} \cdot V_{(j)} +
+	\delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
 }
 
 we know that $z_{(j)} = z^j$ we can make a small rewrite:
 
 \eq{
-	t(\ran{x})B + \bt (\ran{x})\bB \stackrel{?}{=} \sum^{m-1}_{j = 0} \ran{z^{j+2}} \cdot V_{(j)} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
+	t(\ran{x})B + \bt (\ran{x})\bB \stackrel{?}{=}
+	\sum^{m-1}_{j = 0} \ran{z^{j+2}} \cdot V_{(j)} +
+	\delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
 }
 
 
@@ -1218,7 +1221,6 @@ which $\D$ can then combine in the following manner:
 	\vec{G}    &= \vec{G}_{(0)}    &&\concat \vec{G}_{(1)}    &&\concat \dots &&\concat \vec{G}_{(m-1)}\\
 	\vec{H'}   &= \vec{H'}_{(0)}   &&\concat \vec{H'}_{(1)}   &&\concat \dots &&\concat \vec{H'}_{(m-1)}
 }
-% NOTE: Skal dette ikke være l_{(0)}...
 
 Additionally $\D$ can construct the following:
 
@@ -1248,7 +1250,7 @@ $\vec{r}(x)_{(j)}$ are correctly constructed and that $t(x)_{(j)}
 the previous part on top $\D$ is now convinced that all parties'
 $v_{(j)}$ are within the range (\ref{agg-range}) and thus the
 proof is complete. Additionally, using the same arguments as in
-\ref{verifier-range-proof} for each $\P_{(j)}$, this is also sound
+section \ref{verifier-range-proof} for each $\P_{(j)}$, this is also sound
 and zero-knowledge.
 
 This protocol in transcript form would be the following: 
@@ -1354,6 +1356,24 @@ also makes it harder to simply express some concepts due to the lack
 of syntactic sugar. The language however is still in development,
 balancing and adding features.
 
+External crates are of course not allowed as they will inevitably
+fail to be hacspec compliant. However, Hacspec implements various
+cryptygraphic primitives, such as field elements, that allows for
+easier cryptographic specification. Some types and functions from the
+Rust standard library are not available, for example \texttt{Vec<T>},
+however some helpful wrapper types are defined in the Hacpsec standard
+library, for example \texttt{Seq<T>}, that implement most of the same
+functionality as their \texttt{Vec<T>} counterparts. When defining custom types, the Hacspec standard library differentiates between so-called \textit{secret integers}. Secret integers are protected from side-channel attacks, but do not implement certain operations, namely equality. We have used secret integers whereever possible but, while they are more secure, they are not always feasible.
+
+The hacspec repository have an array of examples of effective
+hacspec code. These examples can serve both as a guideline for future
+implementations, but can also be used as modules. In our project we
+utilize the Sha-3 hacspec example in our Merlin specification. It
+is our goal to merge the entirety of our Hacpsec code into the main
+repository. So far, all of the linear algebra library (section
+\ref{linear-algebra-library}) and about half of the ristretto
+specification (section \ref{implementing-ristretto})
+
 All code written for this project was written to be Hacspec
 compliant. Our implementation is a specification meant to be simply
 understood compared to a more obfuscated, but highly optimized
@@ -1361,11 +1381,11 @@ implementation. We will use property based testing with QuickCheck
 \cite{quickcheck} where possible and convienient and test our
 Bulletproofs implementation against the Dalek-Cryptography group's
 Bulletproofs Rust implementation \cite{dalek}. We have also created
-a minimal linear algebra library, in hacspec, as it was thought that
-it could help with the implementation while also creating a library
-to be used with other cryptographic algorithms.
+a minimal linear algebra library, in hacspec, with the intention of
+it aiding in our implementation while also creating a library to be
+used with other cryptographic algorithms.
 
-\subsection{Linear Algebra Library:}
+\subsection{Linear Algebra Library:} \label{linear-algebra-library}
 It was decided that the specification should of course consist of what
 we need, but also of some general linear algebra functions that could
 be used by other specifications. The implemented operations included
@@ -1806,7 +1826,7 @@ fn merl_test_all_funcs() {
 }
 \end{lstlisting}
 
-\subsection{Implementing Inner Product Proof:}
+\subsection{Implementing Inner Product Proof:} \label{implementing-inner-product-proof}
 
 We'll start by presenting the prover and verifier's algorithms as
 implemented in pseudocode. Note that we index at 1:
@@ -2028,7 +2048,7 @@ ristretto implementation, which should ensure that they are
 equivelent. This more rigerous testing is out of scope for this paper
 however.
 
-\subsection{Implementing Bulletproofs:}
+\subsection{Implementing Bulletproofs:} \label{implementing-bulletproofs}
 
 \begin{algorithm}[H]
 	\DontPrintSemicolon
