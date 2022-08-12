@@ -55,7 +55,6 @@ impl ExtPoint for RistrettoPointEncoded {
         seq
     }
     fn from_public_array(arr: [u8;32]) -> Self {
-
         RistrettoPointEncoded::from_slice(&arr)
     }
 

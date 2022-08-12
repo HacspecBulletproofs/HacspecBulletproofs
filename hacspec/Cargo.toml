@@ -41,7 +41,6 @@ members = [
     "examples/ed25519",
     "examples/ristretto25519",
     "examples/wrapper-ristretto25519",
-    "examples/wrapper-inner-product-proof",
     
 ]
 default-members = [

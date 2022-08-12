@@ -104,7 +104,7 @@ fn testquick() {
 
         // Generate n as a random bounded power of 2
         let n = (2 as usize).pow(rng.sample(&n_range));
-        let n = 8;
+        let n = 64;
 
         // Initialize input variables
         let mut G: Vec<Vec<u8>> = Vec::with_capacity(n);
@@ -292,5 +292,5 @@ fn testquick() {
 
         TestResult::from_bool(true)
     }
-    quickcheck(100000, helper as fn() -> TestResult)
+    quickcheck(1, helper as fn() -> TestResult)
 }
