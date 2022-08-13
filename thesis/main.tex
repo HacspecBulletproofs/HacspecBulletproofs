@@ -2352,44 +2352,44 @@ passing is solid evidence that the code functions properly for
 that combination of $n$ and $m$. With 5000 tests we have 200 tests 
 for each combination of inputs on average. 
 
+\section{Future work:}
+
+Currently, our implementation functions as intended, however parts has
+yet to be properly merged into Hacspec. This is still being worked on in
+collaboration with the Hacspec team. This process can take time and will
+involve refactoring parts of the code to improve overall code quality.
+
+After this is completed the intended work is finished but the obvious
+next step is to use a proof assistant on our implementations to
+prove properties about the equivelent, but much faster, Rust
+implementations. This would reduce the risk of vulnerabilities in the
+Rust implementations.
+
+More thorough testing could be done to ensure that the Hacspec and
+Rust implementations function identically, which could involve writing
+more property-based and unit tests as well as running tests longer.
+
 \section{Conclusion:}
 
-In order to complete our task of helping to improve the security of
-the Rust bulletproof implementation does not have any vulnerabilities
-we have implemented the bulletproofs protocol in Hacspec. This
-implementation of Bulletproofs is constructed in a way that makes it
-function identically to the Rust implementation, with high probability,
-due to rigerous property-based testing and thus by proving properties
-about our implementation those same properties will hold for the Rust
-implementation.
+Our intended goal of a complete Bulletproofs implementation was
+achieved. Necessary modules, namely Ristretto and Merlin was also
+implemented. These implementations are constructed in a way that
+makes them function identically to their Rust counterparts, with high
+probability, due to rigerous property-based testing. Thus, by proving
+properties about our implementation, those same properties should hold
+for the respective Rust implementations.
 
-Given a thorough understanding of the mathematics behind the
-Bulletproofs protocol, the implementation of the protocol itself was
-relatively simple. Some major roadblocks included the necessity to 
-implement both Ristretto25519 and Merlin in order for our code to
-function identically to the original implementation. 
-A positive consequence of this roadblock is that these modules may 
-help others who want to specify cryptographic protocols, by building 
-on our work.
-
-Additionally by creating this specification in Hacspec, we have also 
-highlighted how a somewhat abstract cryptographic protocol could be 
-implemented in Hacspec. Thus, it can act as a reference for how 
-such a protocol might need to be implemented as well as an example on 
-how to integrate the various modules we have implemented. For example, 
-if a future developer wishes to make use of Ristretto for their 
-implemenation they may use the inner-product-proof module to see 
-how it utilizes our Ristretto and Merlin modules. 
+Additionally, we have also highlighted how a somewhat abstract
+cryptographic protocol could be implemented in Hacspec. Thus, it can
+act as a reference for how such protocols might be implemented and
+an example of how to utilize our Ristretto and Merlin modules.
 
 In essence we have laid nearly all the groundwork for the future work
-of actually using a proof assistant to prove various properties about
-the Rust implementation, and we have laid out a few powerful 
-building blocks allowing future devealopers to more easily implement 
-other zero-knowledge cryptographic algorithms, by allowing them to use 
-our Ristretto25519 and Merlin modules for implementing elliptic-curve 
-cryptography protocols and zero-knowledge proof protocols resepctively.
-
-% NOTE: maybe more about code review
+of proving properties about the Rust implementations, and introduced a
+few powerful building blocks allowing future developers to more easily
+implement other cryptographic algorithms, by allowing them to use our
+Ristretto25519 and Merlin modules for implementing protocols applying
+elliptic-curve cryptography and zero-knowledge proofs resepctively.
 
 \section{References}
 \printbibliography
