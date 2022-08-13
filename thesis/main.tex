@@ -411,38 +411,34 @@ curve's \textit{generator}.
 
 \subsection{Pedersen Commitment:}
 
-A Pedersen commitment is a commitment scheme originally defined
-by Torben Pryds Pedersen \cite{pedersen}. The essence of
-Pedersen commitments is the so-called \textit{Additive Homomorphism}
-\ref{pedersen-additive-homomorphism} defined later. For our purposes we
+A Pedersen commitment is a commitment scheme originally defined by
+Torben Pryds Pedersen \cite{pedersen}. The essence of Pedersen
+commitments is the so-called \textit{Additive Homomorphism}
+(def. \ref{pedersen-additive-homomorphism}). For our purposes we
 redefine the scheme to work with commitments to elliptic curve points
-rather than a value. First two points $B$ and $\bB$ on an elliptic curve,
-are chosen. $B$ will be the standard generator, called the base point, with
-$\bB$ being the so-called 'blinding point' to $B$. These two points are 
-agreed upon by both the sender of the commitments and the receiver.
+rather than a value. Firstly, two points $B$ and $\bB$ on an elliptic
+curve are chosen. $B$ will be the standard generator, called the
+base point, with $\bB$ being the so-called \textit{blinding point}
+to $B$. These two points are agreed upon by both the sender of the
+commitments and the receiver.
 
 \begin{definition}[Pedersen Commitment]
 	A Pedersen commitment, to some message, $a$, with a randomly chosen
 	integer, $\ba$, is defined as:
-
-	$$aB + \ba\bB$$
-
+	\eq{
+		C(a, \ba) = aB + \ba\bB
+	}
 	where $B$ is a canonical generator for the curve and $\bB$
 	is a curve point where no one knows $q$ such that $\bB = qB$.
 \end{definition}
 
-Here $\ba$ serves as our perfect hiding. The construction
-of $\bB$ ensures perfect hiding as there is a nearly infinite amount
-of possible combinations of two points that can add to any given
-point. However, while that is true, it does not provide perfect binding
-by definition of binding and hiding. From here on we will refer to
-a commitment to a message, $a$, with random value, $\widetilde{a}$,
-as $C(a,\widetilde{a})$. Naturally both $a$ and $\ba$ are known only 
-by the sender of the commitment.
-
-
-The most important property of Pedersen commitments is
-that Pedersen commitments have the property of Additive Homomorphism:
+The construction of $\ba\bB$ ensures \textit{perfect hiding} as there
+is many possible combinations of two points that can add to any given
+point. However, it does not provide \textit{perfect binding}, because
+multiple $a$'s can map to multiple $P$'s. It is important to note that
+the person constructing the Pedersen commitment can not \textit{predict}
+the other valid $a$'s that maps to $P$. A crucial property of Pedersen
+commitments is the property of \textit{Additive Homomorphism}:
 
 \begin{definition}[Additive Homomorphism] \label{pedersen-additive-homomorphism}
 	For any two Pedersen commitments $C(a_1,\ba_1), C(a_2,\ba_2)$ we have:
@@ -1337,10 +1333,10 @@ how the Fiat Shamir heuristic can be applied. We will use the same
 notation we used in section \ref{zero-knowledge}.
 
 $\P$ wishes to show $\V$ that they know the secret value $x$ such that
-$X = xG$ for the public curve-points $X$ and $G$. Ordinarily $\P$
-would send a commitment $K$ to a randomly chosen k and \textit{send
-this to $\V$}, who would then send back a challenge. However, with the
-Fiat-Shamir heuristic, $\P$ will instead compute:
+$X = xG$ for the public curve-points $X$ and $G$. Ordinarily $\P$ would
+send a commitment $K$, to a randomly chosen $k$, to $\V$, who would
+then send back a challenge $e$. However with the Fiat-Shamir heuristic,
+$\P$ will instead compute:
 
 \eq{
 	e = \textbf{H}(X,P,K)
@@ -1348,18 +1344,15 @@ Fiat-Shamir heuristic, $\P$ will instead compute:
 
 From here $\P$ can compute $s = k + ex$ and send $K$ and $s$ to $\V$.
 
-From there $\V$ can compute $e = \textbf{H}(X,P,K)$ and at this
+Then $\V$ can compute $e = \textbf{H}(X,P,K)$ and at this
 point the rest of the protocol functions the same as it does in
 \ref{zero-knowledge}. The transcript for this proof would thus go from:
-
 \eq{
 	\P \rightarrow \V &: K \\
 	\V \rightarrow \P &: e \\
 	\P \rightarrow \V &: s \\
 }
-
 To the much shorter:
-
 \eq{
 	\P \rightarrow \V: K, s
 }
@@ -1369,13 +1362,13 @@ interacting with $\V$. The proof is still sound as $\P$ cannot get $e$
 without committing to a $K$ first.
 
 Our Fiat-Shamir heuristic for the bulletproofs algorithm requires an
-\textit{overseer} for the parties who can gather all the needed values
+\textit{overseer} for the parties who can gather all the $V$'s
 to create the challenges. In essence when a challenge is needed
-all parties will send their values to this local overseer
+all parties will send their $V$'s to this local overseer
 who can then generate the challenges using the Fiat-Shamir
-heuristic. Specifically $y = \textbf{H}(\vec{V},\vec{A},\vec{S}),
-\ z = \textbf{H}(\vec{V},\vec{A},\vec{S}, y)$ and $x =
-\textbf{H}(\vec{V},\vec{A},\vec{S}, y, \vec{T_1},\vec{T_2})$. This
+heuristic. Specifically $\ran{y} = \textbf{H}(\vec{V},\vec{A},\vec{S}),
+\ \ran{z} = \textbf{H}(\vec{V},\vec{A},\vec{S}, \ran{y})$ and $\ran{x} =
+\textbf{H}(\vec{V},\vec{A},\vec{S}, \ran{y}, \ran{z}, \vec{T_1},\vec{T_2})$. This
 will result in the following final transcript:
 
 \eq{
@@ -1387,18 +1380,19 @@ Heart vulnerability \cite{frozen-heart}, describes how in the
 Fiat-Shamir heuristic suggested in the original bulletproofs paper
 \cite{bulletproofs}, a malicious prover could cheat successfully. This
 was because in the original paper the Fiat-Shamir heuristic did not
-include $\vec{V}$ in their hash function which allowed a malicious
-$\P$ to get a proof verified even if one or more $v$'s did not lie
-within the range. This could be done by committing an $A$ which was 
-constructed from a $v$ which lies in the range, but the Fiat-Shamir 
-heuristic did not require the use of $V$ in its hashing. $\V$ could 
-then forge a $V$ from a value outside the desired range while still 
-successfully convincing $\V$ that this new $v$ lies within the given 
-range. This is not a problem for the Dalek implementation as they 
-include $V$ in the transcript, therefore our implementation also does 
-not have this vulnerability. The paper has since been updated, but any 
-implementation that has followed the old paper's Fiat-Shamir heuristic
-specification are still be vulnerable to this bug.
+include $V$ in their hash function which allowed a malicious $\P$
+to get a proof verified even if $v$ did not lie within the range.
+
+This could be done by commiting an $A$ which was constructed from
+a $v$ which lies in the range, but the Fiat-Shamir heuristic did
+not require the use of $V$ in its hashing, therefore this $V$
+could then be forged from a $v$ outside of the desired range while
+still successfully convincing $\V$ that this $v$ lies inside of the
+range. This is not a problem for the Dalek implementation as they
+include $V$ in the transcript, therefore our implementation also
+does not have this vulnerability. The paper has since been updated,
+but any implementation that has followed the old paper's Fiat-Shamir
+specification could still be vulnerable.
 
 \section{Our Contributions:}
 
