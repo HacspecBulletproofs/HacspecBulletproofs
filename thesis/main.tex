@@ -2128,30 +2128,35 @@ a highly simplified pseudocode for our implementation of this graph:
 	\SetKwFunction{createParty}{create\_Party($B,\bB,\vec{G},\vec{H},v,\bv,n$)}
 	\SetKwFunction{computeAS}{create\_bit\_commitment($party\_step1, j$)}
 	\SetKwFunction{firstaggregate}{receive\_bit\_commitments($dealer\_step1, \vec{V}, \vec{A},\vec{S}$)}
-	\SetKwFunction{computeTs}{create\_poly\_commitment($party_j\_step1, \ran{y},\ran{z}$)}
+	\SetKwFunction{computeTs}{create\_poly\_commitment($party_j\_step2, \ran{y},\ran{z}$)}
 	\SetKwFunction{secondaggregate}{receive\_poly\_commitments($dealer\_step2, \vec{T_1}, \vec{T_2}$)}
-	\SetKwFunction{computetxB}{create\_proofshare($party_j\_step2,\ran{x}$)}
+	\SetKwFunction{computetxB}{create\_proofshare($party_j\_step3,\ran{x}$)}
 	\SetKwFunction{thirdaggregate}{receive\_proofshares($dealer\_step3,\vec{t(\ran{x})B}, \vec{\vec{\tt(\ran{x})\bB}}$)}
 	$\performChecks$\\
 	$m := \vec{v}\len$\\
+	\tcp{DealerAwaitingBitCommitment}
 	$dealer\_step1 := \createDealer$ \\
 	\For{$j \in [1 : m+1]$}{
+		\tcp{PartyAwaitingPosition}
 		$party_j\_step1, V_j := \createParty$\\
-		$A_j, S_j := \computeAS$
+		\tcp{PartyAwaitingBitChallenge}
+		$party_j\_step2, A_j, S_j := \computeAS$
 	}
-
+	\tcp{DealerAwaitingPolyCommitment}
 	$(dealer\_step2, \ran{y},\ran{z}) := \firstaggregate$\\
 
 	\For{$j \in [1 : m+1]$}{
-		$(party_j\_step2, T_{1,j}, T_{2,j}) := \computeTs$
+		\tcp{PartyAwaitingPolyChallenge}
+		$(party_j\_step3, T_{1,j}, T_{2,j}) := \computeTs$
 	}
-
+	\tcp{DealerAwaitingProofShare}
 	$(dealer\_step3, \ran{x}) := \secondaggregate$\\
 
 	\For{$j\in [1 : m+1]$}{
+		\tcp{ProofShare}
 		$t(\ran{x})_jB, \tt (\ran{x})_j\bB := \computetxB$ 
 	}
-
+	\tcp{RangeProof}
 	$aggregated\_rangeproof := \thirdaggregate$
 
 	\Return{$(\vec{V}, aggregated\_rangeproof)$}
@@ -2166,14 +2171,17 @@ nodes being the \texttt{party} methods and the right nodes being the
 \texttt{dealer} methods. Each of these methods, in the simplest terms, 
 compute the values needed and generate the next party or dealer-object 
 in the sequence. The names of these have been shortened due to 
-formatting, but they also correspond to the outputted \texttt{party} and \texttt{dealer} objects from \ref{implementation-graph}. The code we test against uses structs to keep hold of the 
+formatting, but they also correspond to the outputted \texttt{party} 
+and \texttt{dealer} objects from \ref{implementation-graph}, which are 
+also written as comments above the line where they are created in the 
+pseudocode. The code we test against uses structs to keep hold of the 
 values for each of the different party and dealer objects, created by 
 the methods described above. Each dealer object implements the next 
-function required by the \texttt{dealer} to make,
-and the same goes for each \texttt{party} object. This way of implementing the
-methods ensures that a potential client cannot accidentally perform
-the steps out of order, due to the next step being integrated in the
-struct provided by the previous step.
+function required by the \texttt{dealer} to make, and the same goes 
+for each \texttt{party} object. This way of implementing the methods 
+ensures that a potential client cannot accidentally perform the steps 
+out of order, due to the next step being integrated in the struct 
+provided by the previous step.
 
 When we began our implementation we made use of tuples to represent our 
 types, however, not using structs caused severe code-bloating since 
