@@ -623,10 +623,12 @@ $\P$ is given values with the following definitions:
 
 Here $P$ is similar to a Pedersen Commitment with the crucial difference
 that \textit{there is no blinding}. The blinding will be introduced
-later on in the range proofs section. (\ref{range-proofs}) We will
-introduce a combined form of $P$ and $c$ in the form of $P^{(k)}$,
-The parenthesized superscript, denotes that it's a new variable,
-it does \textit{not} refer to exponentiation:
+later on in the range proofs section (section \ref{range-proofs}). Note
+that $\vec{G}$ and $\vec{H}$ are publically agreed upon points,
+available to both prover and verifier. We will introduce a combined
+form of $P$ and $c$ in the form of $P^{(k)}$, The parenthesized
+superscript, denotes that it's a new variable, it does \textit{not}
+refer to exponentiation:
 
 \eq{
 	P^{(k)} &= \dotp{\vec{a}}{\vec{G}} +
@@ -634,10 +636,12 @@ it does \textit{not} refer to exponentiation:
 	           \dotp{\vec{a}}{\vec{b}}Q \\
 } 
 
-This redefinition will be useful, because it will allow us to redefine
-$\vec{a}, \vec{b}, \vec{G}, \vec{H}$ ($\vec{a}^{(k)}, \vec{b}^{(k)},
-\vec{G}^{(k)}, \vec{H}^{(k)}$) into a shorter format, while keeping the
-properties in equation \ref{ipp-def2} as invariants.
+The $Q$ introduced here is just another publically agreed point,
+like $\vec{G}$ and $\vec{H}$. This redefinition will be useful, because
+it will allow us to redefine $\vec{a}, \vec{b}, \vec{G}, \vec{H}$
+($\vec{a}^{(k)}, \vec{b}^{(k)}, \vec{G}^{(k)}, \vec{H}^{(k)}$) into a
+shorter format, while keeping the properties in equation \ref{ipp-def2}
+as invariants.
 
 \eq{
 	\vec{a}^{(k-1)} &= \veclo{a^{\text{(k)}}} &&\cdot \ran{u}_k      &&+ \ran{u}^{-1}_k &&\cdot \vechi{a^{\text{(k)}}} \\
