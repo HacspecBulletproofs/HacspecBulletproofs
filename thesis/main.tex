@@ -152,7 +152,7 @@ Department of Computer Science, Aarhus University\\
 	compiled to so-called proof assistants such as Coq, which
 	will be able to prove various properties of the code. Our
 	implementation can later be transpiled to a proof
-	assistant. Given the rigerous testing which ensures that the
+	assistant. Given the rigorous testing which ensures that the
 	two implementations function identically, The properties proven
 	for our implementation, will also hold for the more efficient,
 	original Rust implementation. This will, in turn, improve the
@@ -168,10 +168,10 @@ Firstly, we would like to thank Bas Spitters, our supervisor, for his
 excellent guidance and expertise on the subject. Without him this
 project would not have been possible to this extent. Secondly, we
 thank Franziskus Kiefer for his helpfulness in answering questions
-about various Hacspec-related quirks, issues, as well being swift
+about various Hacspec-related quirks, issues, as well as being swift
 in these responses in spite his large workload. Thirdly, we want to
-thank Las Safin, who helped proof-reading and thus make this report more
-bulletproof. Finally we thank everyone who helped answer questions
+thank Las Safin, who helped proofreading and thus make this report more
+bulletproof. Finally, we thank everyone who helped answer questions
 over the various stages of the project. Your assistance is greatly
 appreciated.
 
@@ -184,27 +184,27 @@ appreciated.
 
 \section{Introduction:} \label{Introduction}
 
-Privacy-enhanced cryptocurrencies use crytpographic protocols to hide
+Privacy-enhanced cryptocurrencies use cryptographic protocols to hide
 sender, receiver and amount sent. Zero-knowledge proofs are a very
 popular tool to solve some of these problems and are increasingly
 used today. However, these protocols can also carry vulnerabilities,
-potentially leading to particularily severe inflation bugs, which
+potentially leading to particularly severe inflation bugs, which
 allows malicious actors to double-spend currency. Two of the currently
 most popular privacy-enhanced cryptocurrencies, Monero and Zcash, have
 already had such vulnerabilities \cite{cryptonote} \cite{zcash}. Both of
 these cryptocurrencies have marketcaps over a billion dollars, therefore
 it is crucial to minimize the attack surface. One way of doing this
-is by using proof assistants, such as Coq, on the implemenations of
+is by using proof assistants, such as Coq, on the implementations of
 these protocols, proving that necessary properties holds.
 
-Effective implementations are often unfeasible to implement and run
-in proof assistant languages however. A relatively new tool in this
+However, effective implementations are often unfeasible to implement and run
+in proof assistant languages. A relatively new tool in this
 space is Hacspec \cite{hacspec}, a subset of Rust that functions
 as a specification language. It implements cryptographic primitives
 allowing for convenient implementation of cryptographic algorithms and
 supports transpiling into proof assistant languages, namely Coq and F*,
 such that properties can be proven about said implementations. This
-leads to greater security which can be transfered over to a Rust
+leads to greater security which can be transferred over to a Rust
 implementation using property based testing to ensure that the Hacspec
 and Rust implementations work identically.
 
@@ -214,7 +214,7 @@ al. \cite{bulletproofs}, in Hacspec. The protocol creates a compact and
 secure zero-knowledge proof to show that one or more values lie within
 a range of $[0:2^n)$ for a provided $n$, without revealing any other
 information about the values themselves. A variant of this protocol
-is currently utilized in the cryptocurrency Monero. Additionally we
+is currently utilized in the cryptocurrency Monero. Additionally, we
 also wish to write our implementation in a modular fashion that allows
 future cryptographic protocols specified in hacspec to utilize parts
 of our specification.
@@ -223,7 +223,7 @@ We will be testing our implementation against the current Rust
 Bulletproofs crate \cite{dalek} by the Dalek team, using property-based
 testing to ensure, with high probability, that our implementation
 of the Bulletproofs protocol is equivalent to the Rust Bulletproofs
-crate. This will mean that using a proof assistant on our implemenation
+crate. This will mean that using a proof assistant on our implementation
 will be approximately equivalent to using it on the Rust implementation.
 
 In this paper we will briefly go over the prerequisites for
@@ -280,7 +280,7 @@ definitions presented here are largely from \cite{elliptic-curves}.
 \begin{definition}[Field]
 	A field is a set $\F$, along with the \textit{addition} and
 	\textit{multiplication} operations. These two operations must
-	uphold the so called \textit{field axioms}:
+	uphold the so-called \textit{field axioms}:
 
 	\begin{itemize}
 		\item Associativity of addition and multiplication:
@@ -299,7 +299,7 @@ definitions presented here are largely from \cite{elliptic-curves}.
 \end{definition}
 
 Note that this also means that subtraction and division is defined,
-due to the existance of the additive and multiplicative inverses
+due to the existence of the additive and multiplicative inverses
 respectively:
 
 \eq{
@@ -307,7 +307,7 @@ respectively:
 	\frac{a}{b} &= a \cdot b^{-1}
 }
 
-Corrolarily, this leads us to \textit{finite fields}:
+This leads us to \textit{finite fields}:
 
 \begin{definition}[Finite Field]
 	A finite field, is a field that contains a finite number of elements.
@@ -324,7 +324,7 @@ throughout this report are \textit{Prime Fields:}
 
 Something important to note about this definition is that inverses in
 this kind of field are also positive whole numbers. This will come up
-again in section \ref{implementing-ristretto} with regards to the code.
+again in section \ref{implementing-ristretto} in regards to the code.
 
 \subsection{Elliptic Curve:}\label{elliptic-curves}
 
@@ -366,10 +366,10 @@ definitions. Again, these definitions are mostly from
 An important thing to note about point addition. In the case where
 you add points $P$ and $Q$ where $\ell$ is a tangent to $P$ then $P +
 Q = -P$. This is due to the fact that the \textit{only} case in which
-this can happen is when $Q = -(P + P)$ and thus you get $P + Q = P +
+this can happen is when $Q = -(P + P)$, and thus you get $P + Q = P +
 (-(P + P)) = -P$. Another similar case is using point doubling on any
 point $P = (x,0)$ on $E$. The tangent of $P$ does not intersect
-a second point. However note that the negation of $P$ here is $-P =
+a second point. However, note that the negation of $P$ here is $-P =
 (x,-0) = (x,0) = P$. Thus point doubling on these points is equivalent
 to the equation $P + (-P) = \O$.
 
@@ -389,7 +389,7 @@ From these definitions we can extrapolate two more definitions:
 
 Due to the absence of scalar division it is impossible to multiply by
 anything other than integers as we cannot have something akin to $2.5
-\cdot P = \frac{5\cdot P}{2}$. Therefore scalars are always integers
+\cdot P = \frac{5\cdot P}{2}$. Therefore, scalars are always integers
 when doing computations for elliptic curves. Multiplying by $0$ will
 naturally yield the identity element $\mathcal{O}$ by definition.
 Additionally multiplying by a negative integer, ${-m}$, is defined as
@@ -409,10 +409,10 @@ curve's \textit{generator}.
 
 A Pedersen commitment is a commitment scheme originally defined
 by Torben Pryds Pedersen \cite{pedersen}. The essence of
-Pedersen commitments is the so called \textit{Additive Homomorphism}
+Pedersen commitments is the so-called \textit{Additive Homomorphism}
 \ref{pedersen-additive-homomorphism} defined later. For our purposes we
 redefine the scheme to work with commitments to elliptic curve points
-rather than a value. First a two points $B$ and $\bB$ on an elliptic curve,
+rather than a value. First two points $B$ and $\bB$ on an elliptic curve,
 are chosen. $B$ will be the standard generator, called the base point, with
 $\bB$ being the so-called 'blinding point' to $B$. These two points are 
 agreed upon by both the sender of the commitments and the receiver.
@@ -481,7 +481,7 @@ without simply revealing $x$ directly.
 
 The protocol is rather simple. First $\P$ chooses a random value $k$ and commits
 to this value by sending $K$, such that $K = kG$, to $\V$. $\V$ then
-chooses a random value $e$ and sends it to $\P$. Finally $\P$ sends $s$
+chooses a random value $e$ and sends it to $\P$. Finally, $\P$ sends $s$
 such that $s = k + ex$. Written out as a transcript this would be:
 
 \eq{
@@ -527,7 +527,7 @@ $e$ by constructing $K$ as follows:
 }
 
 and then choose a random value $s$. If the verifier then did the check
-they would find that it holds. However this is \textit{not} a possibility
+they would find that it holds. However, this is \textit{not} a possibility
 because $\P$ must commit to a $K$ before they are given $e$. There
 is a small probability that $\P$ could randomly guess $e$ correctly,
 but this is miniscule.
@@ -537,13 +537,13 @@ but this is miniscule.
 For a proof to be zero-knowledge it must hold that $\V$ did not gain
 any additional information. To see this we look at the transcript
 and see that $K$ does not include $x$ in its calculations, but $s$
-does. However $s$ is blinded by $k$ meaning that $\V$ cannot infer $x$
+does. However, $s$ is blinded by $k$ meaning that $\V$ cannot infer $x$
 without knowing $k$. And $\V$ cannot infer $k$ from $K$ any easier
 than it can infer $x$ from $X$, thus this proof is also zero-knowledge.
 
 \subsection{Hacspec:} \label{hacspec}
 
-Hacspec is a subset of the programming language of Rust. It's purpose is
+Hacspec is a subset of the programming language of Rust. Its purpose is
 to be a specification language for cryptographic algorithms, with the
 special properties that it is executable (since it is valid rust code),
 but also that it is defined such that it can easily be transpiled
@@ -555,8 +555,8 @@ of syntactic sugar. The language however is still in development,
 balancing and adding features.
 
 External crates are of course not allowed as they will inevitably
-fail to be hacspec compliant. However, Hacspec implements various
-cryptygraphic primitives, such as field elements, that allows for
+fail to be Hacspec compliant. However, Hacspec implements various
+cryptographic primitives, such as field elements, that allows for
 easier cryptographic specification. Some types and functions from the
 Rust standard library are not available, for example \texttt{Vec<T>},
 however some helpful wrapper types are defined in the Hacpsec standard
@@ -565,26 +565,27 @@ functionality as their \texttt{Vec<T>} counterparts. When defining
 custom types, the Hacspec standard library differentiates between
 so-called \textit{secret integers}. Secret integers are protected
 from side-channel attacks, but do not implement certain operations,
-namely equality. We have used secret integers whereever possible but,
+namely equality. We have used secret integers wherever possible but,
 while they are more secure, they are not always feasible.
 
-The hacspec repository have an array of examples of effective
-hacspec code. These examples can serve both as a guideline for future
+The Hacspec repository have an array of examples of effective
+Hacspec code. These examples can serve both as a guideline for future
 implementations, but can also be used as modules. In our project we
-utilize the Sha-3 hacspec example in our Merlin specification. It
-is our goal to merge the entirety of our Hacpsec code into the main
-repository. So far, all of the linear algebra library (section
-\ref{linear-algebra-library}) and about half of the ristretto
-specification (section \ref{implementing-ristretto})
+utilize the Sha-3 Hacspec example in our Merlin specification. It
+is our goal to merge the entirety of our Hacspec code into the main
+repository. So far, the entire the linear algebra library (section
+\ref{linear-algebra-library}) and approximately half of the ristretto
+specification (section \ref{implementing-ristretto}) have been merged 
+into Hacspec. 
 
 All code, except tests, written for this project was written to
 be Hacspec compliant. Our implementation is a specification meant
 to be simply understood compared to a more obfuscated, but highly
 optimized implementation. We will use property based testing with
-QuickCheck \cite{quickcheck} where possible and convienient and test
+QuickCheck \cite{quickcheck} where possible and convenient and test
 our Bulletproofs implementation against the Dalek-Cryptography group's
 Bulletproofs Rust implementation \cite{dalek}. We have also created
-a minimal linear algebra library, in hacspec, with the intention of
+a minimal linear algebra library, in Hacspec, with the intention of
 it aiding in our implementation while also creating a library to be
 used with other cryptographic algorithms.
 
@@ -592,8 +593,8 @@ used with other cryptographic algorithms.
 
 The ultimate goal of this project has been to implement bulletproofs
 in Hacspec, using property-based testing to ensure it is equivalent to
-the implementation done in Rust, using Curve25519. A bulletproof is a
-non-interactive aggregation of rangeproofs using Pedersen commitments.
+the implementation done in Rust, using Curve25519. A Bulletproof is a
+non-interactive aggregation of range proofs using Pedersen commitments.
 The following section will describe each of these terms in greater
 detail on a theoretic level. The following subsections have been
 created based on the original bulletproofs paper \cite{bulletproofs}
@@ -604,12 +605,12 @@ as well as the implementation notes from the Dalek-Bulletproofs project
 A prover, $\P$, wants to prove to a verifier, $\V$, that he has
 knowledge of two vectors $\vec{a}$, $\vec{b}$ and know their inner
 product $\dotp{\vec{a}}{\vec{b}} = c$. The prover could simply send
-the verifier $\vec{a}, \vec{b}, c$ but this would take up $O(n)$
-bandwidth and time to verify. Instead we will use a compression
+the verifier $\vec{a}, \vec{b}, c$, but this would take up $O(n)$
+bandwidth and time to verify. Instead, we will use a compression
 technique included in the bulletproofs paper which allows for just
 $O(\log_2(n))$ bandwidth and time to verify.
 
-\subsubsection{Provers Algorithm:}
+\subsubsection{Prover's Algorithm:}
 $\P$ is given values with the following definitions:
 
 \eqn{ipp-def1}{
@@ -625,7 +626,7 @@ Here $P$ is similar to a Pedersen Commitment with the crucial difference
 that \textit{there is no blinding}. The blinding will be introduced
 later on in the range proofs section. (\ref{range-proofs}) We will
 introduce a combined form of $P$ and $c$ in the form of $P^{(k)}$,
-The parenthesised superscript, denotes that it's a new variable,
+The parenthesized superscript, denotes that it's a new variable,
 it does \textit{not} refer to exponentiation:
 
 \eq{
@@ -2022,7 +2023,7 @@ We created a \texttt{transcript.rs} file that implemented wrapper
 functions over the Fiat-Shamir mechanism introduced by the Merlin
 library. This file needed access to defined errors needed access to
 the same errors as the \texttt{transcript.rs} file. Normally in Rust
-the solution would be:
+the solution would be: 
 
 \begin{lstlisting}
 use crate::errors::*;
@@ -2365,8 +2366,19 @@ a single test for each of the 18 input sizes.
 \end{tabular}
 \end{center}
 
-
-% NOTE: specify performace increases
+With these performance increases we ran 5000 tests on 
+randomized n and m values, which all successfully passed, 
+taking \textbf{Y} seconds. The reason we did not run 100000 
+tests as we did with Inner Product Proof is because in spite 
+these increases in speed, it would take an immense amount of 
+time to run 100000 tests. This means that the bulletproofs 
+are not as thoroughly tested compared to the other modules. 
+This makes the property of equivalence between implementations 
+weaker compared to the other modules. This is not a major issue
+given how compregensive the protocol is, a single randomized test 
+passing is solid evidence that the code functions properly for 
+that combination of $n$ and $m$. With 5000 tests we have 200 tests 
+for each combination of inputs on average. 
 
 \section{Conclusion:}
 
