@@ -257,90 +257,288 @@ fn test_bulletproofs(number_of_values: usize, n: usize) {
 
 #[test]
 fn i2j8() {
-    test_bulletproofs(2,8);
+    use std::time::Instant;
+    let now = Instant::now();
+
+    // Code block to measure.
+    {
+        test_bulletproofs(2, 8);
+    }
+
+    let elapsed = now.elapsed();
+    println!("i2j8() completed succesfully");
+    println!("Elapsed: {:.2?}", elapsed);
+    assert!(false)
 }
 
 #[test]
 fn i2j16() {
-    test_bulletproofs(2,16);
+    use std::time::Instant;
+    let now = Instant::now();
+
+    // Code block to measure.
+    {
+        test_bulletproofs(2, 16);
+    }
+
+    let elapsed = now.elapsed();
+    println!("i2j16() completed succesfully");
+    println!("Elapsed: {:.2?}", elapsed);
+    assert!(false)
 }
 
 #[test]
 fn i2j32() {
-    test_bulletproofs(2,32);
+    use std::time::Instant;
+    let now = Instant::now();
+
+    // Code block to measure.
+    {
+        test_bulletproofs(2, 32);
+    }
+
+    let elapsed = now.elapsed();
+    println!("i2j32() completed succesfully");
+    println!("Elapsed: {:.2?}", elapsed);
+    assert!(false)
 }
 
 #[test]
 fn i2j64() {
-    test_bulletproofs(2,64);
+    use std::time::Instant;
+    let now = Instant::now();
+
+    // Code block to measure.
+    {
+        test_bulletproofs(2, 64);
+    }
+
+    let elapsed = now.elapsed();
+    println!("i2j64() completed succesfully");
+    println!("Elapsed: {:.2?}", elapsed);
+    assert!(false)
 }
 
 #[test]
 fn i4j8() {
-    test_bulletproofs(4,8);
+    use std::time::Instant;
+    let now = Instant::now();
+
+    // Code block to measure.
+    {
+        test_bulletproofs(4, 8);
+    }
+
+    let elapsed = now.elapsed();
+    println!("i4j8() completed succesfully");
+    println!("Elapsed: {:.2?}", elapsed);
+    assert!(false)
 }
 
 #[test]
 fn i4j16() {
-    test_bulletproofs(4,16);
+    use std::time::Instant;
+    let now = Instant::now();
+
+    // Code block to measure.
+    {
+        test_bulletproofs(4, 16);
+    }
+
+    let elapsed = now.elapsed();
+    println!("i4j16() completed succesfully");
+    println!("Elapsed: {:.2?}", elapsed);
+    assert!(false)
 }
 
 #[test]
 fn i4j32() {
-    test_bulletproofs(4,32);
+    use std::time::Instant;
+    let now = Instant::now();
+
+    // Code block to measure.
+    {
+        test_bulletproofs(4, 32);
+    }
+
+    let elapsed = now.elapsed();
+    println!("i4j32() completed succesfully");
+    println!("Elapsed: {:.2?}", elapsed);
+    assert!(false)
 }
 
 #[test]
 fn i4j64() {
-    test_bulletproofs(4,64);
+    use std::time::Instant;
+    let now = Instant::now();
+
+    // Code block to measure.
+    {
+        test_bulletproofs(4, 64);
+    }
+
+    let elapsed = now.elapsed();
+    println!("i4j64() completed succesfully");
+    println!("Elapsed: {:.2?}", elapsed);
+    assert!(false)
 }
 
 #[test]
 fn i8j8() {
-    test_bulletproofs(8,8);
-} 
+    use std::time::Instant;
+    let now = Instant::now();
+
+    // Code block to measure.
+    {
+        test_bulletproofs(8, 8);
+    }
+
+    let elapsed = now.elapsed();
+    println!("i8j8() completed succesfully");
+    println!("Elapsed: {:.2?}", elapsed);
+    assert!(false)
+}
 
 #[test]
 fn i8j16() {
-    test_bulletproofs(8,16);
+    use std::time::Instant;
+    let now = Instant::now();
+
+    // Code block to measure.
+    {
+        test_bulletproofs(8, 16);
+    }
+
+    let elapsed = now.elapsed();
+    println!("i8j16() completed succesfully");
+    println!("Elapsed: {:.2?}", elapsed);
+    assert!(false)
 }
 
 #[test]
 fn i8j32() {
-    test_bulletproofs(8,32);
+    use std::time::Instant;
+    let now = Instant::now();
+
+    // Code block to measure.
+    {
+        test_bulletproofs(8, 32);
+    }
+
+    let elapsed = now.elapsed();
+    println!("i8j32() completed succesfully");
+    println!("Elapsed: {:.2?}", elapsed);
+    assert!(false)
 }
 
 #[test]
 fn i8j64() {
-    test_bulletproofs(8,64);
+    use std::time::Instant;
+    let now = Instant::now();
+
+    // Code block to measure.
+    {
+        test_bulletproofs(8, 64);
+    }
+
+    let elapsed = now.elapsed();
+    println!("i8j64() completed succesfully");
+    println!("Elapsed: {:.2?}", elapsed);
+    assert!(false)
 }
 
 #[test]
 fn i16j8() {
-    test_bulletproofs(16,8);
+    use std::time::Instant;
+    let now = Instant::now();
+
+    // Code block to measure.
+    {
+        test_bulletproofs(16, 8);
+    }
+
+    let elapsed = now.elapsed();
+    println!("i16j8() completed succesfully");
+    println!("Elapsed: {:.2?}", elapsed);
+    assert!(false)
 }
 
 #[test]
 fn i16j16() {
-    test_bulletproofs(16,16);
+    use std::time::Instant;
+    let now = Instant::now();
+
+    // Code block to measure.
+    {
+        test_bulletproofs(16, 16);
+    }
+
+    let elapsed = now.elapsed();
+    println!("i16j16() completed succesfully");
+    println!("Elapsed: {:.2?}", elapsed);
+    assert!(false)
 }
 
 #[test]
 fn i16j32() {
-    test_bulletproofs(16,32);
+    use std::time::Instant;
+    let now = Instant::now();
+
+    // Code block to measure.
+    {
+        test_bulletproofs(16, 32);
+    }
+
+    let elapsed = now.elapsed();
+    println!("i16j32() completed succesfully");
+    println!("Elapsed: {:.2?}", elapsed);
+    assert!(false)
 }
 
-#[test] 
+#[test]
 fn i16j64() {
-    test_bulletproofs(16,64);
+    use std::time::Instant;
+    let now = Instant::now();
+
+    // Code block to measure.
+    {
+        test_bulletproofs(16, 64);
+    }
+
+    let elapsed = now.elapsed();
+    println!("i16j64() completed succesfully");
+    println!("Elapsed: {:.2?}", elapsed);
+    assert!(false)
 }
 
-#[test] 
+#[test]
 fn i32j64() {
-    test_bulletproofs(32,64);
+    use std::time::Instant;
+    let now = Instant::now();
+
+    // Code block to measure.
+    {
+        test_bulletproofs(32, 64);
+    }
+
+    let elapsed = now.elapsed();
+    println!("i32j64() completed succesfully");
+    println!("Elapsed: {:.2?}", elapsed);
+    assert!(false)
 }
 
-#[test] 
+#[test]
 fn i64j64() {
-    test_bulletproofs(64,64);
+    use std::time::Instant;
+    let now = Instant::now();
+
+    // Code block to measure.
+    {
+        test_bulletproofs(64, 64);
+    }
+
+    let elapsed = now.elapsed();
+    println!("i64j64() completed succesfully");
+    println!("Elapsed: {:.2?}", elapsed);
+    assert!(false)
 }

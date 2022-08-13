@@ -414,7 +414,8 @@ Pedersen commitments is the so called \textit{Additive Homomorphism}
 redefine the scheme to work with commitments to elliptic curve points
 rather than a value. First a two points $B$ and $\bB$ on an elliptic curve,
 are chosen. $B$ will be the standard generator, called the base point, with
-$\bB$ being the so-called 'blinding point' to $B$.
+$\tB$ being the so-called 'blinding point' to $B$. These two points are 
+agreed upon by both the sender of the commitments and the receiver.
 
 \begin{definition}[Pedersen Commitment]
 	A Pedersen commitment, to some message, $a$, with a randomly chosen
@@ -431,8 +432,14 @@ of $\bB$ ensures perfect hiding as there is a nearly infinite amount
 of possible combinations of two points that can add to any given
 point. However, while that is true, it does not provide perfect binding
 by definition of binding and hiding. From here on we will refer to
+<<<<<<< Updated upstream
 a commitment to a message, $a$, with random value, $\ba$,
 as $C(a,\ba)$.
+=======
+a commitment to a message, $a$, with random value, $\widetilde{a}$,
+as $C(a,\widetilde{a})$. Naturally both $a$ and $\ba$ are known only 
+by the sender of the commitment.
+>>>>>>> Stashed changes
 
 The most important property of Pedersen commitments is
 that Pedersen commitments have the property of Additive Homomorphism:
@@ -2176,6 +2183,7 @@ implementation as seen here:
 The code we test against uses structs to keep hold of the values
 for each party and the dealer. This ensures that a potential client
 cannot accidentally perform the steps out of order, due to the next
+<<<<<<< Updated upstream
 step being integrated in the struct itself. Originally we did not
 make use of structs, as our implementation was never meant to be used
 for anything other than transpiling it to a Proof Assistant. However
@@ -2198,6 +2206,72 @@ the proper methods. This is not a great problem as our implementation
 is not meant to be used by others, since it is mostly meant to prove
 properties about the Dalek implementation that \textit{is} meant to
 be used by others.
+=======
+step being integrated in the struct itself. Originally we did not make 
+use of structs, as our implementation was never meant to be used for 
+anything other than transpiling it to a Proof Assistant. However this 
+caused severe code-bloating due to a problem with \texttt{Seq} not 
+implementing the Copy trait. As such we used structs. There is however one 
+place where our implementation differs from the above graph. 
+Namely with the \texttt{ProofShare} object. This is due to both the dealer 
+and party modules needing direct access to the structs definition, and due to 
+the modular structure of our implementation this was not possible as
+\texttt{ProofShare} objects created in party will have type 
+$party::types::ProofShare$ where the needed type is $types::ProofShare$.
+As such \texttt{ProofShare} is a simple type-alias. This \textit{does} allow 
+outside users to forge \texttt{ProofShare} objects without using the 
+proper methods. Additionally, due to the lack of optimizations in the 
+various parts of the code, including Ristretto, and Inner Product Proof 
+our implementation is also incredibly slow, to the point where testing 
+our full implementation takes no less than 22 hours to complete, while 
+the equivalent checks for the Rust implemenation takes a mere 2 minutes, 
+making our implementation approximately 600 times slower than the Rust 
+Implementation. This, in combination with the fact that the user can forge 
+proofshares out of order, practically disqulifies it from being put into 
+use for creating bulletproofs properly. However this code is not designed 
+for actual use by clients as a cryptographic algorithm, but rather it is 
+supposed to be used for the purposes of creating proofs about the original 
+code we test against using Proof Assistants.
+
+In order to avoid needing to spend 22 hours per test we instead tested 
+each part individually, using the tests described in 
+\ref{implementing-ristretto} and \ref{implementing-inner-product-proof} 
+and when testing our implementation we simply made a wrapper, using the 
+much more efficient Rust Implementation to substitute for all the methods 
+that have already been tested. This significantly boosted the speed of our 
+implementation and thus allowed us to perform more than a single test for 
+each of the 18 input sizes.
+
+\section{Future work:}
+
+In this section we will briefly describe the parts of the project
+could be further worked on.
+
+Currently our implementation functions as intended, however parts has
+yet to be properly merged into Hacspec. This is currently still being
+worked on in collaboration with the Hacspec team. This process can
+take time and will involve refactoring parts of the code to improve
+overall code quality.
+
+After this is completed the work which we intended is finished but
+the obvious next step is to use a proof assistant such as Coq on our
+implementation of the bulletproofs protocol to show various aspects
+about the original Rust implementation, which works identically to
+our own, only much more effectively. This would in turn improve the
+chances that the Rust bulletproof implementation has no vulnerabilities.
+
+More thorough testing could also be done to ensure that the two
+implementations function identically. This could involve writing more
+tests, running tests longer. Crucially, this could also involve testing
+the modules thoroughly individually and then replacing them in the
+more abstract modules with the faster Dalek implementations. This could
+allow for much more tests to be run and thus much greater guarantees
+of equivelence.
+
+%Future cryptographic protocols in Hacspec, which can use our
+%implementations of Ristretto and Merlin without the need to implement
+%them once more.
+>>>>>>> Stashed changes
 
 \textbf{Testing:}
 
