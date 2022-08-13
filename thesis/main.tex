@@ -206,13 +206,13 @@ supports transpiling into proof assistant languages, namely Coq and F*,
 such that properties can be proven about said implementations. This
 leads to greater security which can be transferred over to a Rust
 implementation using property based testing to ensure that the Hacspec
-and Rust implementations work identically.
+and Rust implementations function identically.
 
 The overall goal of this paper is to implement the zero-knowledge
-rangeproof protocol: Bulletproofs, created by Bünz et
-al. \cite{bulletproofs}, in Hacspec. The protocol creates a compact and
-secure zero-knowledge proof to show that one or more values lie within
-a range of $[0:2^n)$ for a provided $n$, without revealing any other
+rangeproof protocol, Bulletproofs, created by Bünz et
+al. \cite{bulletproofs}, in Hacspec. The protocol creates a compact
+zero-knowledge proof to show that one or more values lie within a
+range of $[0:2^n)$ for a provided $n$, without revealing any other
 information about the values themselves. A variant of this protocol
 is currently utilized in the cryptocurrency Monero. Additionally, we
 also wish to write our implementation in a modular fashion that allows
@@ -233,6 +233,10 @@ and finally everything we implemented including discussions about the
 implementation hurdles encountered in the process. We end this paper
 by discussing possible future work that can be done on the back of
 our work, concluding the overall project.
+
+All the project's Hacpspec code as well as the latex to
+compile this report can be found on our github repository
+\cite{hacspec-bulletproofs}.
 
 % NOTE: afprøv hacspec/lead the way for zeroknowledge protocols for hacspec
 
@@ -2184,7 +2188,6 @@ implementation as seen here:
 The code we test against uses structs to keep hold of the values
 for each party and the dealer. This ensures that a potential client
 cannot accidentally perform the steps out of order, due to the next
-<<<<<<< Updated upstream
 step being integrated in the struct itself. Originally we did not
 make use of structs, as our implementation was never meant to be used
 for anything other than transpiling it to a Proof Assistant. However
@@ -2207,8 +2210,8 @@ the proper methods. This is not a great problem as our implementation
 is not meant to be used by others, since it is mostly meant to prove
 properties about the Dalek implementation that \textit{is} meant to
 be used by others.
-=======
-step being integrated in the struct itself. Originally we did not make 
+
+Originally we did not make 
 use of structs, as our implementation was never meant to be used for 
 anything other than transpiling it to a Proof Assistant. However this 
 caused severe code-bloating due to a problem with \texttt{Seq} not 
@@ -2242,37 +2245,6 @@ much more efficient Rust Implementation to substitute for all the methods
 that have already been tested. This significantly boosted the speed of our 
 implementation and thus allowed us to perform more than a single test for 
 each of the 18 input sizes.
-
-\section{Future work:}
-
-In this section we will briefly describe the parts of the project
-could be further worked on.
-
-Currently our implementation functions as intended, however parts has
-yet to be properly merged into Hacspec. This is currently still being
-worked on in collaboration with the Hacspec team. This process can
-take time and will involve refactoring parts of the code to improve
-overall code quality.
-
-After this is completed the work which we intended is finished but
-the obvious next step is to use a proof assistant such as Coq on our
-implementation of the bulletproofs protocol to show various aspects
-about the original Rust implementation, which works identically to
-our own, only much more effectively. This would in turn improve the
-chances that the Rust bulletproof implementation has no vulnerabilities.
-
-More thorough testing could also be done to ensure that the two
-implementations function identically. This could involve writing more
-tests, running tests longer. Crucially, this could also involve testing
-the modules thoroughly individually and then replacing them in the
-more abstract modules with the faster Dalek implementations. This could
-allow for much more tests to be run and thus much greater guarantees
-of equivelence.
-
-%Future cryptographic protocols in Hacspec, which can use our
-%implementations of Ristretto and Merlin without the need to implement
-%them once more.
->>>>>>> Stashed changes
 
 \textbf{Testing:}
 
@@ -2382,13 +2354,13 @@ for each combination of inputs on average.
 
 \section{Conclusion:}
 
-In order to complete our task of helping to improve the security of the 
-Rust bulletproof implementation does not have any vulnerabilities we 
-have implemented the bulletproofs protocol in Hacspec. This 
-implementation of Bulletproofs is constructed in a way that makes it 
-function identically to the Rust implementation, with high probability, 
-due to the property-based testing and thus by proving properties about 
-our implementation those same properties will hold for the Rust 
+In order to complete our task of helping to improve the security of
+the Rust bulletproof implementation does not have any vulnerabilities
+we have implemented the bulletproofs protocol in Hacspec. This
+implementation of Bulletproofs is constructed in a way that makes it
+function identically to the Rust implementation, with high probability,
+due to rigerous property-based testing and thus by proving properties
+about our implementation those same properties will hold for the Rust
 implementation.
 
 Given a thorough understanding of the mathematics behind the
@@ -2400,15 +2372,14 @@ A positive consequence of this roadblock is that these modules may
 help others who want to specify cryptographic protocols, by building 
 on our work.
 
-Additionally by creating this specification, in Hacspec we have also 
-highlighted how a somewhat abstract cryptographic protocol, would need 
-to be implemented in Hacspec. It can thus act as a reference for how 
+Additionally by creating this specification in Hacspec, we have also 
+highlighted how a somewhat abstract cryptographic protocol could be 
+implemented in Hacspec. Thus, it can act as a reference for how 
 such a protocol might need to be implemented as well as an example on 
 how to integrate the various modules we have implemented. For example, 
-if a future devealoper wishes to see make use of Ristretto for their 
+if a future developer wishes to make use of Ristretto for their 
 implemenation they may use the inner-product-proof module to see 
-how it is utilized and also be able to use our Ristretto25519 
-module for thier implementation. 
+how it utilizes our Ristretto and Merlin modules. 
 
 In essence we have laid nearly all the groundwork for the future work
 of actually using a proof assistant to prove various properties about
