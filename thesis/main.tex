@@ -251,7 +251,7 @@ A table of notation used throughout this report:
 	$\ran{a}$                   & A scalar random variable \\
 	$\vecran{a}$                & A vector of scalar random variables \\
 	$\vecran{A}$                & A vector of random curve points \\
-	$\vec{A}_{[b : c]}$            & The slice $[A_b, A_{b+1}, \cdots  A_c]$ \\ 
+	$\vec{A}_{[b : c]}$            & The slice $[A_b, A_{b+1}, \cdots  A_{c-1}]$ \\ 
 	$\veclo{a}$                 & The first half of vector $\vec{a}$, ($\veclo{a} = [a_{1}, \cdots, a_{n/2}]$) \\
 	$\vechi{a}$                 & The second half of vector $\vec{a}$, ($\vechi{a} = [a_{n/2+1}, \cdots, a_{n}]$) \\
 	$\vec{a^n}$                 & A vector of scalars which are made up of powers of $a$ i.e. $[1,a,a^2, \cdots, a^{n-1}]$\\
@@ -259,8 +259,8 @@ A table of notation used throughout this report:
 	$\mathbb{A}$                & A set \\
 	$\mathbb{A}^n$              & A vector space of dimension $n$ \\ 
 	$\mathbb{A}_n$              & A set whose elements are mod $n$ \\ 
-	$a(x)$                      & A function mapping integers mod p to integers mod p: $\Z_p \rightarrow \Z_p$ \\
-	$\vec{a}(x)$                & A function mapping integers mod p to vectors containing integers mod p: $\Z_p \rightarrow \Z^n_p$ \\
+	$a(x)$                      & A function mapping integers mod $p$ to integers mod $p$: $\Z_p \rightarrow \Z_p$ \\
+	$\vec{a}(x)$                & A function mapping integers mod $p$ to vectors containing integers mod $p$: $\Z_p \rightarrow \Z^n_p$ \\
 	$\dotp{\vec{a}}{\vec{b}}$   & Dot product of $\vec{a}$ and $\vec{b}$ \\
 	$\dotp{\vec{a}}{\vec{A}}$   & The sum of scalar-point products of $\vec{a}$ and $\vec{A}$ ($\dotp{\vec{a}}{\vec{A}} = a_1 A_1 + a_2 A_2 + \cdots + a_n A_n$) \\
 \end{tabular}
@@ -1194,7 +1194,7 @@ The evaluation point $x$ is the same for all parties. The choice
 of $\ran{y}, \ran{z}$ and $\ran{x}$ is done where it would ordinarily
 be done, but only once $\D$ has received the needed values from \textit{all}
 $\P_{(j)}$. Once again, this can also be done using the Fiat-Shamir
-Heuristic (\ref{fiat-shamir-heuristic}).
+heuristic (\ref{fiat-shamir-heuristic}).
 
 After each party has created $t(x)_{(j)} =
 \dotp{\vec{l}(x)_{(j)}}{\vec{r}(x)_{(j)}}$ it would be sufficient
@@ -1317,7 +1317,7 @@ This protocol in transcript form would be the following:
 
 \subsection{Fiat-Shamir Heuristic}\label{fiat-shamir-heuristic}
 
-The Fiat-Shamir Heuristic is a cryptographic concept, which allows a
+The Fiat-Shamir heuristic is a cryptographic concept, which allows a
 prover to compute random values without the need to consult the verifier
 first. This is done by defining a hash function $\textbf{H}()$ which
 can hash any number of values into a single pseudo-random value. When
@@ -1329,14 +1329,14 @@ verifier can simply make the Hashes which an honest prover would have
 done to find the challenges and assert correctness.
 
 To show this we will once more look at the Schnorr Identity Protocol
-if it used the Fiat Shamir Heuristic. We will use the same notation
+if it used the Fiat Shamir heuristic. We will use the same notation
 we used in \ref{zero-knowledge}.
 
 $\P$ wishes to show $\V$ that they know the secret value $x$ such that
 $X = xG$ for the public curve-points $X$ and $G$. Ordinarily $\P$
 would send a commitment $K$ to a randomly chosen k and \textit{send
 this to $\V$}, who would then send back a challenge. However with the
-Fiat-Shamir Heuristic, $\P$ will instead compute:
+Fiat-Shamir heuristic, $\P$ will instead compute:
 
 \eq{
 	e = \textbf{H}(X,P,K)
@@ -1360,16 +1360,16 @@ To the much shorter:
 	\P \rightarrow \V: K, s
 }
 
-Crutically allowing $\P$ to complete the entire proof without ever
-needed to hear from $\V$. The proof is still sound as $\P$ cannot get
-$e$ without commiting to a $K$ first.
+Crucially allowing $\P$ to construct the entire proof without
+interacting with $\V$. The proof is still sound as $\P$ cannot get $e$
+without commiting to a $K$ first.
 
-Our Fiat-Shamir for the bulletproofs algorithm requires a
-'overseer' for the parties who can gather all the needed values
+Our Fiat-Shamir heuristic for the bulletproofs algorithm requires an
+\textit{overseer} for the parties who can gather all the needed values
 to create the challenges. In essence when a challenge is needed
 all parties will send their values to this local overseer
 who can then generate the challenges using the Fiat-Shamir
-Heuristic. Specifically $y = \textbf{H}(\vec{V},\vec{A},\vec{S}),
+heuristic. Specifically $y = \textbf{H}(\vec{V},\vec{A},\vec{S}),
 \ z = \textbf{H}(\vec{V},\vec{A},\vec{S}, y)$ and $x =
 \textbf{H}(\vec{V},\vec{A},\vec{S}, y, \vec{T_1},\vec{T_2})$. This
 will result in the following final transcript:
@@ -1380,9 +1380,9 @@ will result in the following final transcript:
 
 Worth noting is that a recently found vulnerability, the Frozen
 Heart vulnerability \cite{frozen-heart}, describes how in the
-Fiat-Shamir Heuristic suggested in the original bulletproofs paper
+Fiat-Shamir heuristic suggested in the original bulletproofs paper
 \cite{bulletproofs}, a malicious prover could cheat successfully. This
-was because in the original paper the Fiat-Shamir Heuristic did not
+was because in the original paper the Fiat-Shamir heuristic did not
 include $\vec{V}$ in their hash function which allowed a malicious
 $\P$ to get a proof verified even if one or more $v$'s did not lie
 within the range. This could be done by commiting an $A$ which was 
@@ -2083,17 +2083,17 @@ the external Dalek Ristretto module:
 \begin{center}
 \begin{tabular}{ c|c|c } 
           & Using Hacspec Ristretto & Using Dalek Ristretto \\ \hline\hline
- $n = 2$  & 27.02 s   & 0.07 \\ \hline 
- $n = 4$  & 61.78 s   & 0.12 \\ \hline 
- $n = 8$  & 144.57 s  & 0.24 \\ \hline 
- $n = 16$ & 260.30 s  & 0.33 \\ \hline 
- $n = 32$ & 517.62 s  & 0.61 \\ \hline 
- $n = 64$ & 1004.01 s & 1.08 \\ \hline 
+ $n = 2$  & 27.02 s    & 0.07 \\ \hline
+ $n = 4$  & 61.78 s    & 0.12 \\ \hline
+ $n = 8$  & 144.57 s   & 0.24 \\ \hline
+ $n = 16$ & 260.30 s   & 0.33 \\ \hline
+ $n = 32$ & 517.62 s   & 0.61 \\ \hline
+ $n = 64$ & 1,004.01 s & 1.08 \\ \hline
 \end{tabular}
 \end{center}
 
-With these performance increases we ran \textbf{X} tests using
-randomized $n$'s, which passed succesfully, taking \textbf{Y} seconds.
+With these performance increases we ran 100,000 tests using
+randomized $n$'s, which passed succesfully, taking 17,392.57 seconds.
 
 \subsection{Implementing Bulletproofs:}
 
