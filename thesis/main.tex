@@ -727,10 +727,10 @@ until we get the final $P$, $P^{(0)}$:
 	P^{(0)} &= P^{(k)} + \sum^k_{i=1}(L_i u^2_i + u^{-2}_i R_i)
 }
 
-Finally $\P$ sends $(a^{(0)}, b^{(0)})$ to $\V$.
+Finally, $\P$ sends $(a^{(0)}, b^{(0)})$ to $\V$.
 
 The entirety of the dialogue between $\V$ and $\P$,
-the so called \textit{transcript}, can be summarized as the following:
+the so-called \textit{transcript}, can be summarized as the following:
 
 \eq{
 	\P \rightarrow \V &: L_k, R_k \\
@@ -747,6 +747,7 @@ To make the inner product proof \textit{non-interactive}, the
 Fiat-Shamir heuristic (\ref{fiat-shamir-heuristic}) can be used.
 
 \subsubsection{Verifier's Algorithm}
+
 $\V$ has knowledge of the following values:
 \eqn{def1-ver}{
 	a^{(0)}, b^{(0)} &\in \Z_p \\
@@ -786,8 +787,8 @@ defined as:
 We define $b(i,j)$\footnote{Note that in the code we zero-index
 so $j_{\text{code}} = j+1$.} to be -1 if $G_i$ appears in the left
 half of $\vec{G}^{(j)}$, and 1 if $G_i$ appears in the right half
-of $\vec{G}^{(j)}$. Therefore, $G_i$ is in the right side if
-$(i$ mod $2^j) < 2^{j-1}$.
+of $\vec{G}^{(j)}$. Therefore, $G_i$ appears in the right side of $\vec{G}^{(j)}$ if
+$(i \text{ mod } 2^j) < 2^{j-1}$.
 
 We make a similar argument for $H^{(0)}$. We want to define a vector
 $\vec{s'}$ such that $\dotp{\vec{s'}}{\vec{H}} = H^{(0)}$:
@@ -854,7 +855,7 @@ within the range $[0,2^n)$.
 
 The first step towards this is for $\P$ to commit to $v$ using
 a Pedersen commitment $V$, and sending this to the $\V$, as well
-commiting to the desired range $n$, which is not blinded. With the
+committing to the desired range $n$, which is not blinded. With the
 Pedersen-commitment having base-point $B$ and blinding point $\bB$:
 
 \eq{
@@ -977,7 +978,7 @@ $[0,2^n)$.
 
 First $\P$ chooses random blinding factors $\vecran{s_L}$ and
 $\vecran{s_R}$ such that $\vecl{s},\vecr{s}\in \Z^n_p$. Using these
-$\P$ can costruct two vector-function $\vec{l}(x)$ and $\vec{r}(x)$
+$\P$ can construct two vector-function $\vec{l}(x)$ and $\vec{r}(x)$
 in the following way:
 
 \eq{
@@ -1008,10 +1009,10 @@ constructed. So, $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$, and $t(x)
 
 First $\P$ wants to show that $t_0$ is correctly constructed. $\P$
 starts by making commitments to each of the coefficients of $t(x)$. Here
-we make note of the fact that $\P$ has already commited $t_0$. Namely,
+we make note of the fact that $\P$ has already committed $t_0$. Namely,
 commitment, $V$, made at the very start, is also a commitment to $t_0$
 as per the construction of $t_0$. $\P$ makes commitments to $T_1 =
-C(t_1, \bt_1)$ and $T_2 = C(t_2, \bt_2)$. After commiting these values
+C(t_1, \bt_1)$ and $T_2 = C(t_2, \bt_2)$. After committing these values
 to $\V$, $\V$ sends back a challenge scalar $\ran{x}$. We know from
 the definitions of $V, T_1, T_2$ that these commitments relate in the
 following manner:
@@ -1033,7 +1034,7 @@ $\vec{r}(x)$ are both constructed correctly and that $t(x) =
 \dotp{\vec{l}(x)}{\vec{r}(x)}$. To achieve this $\P$ will use a similar
 construction as seen above. We want $\P$ to make commitments that allows
 $\V$ to relate $\vec{l}(x)$ and $\vec{r}(x)$ to $\vecl{a}, \vecl{s},
-\vecr{a}$ and $\vecr{s}$. It is not that simple however. As seen here:
+\vecr{a}$ and $\vecr{s}$. It is not that simple, however. As seen here:
 
 \eq{
 	\vec{r}(x) = \ran{z^2}\vec{2^n} + ((\vecr{a} + \vecr{s}x) + \ran{z}\vec{1})\circ\vecran{y}^{\vec{n}}
@@ -1127,36 +1128,36 @@ this equation holds:
 
 From the column-sum argument we can deduce that $P =
 \dotp{\vec{l}(x)}{\vec{G}} + \dotp{\vec{r}(x)}{\vec{H'}}$
-assuming an honest $\P$. Thus $\V$ can use $t(x)$ and $P$ as
+assuming an honest $\P$. Thus, $\V$ can use $t(x)$ and $P$ as
 inputs into the inner product protocol to prove that $ t(x) =
 \dotp{\vec{l}(x)}{\vec{r}(x)}$. And if this proof is verified then
 $\V$ is now convinced that $v\in [0,2^n)$ without knowing any other
-properties of $v$, thus the range-proof is complete.
+properties of $v$, thus the range proof is complete.
 
-Additionally by looking at the trancript one can deduce that that the
+Additionally, by looking at the transcript one can deduce that the
 only way for $\P$ to construct $A$ and $V$ such that they can convince
 $\V$ that v lies in the range, would be if they can correctly guess
 \textit{all} three challenge scalars, $\ran{y}, \ran{z}$ and $\ran{x}$
 in order to 'cheat'. This happens with a probability so small it is
-entirely neglegable and thus the proof is also sound.
+entirely negligible, and thus the proof is also sound.
 
 But the proof being sound does not necessarily mean it is
 zero-knowledge. The proof also needs to be Zero-knowledge. If we look
-at all the values availible to $\V$ we can see that it has only two
+at all the values available to $\V$ we can see that it has only two
 of these values have any direct relation to $v$, these being $V$ and
 $t(\ran{x})B$. It is trivial to see that $\V$ cannot learn anything
 about $v$ from $V$ without knowledge of $\bv$ which $\V$ does not
 know. If we look at the definition of $t(\ran{x})B$ we can see that
-it DOES use $v$ in the calculation directly. However the definition
+it DOES use $v$ in the calculation directly. However, the definition
 of $t(x)$ uses $t_2$, which is blinded using $\vecran{s_L}$ and
-$\vecran{s_R}$ neither of which $\V$ has any way to access. Additionally
+$\vecran{s_R}$ neither of which $\V$ has any way to access. Additionally,
 $t_1$ also uses the definition of $t_2$ and thus is \textit{also} cannot
-be infered. Thus there is no amount of calculations that $\V$ can do to
+be inferred. Thus, there is no amount of calculations that $\V$ can do to
 figure out anything about $v$ and thus the proof is also zero-knowledge.
 
-\subsection{Aggregation of rangeproofs:}
+\subsection{Aggregation of range proofs:}
 
-An aggregated range-proof is a rangeproof which proves that a series
+An aggregated range-proof is a range proof which proves that a series
 of values, $\vec{v} \in \Z^m$, lie within a certain range:
 
 \eqn{agg-range}{
@@ -1168,25 +1169,25 @@ each individual value $v_j$ into a single proof which, if verified,
 proves that each $v_j$ given lies within the range $[0,2^n)$, while
 giving away no more information about the values. This is done by using
 a multi-party computation (MPC) protocol where each party $\P_{(j)}$,
-takes on the role of an independant prover $\P$, meaning it has a value
+takes on the role of an independent prover $\P$, meaning it has a value
 $v_j$ it needs to prove lies within the range (\ref{agg-range}). Each
 $\P_{(j)}$ will converse with the so-called dealer $\D$, who takes on
 the role of $\V$, thus being responsible for collecting the various
 commitments from each $\P_{(j)}$ and generating challenges which will
 be used by all $\P_{(j)}$'s. At the very end, $\D$ will then collect
-all the individual rangeproofs for each value and aggregate them. It is
+all the individual range proofs for each value and aggregate them. It is
 important to note that all parties are in agreement over a specific $n$.
 
 The steps used to do this are the same steps used in the construction
-of a rangeproof with a few additional steps which aggregate the proofs
-into a single rangeproof.
+of a range proof with a few additional steps which aggregate the proofs
+into a single range proof.
 
-Each $P_{(j)}$ is also assigned a 'position' $j$. Each party will
+Each $P_{(j)}$ is also assigned a 'position' $j$. All parties will
 individually commit the needed values to the dealer in order to
 convince them that their value lie within the range, with one key
-difference. Each party uses an offset to ensure the order matters to the
-dealer, preventing the parties from working together to 'cheat'. This
-offset is defined as such for the $j$th party:
+difference. Each party will also use an offset to ensure the order 
+matters to the dealer, preventing the parties from working together 
+to 'cheat'. This offset is defined as such for the $j$th party:
 
 \eq{
 	&\ran{z}_{(j)}   = \ran{z}^j \cdot \vecran{y}^{\vec{n}}_{(j)} \\
@@ -1203,8 +1204,8 @@ heuristic (\ref{fiat-shamir-heuristic}).
 After each party has created $t(x)_{(j)} =
 \dotp{\vec{l}(x)_{(j)}}{\vec{r}(x)_{(j)}}$ it would be sufficient
 to perform the proving steps from \ref{range-proofs} for each
-party. However this will require $\D$ to make $m$ checks to see if
-each $v_j$ lies within the range (\ref{agg-range}). However $\D$ can
+party. However, this will require $\D$ to make $m$ checks to see if
+each $v_j$ lies within the range (\ref{agg-range}). However, $\D$ can
 do a few more computations to create a singular proof which requires
 a single check to see that \textit{all} $v_j$ lie within the range
 (\ref{agg-range}).
@@ -1223,7 +1224,7 @@ which can then compute:
 	\delta(y,z) &= \sum^{m-1}_{j = 0} \delta_{(j)}(y,z)
 }
 
-and from here $\D$ sends back the challenge $\ran{x}$ and $\P_{(j)}$
+From here $\D$ sends back the challenge $\ran{x}$ and $\P_{(j)}$
 will return $t(\ran{x})_{(j)}B$ and $\bt(\ran{x})_{(j)}\bB$. $\D$
 can then sum these together as well:
 
@@ -1253,9 +1254,9 @@ we know that $z_{(j)} = z^j$ we can make a small rewrite:
 And this check will then convince $\D$ that all $t_{0,(j)}$
 are correct.
 
-Just as with a singular rangeproof each $\P_{(j)}$ also wishes to prove
+Just as with a singular range proof each $\P_{(j)}$ also wishes to prove
 that each $\vec{l}(x)_{(j)}$ and $\vec{r}(x)_{(j)}$ are constructed
-correctly. This is done in a similar manner as proving $t_{0,(j)}$
+correctly. This is done similarly to proving that $t_{0,(j)}$
 are all correct. Proving this property for the $j$th party would be
 proving the following:
 
@@ -1278,7 +1279,7 @@ which $\D$ can then combine in the following manner:
 	\vec{H'}   &= \vec{H'}_{(0)}   &&\concat \vec{H'}_{(1)}   &&\concat \dots &&\concat \vec{H'}_{(m-1)}
 }
 
-Additionally $\D$ can construct the following:
+Additionally, $\D$ can construct the following:
 
 \eq{
 	\vecran{y}^{\vec{n}}_{(j)} &= \vecran{y}^{\vec{n \cdot m}}_{[j \cdot n : (j+1) \cdot n]}\\
@@ -1288,7 +1289,7 @@ Additionally $\D$ can construct the following:
 	S                  &= \sum^{m-1}_{j = 0} S_{(j)}
 }
 
-Note that $\D$ has already recieved $A_{(j)}$ and $S_{(j)}$ from the
+Note that $\D$ has already received $A_{(j)}$ and $S_{(j)}$ from the
 first step of the transcript. $\D$ can then use the following check
 to convince itself that all $\vec{l}(x)_{(j)}$ and $\vec{r}(x)_{(j)}$
 are correctly constructed:
@@ -1321,25 +1322,25 @@ This protocol in transcript form would be the following:
 
 \subsection{Fiat-Shamir Heuristic}\label{fiat-shamir-heuristic}
 
-The Fiat-Shamir heuristic is a cryptographic concept, which allows a
-prover to compute random values without the need to consult the verifier
+The Fiat-Shamir heuristic is a cryptographic concept, which allows $\P$ 
+to compute random values without the need to consult the verifier
 first. This is done by defining a hash function $\textbf{H}()$ which
 can hash any number of values into a single pseudo-random value. When
 the verifier would be needed to provide a challenge, instead, all
 public values that $\V$ would have access to are hashed using this
 hash function and the resulting value is used as the challenge. This
-way the prover can send all values it must generate at once, and the
-verifier can simply make the Hashes which an honest prover would have
+way $\P$ can send all values it must generate at once, and the
+verifier can simply make the Hashes which an honest $\P$ would have
 done to find the challenges and assert correctness.
 
 To show this we will once more look at the Schnorr Identity Protocol
-if it used the Fiat Shamir heuristic. We will use the same notation
+if it used the Fiat-Shamir heuristic. We will use the same notation
 we used in \ref{zero-knowledge}.
 
 $\P$ wishes to show $\V$ that they know the secret value $x$ such that
 $X = xG$ for the public curve-points $X$ and $G$. Ordinarily $\P$
 would send a commitment $K$ to a randomly chosen k and \textit{send
-this to $\V$}, who would then send back a challenge. However with the
+this to $\V$}, who would then send back a challenge. However, with the
 Fiat-Shamir heuristic, $\P$ will instead compute:
 
 \eq{
@@ -1366,7 +1367,7 @@ To the much shorter:
 
 Crucially allowing $\P$ to construct the entire proof without
 interacting with $\V$. The proof is still sound as $\P$ cannot get $e$
-without commiting to a $K$ first.
+without committing to a $K$ first.
 
 Our Fiat-Shamir heuristic for the bulletproofs algorithm requires an
 \textit{overseer} for the parties who can gather all the needed values
@@ -1389,16 +1390,16 @@ Fiat-Shamir heuristic suggested in the original bulletproofs paper
 was because in the original paper the Fiat-Shamir heuristic did not
 include $\vec{V}$ in their hash function which allowed a malicious
 $\P$ to get a proof verified even if one or more $v$'s did not lie
-within the range. This could be done by commiting an $A$ which was 
+within the range. This could be done by committing an $A$ which was 
 constructed from a $v$ which lies in the range, but the Fiat-Shamir 
-heuristic did not require the use of $V$ in its hasing this $V$ could 
-then be forged from a $v$ outside of the desired range while still 
-successfully convincing $\V$ that this $v$ lies outside of the given 
+heuristic did not require the use of $V$ in its hashing. $\V$ could 
+then forge a $V$ from a value outside the desired range while still 
+successfully convincing $\V$ that this new $v$ lies within the given 
 range. This is not a problem for the Dalek implementation as they 
 include $V$ in the transcript, therefore our implementation also does 
 not have this vulnerability. The paper has since been updated, but any 
-implementation that has followed the old paper's Fiat-Shamir 
-specification could still be vulnerable.
+implementation that has followed the old paper's Fiat-Shamir heuristic
+specification are still be vulnerable to this bug.
 
 \section{Our Contributions:}
 
@@ -1407,7 +1408,7 @@ It was decided that the specification should of course consist of what
 we need, but also of some general linear algebra functions that could
 be used by other specifications. The implemented operations included
 matrix instantiation, slicing, transposition, scalar multiplication,
-addition, subtraction, hadamard product and matrix multiplication.
+addition, subtraction, Hadamard product and matrix multiplication.
 
 Since we were not able to find any general linear algebra
 specification, we simply implemented the desired functionality,
@@ -1427,11 +1428,11 @@ pub type ScalRes = Result<Scalar, u8>;
 \end{lstlisting}
 
 We model matrices as a \texttt{Seq<Scalar>} instead of a
-\texttt{Seq<Seq<Scalar>>} since we had problems with the hacspec type
+\texttt{Seq<Seq<Scalar>>} since we had problems with the Hacspec type
 checker when double indexing (\texttt{list[i][j]}), and it is more
 efficient. Since this part was intended to be a library we wanted to
 generalize over the \texttt{Scalar} type. We wanted to at least have
-it be generalizable over any type that can be defined using hacspec
+it be generalizable over any type that can be defined using Hacspec
 macros, for example the following Scalar:
 
 \begin{lstlisting}
@@ -1479,13 +1480,14 @@ this trait is implemented by all integers.
 
 \textbf{Testing:}
 
-We utilized quickcheck to do property based testing in order to ensure
+We utilized QuickCheck to do property based testing in order to ensure
 that our specification had the same functionality as Nalgebra. All
 the these tests followed the same standard pattern, where we create a
 helper function that does the following: Construct two random matrices
-of random dimensions, make sure no dimension is set to 0, run equivelent
+of random dimensions, make sure no dimension is set to 0, run equivalent
 operations on them and finally assert that the operations had the same
-effect. This was done for every function implemented. A simple example is the \texttt{zeros} function:
+effect. This was done for every function implemented. A simple example 
+is the \texttt{zeros} function:
 
 \begin{lstlisting}
 #[test]
@@ -1505,10 +1507,10 @@ fn test_nalg_zeros() {
 }
 \end{lstlisting}
 
-Here the only operation that is performed is the construction of the
+Here, the only operation that is performed is the construction of the
 vectors. The \texttt{assert\_matrices} function is simply a function
 that checks each element in the two vectors and assert them all to
-be equal. We ran 100000 equivelence tests, taking 4.63 seconds in
+be equal. We ran 100000 equivalence tests, taking 4.63 seconds in
 total. We also have simple unit tests that check our implementation
 against manually derived results.
 
@@ -1517,20 +1519,20 @@ against manually derived results.
 For the Ristretto Curve25519 implementation we used the Ristretto255
 IETF-standard \cite{ristretto-ietf} and the "Twisted Edwards Curves
 Revisited" paper \cite{edwards-curves} which was used as a guide for our
-implementation. This specification was very helpful when implemting,
+implementation. This specification was very helpful when implementing,
 as it clearly defined the types and functionalities needed to implement
 Ristretto securely.
 
 Ristretto is, in essence, a prime-order subgroup of a non-prime-order
 Edwards curve which has a co-factor of 4 or 8. The subgroup formed
-under Ristretto is constructed in such a way that it elimates this
+under Ristretto is constructed in such a way that it eliminates this
 co-factor, which is useful to avoid additional checks and also avoids
 the risk of leaving in exploitable vulnerabilities which utilize the
 co-factor. One such vulnerability was found that affects all CryptoNote
-based cryptocurrencies \cite{cryptonote}.  Ristretto elimates all of
+based cryptocurrencies \cite{cryptonote}.  Ristretto eliminates all of
 these checks and potential vulnerabilities by automatically mapping
 all points on the curve directly into the subset of the curve in the
-operations themselves. Additionally Ristretto defines equality such that
+operations themselves. Additionally, Ristretto defines equality such that
 equivalent representations of the same point are considered equal. In
 the same vein the encoding function for points, encodes equivalent
 points to the same encoding and by proxy the decoding function decodes
@@ -1547,7 +1549,7 @@ $$y^2 = x^3 + 48662x^2 + x$$
 
 This curve is defined over the prime field $p = 2^{255} - 19$ and base
 point defined at $x = 9$ with the positive $y$ value. This results
-in a sub-group of order $2^{252} + 2774231777737235353585$, which has
+in a subgroup of order $2^{252} + 2774231777737235353585$, which has
 a co-factor of $8$, thus meeting the criteria for using Ristretto to
 eliminate this co-factor.
 
@@ -1568,13 +1570,13 @@ public_nat_mod!(
 );
 \end{lstlisting}
 
-Additionally the standard, specified a series of constants. These
-constants were too large to be implemented as integers and hacspec
+Additionally, the standard, specified a series of constants. These
+constants were too large to be implemented as integers and Hacspec
 did not allow for the use \texttt{from\_hex()} method. As such, after
 converting each of these constants into their corresponding hex-values,
 we built them as byte sequences for which we had an equivalent
 \texttt{from\_byte\_seq\_be} which created the correct constants. This
-worked as intended but invevitably reduced readability of the code. An
+worked as intended but inevitably reduced readability of the code. An
 example of such a constant definition can be seen below:
 
 \begin{lstlisting}
@@ -1611,7 +1613,7 @@ over secret integers. However, since secret integers cannot be compared,
 something that was required by the IETF-standard, we chose to use
 public integers.
 
-Additionally we ran into two issues with using
+Additionally, we ran into two issues with using
 \texttt{public\_nat\_mod!}. The first was one of the checks in decode:
 
 \begin{lstlisting}
@@ -1647,7 +1649,7 @@ to circumvent this issue.
 
 Another, issue we encountered was in the implementation of the one-way
 map, in which, we must mod the 255 least significant bits of both halves
-of a ByteString object. However the two halves of the ByteString are
+of a ByteString object. However, the two halves of the ByteString are
 each 256 bits. This means that the most significant bit must be set
 to 0, therefore we mod the most significant byte by 128:
 
@@ -1736,39 +1738,39 @@ The \texttt{create\_points()} method uses the one-way-map to
 generate random points, which is also tested individually. We ran
 each function 10,000 times each with random input, except for the
 \texttt{mul()} function which were only run 1,000 times due to it being
-considerablyslower. In total these tests took 1,957.14 seconds to
+considerably slower. In total these tests took 1,957.14 seconds to
 complete. The relatively few amount of tests, compared to the other
-modules, means this module has the least amount of equivelence tests
+modules, means this module has the least amount of equivalence tests
 run, which means it serves as a weak point, as there is greater risk
-of undiscovered edge cases. The fact that it was directly implemented
-from an IETF-standard, including relevant unit tests, mediates this
-weakness however.
+of undiscovered edge cases. However, the fact that it was directly implemented
+from an IETF-standard, including relevant unit tests, does mediate this
+weakness.
 
 \subsection{Implementing Merlin:} \label{implementing-merlin}
 
 Merlin \cite{merlin} is for the most part a wrapper over the Strobe
-protocol \cite{strobe}. It performs the Fiat-Shamir Heuristic by
+protocol \cite{strobe}. It performs the Fiat-Shamir heuristic by
 keeping a running hash of the transcript. Importantly, it does this
-in a way so algorithms implemented using it will appear to interact
+in such a way that algorithms implemented using it will appear to interact
 with a verifier, while remaining non-interactive. It achieves this
-by only allowing he algorithm to commit or receive challenge scalars
-from the transcript. This allows for simpler code that is less error
-prone than if the Fiat-Shamir Heuristic were done without it.
+by only allowing the algorithm to commit or receive challenge scalars
+from the transcript. This allows for simpler code that is less error-prone 
+than if the Fiat-Shamir heuristic were done without it.
 
 Most of the work was implementing strobe. There were no great
 difficulties in translating most functions, except that the
 \texttt{Strobe} type could not be mutably modified. Therefore, in our
 implementation we return a strobe object in each function instead
 of taking one as argument and modifying it. Since all operations needed
-were supported by the Secret Integer hacspec type, we naturally used
+were supported by the Secret Integer Hacspec type, we naturally used
 this over the less secure Public Integers.
 
 Merlin uses Keccakf1600 for its hashing, fortunately this cryptographic
 function was already defined in SHA-3 Hacspec library. We ran into
-issues however, since Keccakf1600 is defined for 64 bit integers
-and strobe operates on bytes. Therefore we had to transmute the
-\texttt{state} object, from a list of bytes into a shorter list of 64
-bit integers. In the Dalek Rust Merlin implementation this was simple:
+issues however, since Keccakf1600 is defined for 64-bit integers
+and strobe operates on bytes. Therefore, we had to transmute the
+\texttt{state} object, from a list of bytes into a shorter list of 64-bit 
+integers. In the Dalek implementation of Merlin this was simple:
 
 \begin{lstlisting}
 fn transmute_state(st: &mut AlignedKeccakState) -> &mut [u64; 25] {
@@ -1809,7 +1811,7 @@ fn transmute_state_to_u8(state: StateU64) -> StateU8 {
 }
 \end{lstlisting}
 
-Although this methis is significantly slower, it's not a big problem
+Although this method is significantly slower, it's not a big problem
 as the overall runtime of this module is quite fast compared to other
 modules, namely the Ristretto module. It is therefore not a great
 bottleneck.
@@ -1819,8 +1821,8 @@ bottleneck.
 For testing the library we created one test that runs
 the \texttt{append\_message()}, \texttt{append\_u64()} and
 \texttt{challenge\_bytes()} for both implementations and asserts that
-the challenge bytes returned are equivelent. These functions are
-sufficient to test equivelence as these three functions utilizes all
+the challenge bytes returned are equivalent. These functions are
+sufficient to test equivalence as these three functions utilizes all
 other functions implemented. The entire test can be seen below:
 
 \begin{lstlisting}
@@ -1901,7 +1903,7 @@ implemented in pseudocode. Note that we index at 1:
 \end{algorithm}
 
 \begin{algorithm}[H]
-	\caption{IPP: The Verifiers's Algorithm}
+	\caption{IPP: The Verifier's Algorithm}
 
 	\SetKwFunction{len}{.len()}
 	\SetKwFunction{assertIsPowerOfTwo}{assert($n$.is\_power\_of\_two())}
@@ -1929,8 +1931,8 @@ implemented in pseudocode. Note that we index at 1:
 	\Return{$\opn{Result}$}
 \end{algorithm}
 
-We tried to find a way to incorperate the linear algebra library into
-our implementation but it turned out to be bothersome. Lines 13-16
+We tried to find a way to incorporate the linear algebra library into
+our implementation, but this turned out to be bothersome. Lines 13-16
 are run in a for-loop, but although less efficient, it would be more
 clear to have $\vec{a}, \vec{b}, \vec{G}, \vec{H},$ calculated using
 built-in linear algebra functions. If we take the actual implementation:
@@ -1956,7 +1958,7 @@ H_L = v_p_add(v_p_mul(u, H_L), v_p_mul(u_inv, H_R));
 
 Where \texttt{v\_} indicates a vector operation and \texttt{p\_}
 indicates a point operation. Having this many nested functions impacts
-readability, but lets suppose that we could define the multiplicative
+readability, but supposing that we could define the multiplicative
 and additive operators for types like it would be possible in Rust:
 
 \begin{lstlisting}
@@ -1967,7 +1969,7 @@ H_L = H_L * u     + u_inv * H_R;
 \end{lstlisting}
 
 This is indeed more intuitive and closer to the math, but it
-is not possible in hacspec due to the absence of structs. While
+is not possible in Hacspec due to the absence of structs. While
 Hacspec supports limited structs, it does \textit{not} support the
 \texttt{impl} keyword needed for this, and it is at least not on the
 roadmap currently, and may not ever be implemented. Even if this were
@@ -1979,12 +1981,12 @@ hypothetical linear algebra vector struct as a sort of helper function.
 In our implementation we also have the inputs \texttt{G\_factors}
 and \texttt{H\_factors}, which is simply factors applied to $\vec{G}$
 and $\vec{H}$ respectively. We have these as the Dalek implementation
-also have this input because they make optimizations that makes the
-code faster than multiplying them on before running the function. We
+also have this input because they make optimizations which make the
+code faster than simply multiplying them on before running the function. We
 chose for our implementation to take them as an input, so that the
 two functions take the same arguments, but to apply the factors before
 running the loop as it simplifies and shortens the code. Furthermore,
-the performance increase, while noticable was not significant compared
+the performance increase, while noticeable was not significant compared
 to other bottlenecks. The file structure here is notable:
 
 \begin{forest}
@@ -2024,7 +2026,7 @@ to other bottlenecks. The file structure here is notable:
 \end{forest}
 
 We created a \texttt{transcript.rs} file that implemented wrapper
-functions over the Fiat-Shamir mechanism introduced by the Merlin
+functions over the Fiat-Shamir heuristic introduced by the Merlin
 library. This file needed access to defined errors needed access to
 the same errors as the \texttt{transcript.rs} file. Normally in Rust
 the solution would be: 
@@ -2033,7 +2035,7 @@ the solution would be:
 use crate::errors::*;
 \end{lstlisting}
 
-But this is not valid hacspec code. We resorted to doing:
+But this is not valid Hacspec code. We resorted to doing:
 
 \begin{lstlisting}
 mod errors;
@@ -2052,11 +2054,11 @@ using code duplication, by copying the error constants to both files.
 
 To test the inner product one big function was created. Only one
 function was really needed as this function both asserts that our
-constructs valid proofs by succeding the verification check on valid
+constructs valid proofs by succeeding the verification check on valid
 inputs and that the output of each public function matches that of the
-dalek rust implementation. This function creates an inner product for
+Dalek implementation. This function creates an inner product for
 both implementations using random values for $\vec{a}, \vec{b}, \vec{G},
-\vec{H}, Q, n$ where $n$ is selected as a power of two. Quickcheck
+\vec{H}, Q, n$ where $n$ is selected as a power of two. QuickCheck
 was not used for this randomness, as there is a significant amount of
 random values to be generated and with specific requirements.
 
@@ -2064,22 +2066,22 @@ Since the $n \in \{2, 4, 8, 16, 32, 64\}$ is chosen randomly some tests
 take longer since there are exponentially longer loops. While $n$
 could be almost arbitrarily large having \textit{very} large inputs does
 not help much more, hence the limited range for $n$. Various helper
-functions were also created to convert between types so we could more
+functions were also created to convert between types, so we could more
 simply convert the random data to each respective implementation types.
 
-As the inner product part of the dalek implementation is not publically
+As the inner product part of the Dalek implementation is not publically
 exposed we forked the library, simply changing the functions to be
 globally public instead of merely public within the crate. No other
 changes were made to the library to ensure it worked as closely to
-the actual dalek implementation.
+the actual Dalek implementation.
 
 The tests are quite slow, reducing the guarantee that the two
 implementations are equivalent. To remedy this, a wrapper library
-was created that runs the much faster dalek ristretto library
+was created that runs the much faster Dalek ristretto library
 instead of our own ristretto implementation. This still works as we
-have already tested our hacspec ristretto implementation against the dalek
+have already tested our Hacspec ristretto implementation against the Dalek
 ristretto implementation, which should ensure that they are
-equivelent. This ensures much more rigerous testing, as it leads to
+equivalent. This ensures much more rigorous testing, as it leads to
 \textit{significant} performance increases. The table below compares
 runtimes using both for using our Hacspec Ristretto module and using
 the external Dalek Ristretto module:
@@ -2097,7 +2099,7 @@ the external Dalek Ristretto module:
 \end{center}
 
 With these performance increases we ran 100,000 tests using
-randomized $n$'s, which passed succesfully, taking 17,392.57 seconds.
+randomized $n$'s, which passed successfully, taking 17,392.57 seconds.
 
 \subsection{Implementing Bulletproofs:}
 
@@ -2159,8 +2161,8 @@ was working correctly. This was an issue as the library we test against,
 also needed to have print statements. For this reason we forked their
 library and inserted the needed print statements. Yet another issue
 with this was the fact that their library has built-in randomness. This
-meant that our code had no way to utlize the exact same random values,
-something that is vital when comparing the implementations. Therefore we
+meant that our code had no way to utilize the exact same random values,
+something that is vital when comparing the implementations. Therefore, we
 refactored all random values as function inputs in their library. This
 in no way changes the functionality of their code, but instead it
 allows us to control the random values it uses, which we can then
@@ -2173,9 +2175,9 @@ as the \texttt{prove\_multiple}, \texttt{prove\_single\_with\_rng}
 and \texttt{prove\_single} methods would all call
 \texttt{prove\_multiple\_with\_rng} in some way.
 
-Outside of a few indexing errors and wrong calculation occationally,
+Outside of a few indexing errors and wrong calculation occasionally,
 the implementation of the methods in a way that worked correctly
-was not much of an issue outside of how long it took to fully
+was not much of an issue besides how long it took to fully
 implement. We have used the same type-structure as the original 
 implementation as seen here:
 
@@ -2188,32 +2190,9 @@ implementation as seen here:
 The code we test against uses structs to keep hold of the values
 for each party and the dealer. This ensures that a potential client
 cannot accidentally perform the steps out of order, due to the next
-step being integrated in the struct itself. Originally we did not
-make use of structs, as our implementation was never meant to be used
-for anything other than transpiling it to a Proof Assistant. However
-this caused severe code-bloating due to a problem with typles not
-implementing the Copy trait. As such we used structs. This also
-preserved the property of the original implementation where no function
-could be called out of order since the type system requires that each
-function takes a type created by the formerly called function.
-
-There is however one place where our implementation differs from the
-above graph. Namely with the \texttt{ProofShare} object. This is due to
-both the dealer and party modules needing direct access to the structs
-definition, and due to the modular structure of our implementation
-this was not possible as \texttt{ProofShare} objects created in party
-will have type \texttt{party::types::ProofShare} where the needed
-type is \texttt{types::ProofShare}. As such \texttt{ProofShare} is a
-simple type-alias. This unfortunately allows anyone building on our
-implementation input incorrect \texttt{ProofShare} objects not using
-the proper methods. This is not a great problem as our implementation
-is not meant to be used by others, since it is mostly meant to prove
-properties about the Dalek implementation that \textit{is} meant to
-be used by others.
-
-Originally we did not make 
+step being integrated in the struct itself. Originally we did not make 
 use of structs, as our implementation was never meant to be used for 
-anything other than transpiling it to a Proof Assistant. However this 
+anything other than transpiling it to a Proof Assistant. However, this 
 caused severe code-bloating due to a problem with \texttt{Seq} not 
 implementing the Copy trait. As such we used structs. There is however one 
 place where our implementation differs from the above graph. 
@@ -2221,18 +2200,18 @@ Namely with the \texttt{ProofShare} object. This is due to both the dealer
 and party modules needing direct access to the structs definition, and due to 
 the modular structure of our implementation this was not possible as
 \texttt{ProofShare} objects created in party will have type 
-$party::types::ProofShare$ where the needed type is $types::ProofShare$.
-As such \texttt{ProofShare} is a simple type-alias. This \textit{does} allow 
-outside users to forge \texttt{ProofShare} objects without using the 
-proper methods. Additionally, due to the lack of optimizations in the 
-various parts of the code, including Ristretto, and Inner Product Proof 
-our implementation is also incredibly slow, to the point where testing 
-our full implementation takes no less than 22 hours to complete, while 
-the equivalent checks for the Rust implemenation takes a mere 2 minutes, 
-making our implementation approximately 600 times slower than the Rust 
+\texttt{party::types::ProofShare} where the needed type is 
+\texttt{types::ProofShare}. As such \texttt{ProofShare} is a simple type-alias. 
+This \textit{does} allow outside users to forge \texttt{ProofShare} objects 
+without using the proper methods. Additionally, due to the lack of 
+optimizations in the various parts of the code, including Ristretto, and 
+Inner Product Proof our implementation is also incredibly slow, to the point 
+where testing our full implementation takes no less than 22 hours to complete,
+while the equivalent checks for the Dalek implemenation takes a mere 2 minutes, 
+making our implementation approximately 600 times slower than the Dalek 
 Implementation. This, in combination with the fact that the user can forge 
-proofshares out of order, practically disqulifies it from being put into 
-use for creating bulletproofs properly. However this code is not designed 
+proofshares out of order, practically disqualifies it from being put into 
+use for creating bulletproofs properly. However, this code is not designed 
 for actual use by clients as a cryptographic algorithm, but rather it is 
 supposed to be used for the purposes of creating proofs about the original 
 code we test against using Proof Assistants.
@@ -2268,7 +2247,7 @@ fn test_bulletproofs(m: usize, n: usize) {
 \end{lstlisting}
 
 \texttt{BulletproofGens} and \texttt{PedersonGens} are generated from
-the using dalek implementation and the transcripts are initialized
+the using Dalek implementation and the transcripts are initialized
 with the same label. The rest of the values, except \texttt{n} and
 \texttt{m}, are generated randomly using helper functions. The values
 \texttt{n} and \texttt{m} are taken as function parameters. This lets
@@ -2288,23 +2267,11 @@ fn i2j16() {
 ...
 \end{lstlisting}
 
-Due to the lack of optimizations in the various
-parts of the code, including Ristretto, and Inner Product Proof our
-implementation is also incredibly slow, to the point where testing our
-full implementation takes no less than 22 hours to complete, while the
-equivalent checks for the Rust implemenation takes a mere 2 minutes,
-making our implementation approximately 600 times slower than the
-Rust Implementation. This, practically disqulifies it from being put
-into use for creating bulletproofs properly. However this code is not
-designed for actual use as a cryptographic algorithm, but
-rather it is supposed to be used for the purposes of creating proofs
-about the original code we test against using Proof Assistants.
-
-In order to avoid needing to spend 22 hours per test we instead
-tested each part individually, using the tests described in
+In order to avoid needing to spend 22 hours per test we instead 
+individually tested each part, using the tests described in
 \ref{implementing-ristretto} and \ref{implementing-inner-product-proof}
-and when testing our implementation we simply made a wrapper, using
-the much more efficient Rust Implementation to substitute for all the
+and when testing our implementation of Bulletproofs we simply made a wrapper, using
+the much more efficient Dalek Implementation to substitute for all the
 methods that have already been tested. This significantly boosted the
 speed of our implementation and thus allowed us to perform more than
 a single test for each of the 18 input sizes.
@@ -2344,13 +2311,13 @@ taking \textbf{Y} seconds. The reason we did not run 100000
 tests as we did with Inner Product Proof is because in spite 
 these increases in speed, it would take an immense amount of 
 time to run 100000 tests. This means that the bulletproofs 
-are not as thoroughly tested compared to the other modules. 
-This makes the property of equivalence between implementations 
-weaker compared to the other modules. This is not a major issue
-given how compregensive the protocol is, a single randomized test 
-passing is solid evidence that the code functions properly for 
-that combination of $n$ and $m$. With 5000 tests we have 200 tests 
-for each combination of inputs on average. 
+are not as thoroughly tested compared to the other modules, 
+which does make the property of equivalence between the Bulletproof 
+implementations weaker compared to the other modules. This is not a 
+major issue given how comprehensive the protocol is, a single 
+randomized test passing is solid evidence that the code functions 
+properly for that combination of $n$ and $m$. With 5000 tests we 
+have 200 tests for each combination of inputs on average. 
 
 \section{Future work:}
 
@@ -2359,9 +2326,9 @@ yet to be properly merged into Hacspec. This is still being worked on in
 collaboration with the Hacspec team. This process can take time and will
 involve refactoring parts of the code to improve overall code quality.
 
-After this is completed the intended work is finished but the obvious
+After this is completed the intended work is finished, but the obvious
 next step is to use a proof assistant on our implementations to
-prove properties about the equivelent, but much faster, Rust
+prove properties about the equivalent, but much faster, Rust
 implementations. This would reduce the risk of vulnerabilities in the
 Rust implementations.
 
@@ -2371,11 +2338,11 @@ more property-based and unit tests as well as running tests longer.
 
 \section{Conclusion:}
 
-Our intended goal of a complete Bulletproofs implementation was
-achieved. Necessary modules, namely Ristretto and Merlin was also
+Our intended goal of a complete implementation of Bulletproofs was
+achieved. Necessary modules, namely Ristretto and Merlin were also
 implemented. These implementations are constructed in a way that
 makes them function identically to their Rust counterparts, with high
-probability, due to rigerous property-based testing. Thus, by proving
+probability, due to rigorous property-based testing. Thus, by proving
 properties about our implementation, those same properties should hold
 for the respective Rust implementations.
 
@@ -2384,12 +2351,12 @@ cryptographic protocol could be implemented in Hacspec. Thus, it can
 act as a reference for how such protocols might be implemented and
 an example of how to utilize our Ristretto and Merlin modules.
 
-In essence we have laid nearly all the groundwork for the future work
+In essence, we have laid nearly all the groundwork for the future work
 of proving properties about the Rust implementations, and introduced a
 few powerful building blocks allowing future developers to more easily
 implement other cryptographic algorithms, by allowing them to use our
 Ristretto25519 and Merlin modules for implementing protocols applying
-elliptic-curve cryptography and zero-knowledge proofs resepctively.
+elliptic-curve cryptography and zero-knowledge proofs respectively.
 
 \section{References}
 \printbibliography
