@@ -1322,20 +1322,19 @@ This protocol in transcript form would be the following:
 
 \subsection{Fiat-Shamir Heuristic}\label{fiat-shamir-heuristic}
 
-The Fiat-Shamir heuristic is a cryptographic concept, which allows $\P$ 
-to compute random values without the need to consult the verifier
+The Fiat-Shamir heuristic is a cryptographic concept, which allows
+$\P$ to compute challenges without the need to consult the verifier
 first. This is done by defining a hash function $\textbf{H}()$ which
-can hash any number of values into a single pseudo-random value. When
-the verifier would be needed to provide a challenge, instead, all
-public values that $\V$ would have access to are hashed using this
-hash function and the resulting value is used as the challenge. This
-way $\P$ can send all values it must generate at once, and the
-verifier can simply make the Hashes which an honest $\P$ would have
-done to find the challenges and assert correctness.
-
-To show this we will once more look at the Schnorr Identity Protocol
-if it used the Fiat-Shamir heuristic. We will use the same notation
-we used in \ref{zero-knowledge}.
+can hash any number of values into a single relatively unpredictable
+value. When the verifier would be needed to provide a challenge,
+instead, all public values that $\V$ would have access to are
+hashed using this hash function and the resulting value is used as
+the challenge. This way $\P$ can send all values it must generate at
+once, and $\V$ can simply reconstruct the hashes which an honest $\P$
+would have calculated and assert correctness. To show this we will
+once again look at the Schnorr Identity Protocol, using it to show
+how the Fiat Shamir heuristic can be applied. We will use the same
+notation we used in section \ref{zero-knowledge}.
 
 $\P$ wishes to show $\V$ that they know the secret value $x$ such that
 $X = xG$ for the public curve-points $X$ and $G$. Ordinarily $\P$
@@ -1906,8 +1905,7 @@ implemented in pseudocode. Note that we index at 1:
 	\caption{IPP: The Verifier's Algorithm}
 
 	\SetKwFunction{len}{.len()}
-	\SetKwFunction{assertIsPowerOfTwo}{assert($n$.is\_power\_of\_two())}
-	\SetKwFunction{assertLengths}{assert($n = \vec{a}\len = \vec{b}\len = \vec{G}\len = \vec{H}\len$)}
+	\SetKwFunction{assertInput}{assert($k < 32 \land n = 2^k)$}
 	\SetKwFunction{appendN}{transcript.append($n$)}
 	\SetKwFunction{appendL}{transcript.append($L_i$)}
 	\SetKwFunction{appendR}{transcript.append($R_i$)}
@@ -1916,6 +1914,9 @@ implemented in pseudocode. Note that we index at 1:
 	\KwIn{$a \in \Z_p, b \in \Z_p, n \in \Z, P' \in \G, Q \in \G, \vec{G} \in \G^n, \vec{H} \in\G^n$}
 
 	$k := \log_2(n)$ \\
+	$\assertInput$ \\
+	$\appendN$ \\
+
 	\For{$i \in [1 : k+1]$}{
 		$\appendL$ \\
 		$\appendR$ \\
