@@ -2103,6 +2103,50 @@ randomized $n$'s, which passed successfully, taking 17,392.57 seconds.
 
 \subsection{Implementing Bulletproofs:}
 
+The final part of the project was the implementation of the Bulletproofs
+protocol. The code is heavily based on the code we are testing
+against as well as the mathematical formulas explained in section
+\ref{bulletproofs}. The implementation utilizes the format seen below. 
+This is the same format utilized by the pure Rust implementation we test 
+against.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.4]{img/multi-party protocol.png}
+	\caption{Graph over type and function interactions}
+\end{figure}
+
+Our implementation of this protocol ran into a few roadblocks during 
+development, some relating specifically to Hacspec.
+
+The first big roadblock was the immense length it would have. This
+meant that writing any sort of test for the code would require it to
+be finished in nearly its entirety. This resulted in much debugging
+through simply printing out every value on the screen and checking if
+they match what we are testing against, in order to ensure that our code
+was working correctly. This was an issue as the library we test against,
+also needed to have print statements. For this reason we forked their
+library and inserted the needed print statements. Yet another issue
+with this was the fact that their library has built-in randomness. This
+meant that our code had no way to utilize the exact same random values,
+something that is vital when comparing the implementations. Therefore, we
+refactored all random values as function inputs in their library. This
+in no way changes the functionality of their code, but instead it
+allows us to control the random values it uses, which we can then
+match to our own, and thus allowing us to test against it.
+
+To keep our implementation as simple as possible we only implemented
+what would be equivalent to the \texttt{prove\_multiple\_with\_rng}
+method from the library we test against. We felt this was sufficient
+as the \texttt{prove\_multiple}, \texttt{prove\_single\_with\_rng}
+and \texttt{prove\_single} methods would all call
+\texttt{prove\_multiple\_with\_rng} in some way.
+
+Outside of a few indexing errors and wrong calculation occasionally,
+the implementation of the methods in a way that worked correctly
+was not much of an issue besides how long it took to fully
+implement. We have settled on the following code-structure: 
+
 \begin{algorithm}[H]
 	\DontPrintSemicolon
 	\SetAlgoLined
@@ -2144,63 +2188,29 @@ randomized $n$'s, which passed successfully, taking 17,392.57 seconds.
 	\caption{Bulletproof algorithm}
 \end{algorithm}
 
-The final part of the project was the implementation of the Bulletproofs
-protocol. The code was heavily based on the code we were testing
-against as well as the mathematical formulas explained in section
-\ref{bulletproofs}. The implementation followed the pseudo-code format
-as seen above just like the implementation we test against did. The
-implementation ran into a few roadblocks during development, some
-relating specifically to Hacspec.
+Each of the methods called on lines 3, 5, 8, 10, 12, 14 and 16 are located in 
+either the \texttt{party} or \texttt{dealer} modules. Each of these methods, 
+in the simplest terms, compute the values needed and generate the next party 
+or dealer-object in the sequence. The names of these have been shortened due 
+to formatting. The code we test against uses structs to keep hold of the values 
+for each of the different party and dealer objects, created by the methods 
+described above. Each dealer object implements the next function required by 
+the dealer to make, and the same goes for each party object. This way of 
+implementing the methods ensures that a potential client cannot accidentally 
+perform the steps out of order, due to the next step being integrated in the 
+struct provided by the previous step. 
 
-The first big roadblock was the immense length it would have. This
-meant that writing any sort of test for the code would require it to
-be finished in nearly its entirety. This resulted in much debugging
-through simply printing out every value on the screen and checking if
-they match what we are testing against, in order to ensure that our code
-was working correctly. This was an issue as the library we test against,
-also needed to have print statements. For this reason we forked their
-library and inserted the needed print statements. Yet another issue
-with this was the fact that their library has built-in randomness. This
-meant that our code had no way to utilize the exact same random values,
-something that is vital when comparing the implementations. Therefore, we
-refactored all random values as function inputs in their library. This
-in no way changes the functionality of their code, but instead it
-allows us to control the random values it uses, which we can then
-match to our own, and thus allowing us to test against it.
-
-To keep our implementation as simple as possible we only implemented
-what would be equivalent to the \texttt{prove\_multiple\_with\_rng}
-method from the library we test against. We felt this was sufficient
-as the \texttt{prove\_multiple}, \texttt{prove\_single\_with\_rng}
-and \texttt{prove\_single} methods would all call
-\texttt{prove\_multiple\_with\_rng} in some way.
-
-Outside of a few indexing errors and wrong calculation occasionally,
-the implementation of the methods in a way that worked correctly
-was not much of an issue besides how long it took to fully
-implement. We have used the same type-structure as the original 
-implementation as seen here:
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[scale=0.4]{img/multi-party protocol.png}
-	\caption{Graph over type and function interactions}
-\end{figure}
-
-The code we test against uses structs to keep hold of the values
-for each party and the dealer. This ensures that a potential client
-cannot accidentally perform the steps out of order, due to the next
-step being integrated in the struct itself. Originally we did not make 
-use of structs, as our implementation was never meant to be used for 
-anything other than transpiling it to a Proof Assistant. However, this 
-caused severe code-bloating due to a problem with \texttt{Seq} not 
-implementing the Copy trait. As such we used structs. There is however one 
-place where our implementation differs from the above graph. 
-Namely with the \texttt{ProofShare} object. This is due to both the dealer 
-and party modules needing direct access to the structs definition, and due to 
-the modular structure of our implementation this was not possible as
-\texttt{ProofShare} objects created in party will have type 
-\texttt{party::types::ProofShare} where the needed type is 
+Originally we did not make use of structs, as our implementation was never 
+meant to be used for anything other than transpiling it to a Proof Assistant. 
+Additionally, Hacspec does not support \texttt{impl} which is an essential 
+component to the structure used in the Rust implementation. However, not using 
+structs caused severe code-bloating due to a problem with \texttt{Seq} not 
+implementing the Copy trait. As such we used structs. There is however one place 
+where our implementation differs from this convention. Namely with the 
+\texttt{ProofShare} object. This is due to both the dealer and party modules 
+needing direct access to the structs definition, and due to the modular structure 
+of our implementation this was not possible as \texttt{ProofShare} objects created 
+in party will have type \texttt{party::types::ProofShare} where the needed type is 
 \texttt{types::ProofShare}. As such \texttt{ProofShare} is a simple type-alias. 
 This \textit{does} allow outside users to forge \texttt{ProofShare} objects 
 without using the proper methods. Additionally, due to the lack of 
