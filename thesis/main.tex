@@ -1967,7 +1967,7 @@ This is indeed more intuitive and closer to the math, but it
 is not possible in Hacspec due to the absence of structs. While
 Hacspec supports limited structs, it does \textit{not} support the
 \texttt{impl} keyword needed for this, and it is at least not on the
-roadmap currently, and may not ever be implemented. Even if this were
+roadmap currently, and may not ever be incorperated. Even if this were
 solved by introducing limited structs we would still have to deal with
 the fact that linear algebra operations are defined over two vectors
 of the \textit{same} type. This could be solved by extending the
@@ -1976,8 +1976,8 @@ hypothetical linear algebra vector struct as a sort of helper function.
 In our implementation we also have the inputs \texttt{G\_factors}
 and \texttt{H\_factors}, which is simply factors applied to $\vec{G}$
 and $\vec{H}$ respectively. We have these as the Dalek implementation
-also have this input because they make optimizations which make the
-code faster than simply multiplying them on before running the function. We
+also have this input because they make optimizations which make the code
+faster than simply multiplying them on before running the function. We
 chose for our implementation to take them as an input, so that the
 two functions take the same arguments, but to apply the factors before
 running the loop as it simplifies and shortens the code. Furthermore,
@@ -2030,7 +2030,7 @@ the solution would be:
 use crate::errors::*;
 \end{lstlisting}
 
-But this is not valid Hacspec code. We resorted to doing:
+But this is not valid Hacspec code, so we resorted to:
 
 \begin{lstlisting}
 mod errors;
@@ -2043,7 +2043,7 @@ lets both \texttt{ipp.rs} and \texttt{transcript.rs} access the
 \texttt{errors.rs} file without code duplication. This approach is not
 ideal, but we have been unable to find any functional issues with it. If
 there should come objections during the merge process it could be solved
-using code duplication, by copying the error constants to both files.
+using code duplication or by copying the error constants to both files.
 
 \textbf{Testing:}
 
@@ -2071,15 +2071,15 @@ changes were made to the library to ensure it worked as closely to
 the actual Dalek implementation.
 
 The tests are quite slow, reducing the guarantee that the two
-implementations are equivalent. To remedy this, a wrapper library
-was created that runs the much faster Dalek ristretto library
-instead of our own ristretto implementation. This still works as we
-have already tested our Hacspec ristretto implementation against the Dalek
-ristretto implementation, which should ensure that they are
-equivalent. This ensures much more rigorous testing, as it leads to
-\textit{significant} performance increases. The table below compares
-runtimes using both for using our Hacspec Ristretto module and using
-the external Dalek Ristretto module:
+implementations are equivalent. To remedy this, a wrapper library was
+created that implements the same functions as our hacspec Ristretto
+specification, but for each operation it simply calls functions from
+the Dalek Ristretto crate. This still gives us equivalence guarantees,
+as we have already tested our Hacspec Ristretto specification against
+the Dalek Ristretto implementation. This leads to much more rigorous
+testing, as it causes \textit{significant} performance increases. The
+table below compares runtimes using our Hacspec Ristretto
+module and the external Dalek Ristretto module:
 
 \begin{center}
 \begin{tabular}{ c|c|c } 
