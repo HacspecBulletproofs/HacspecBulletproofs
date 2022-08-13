@@ -414,7 +414,7 @@ Pedersen commitments is the so called \textit{Additive Homomorphism}
 redefine the scheme to work with commitments to elliptic curve points
 rather than a value. First a two points $B$ and $\bB$ on an elliptic curve,
 are chosen. $B$ will be the standard generator, called the base point, with
-$\tB$ being the so-called 'blinding point' to $B$. These two points are 
+$\bB$ being the so-called 'blinding point' to $B$. These two points are 
 agreed upon by both the sender of the commitments and the receiver.
 
 \begin{definition}[Pedersen Commitment]
@@ -432,14 +432,10 @@ of $\bB$ ensures perfect hiding as there is a nearly infinite amount
 of possible combinations of two points that can add to any given
 point. However, while that is true, it does not provide perfect binding
 by definition of binding and hiding. From here on we will refer to
-<<<<<<< Updated upstream
-a commitment to a message, $a$, with random value, $\ba$,
-as $C(a,\ba)$.
-=======
 a commitment to a message, $a$, with random value, $\widetilde{a}$,
 as $C(a,\widetilde{a})$. Naturally both $a$ and $\ba$ are known only 
 by the sender of the commitment.
->>>>>>> Stashed changes
+
 
 The most important property of Pedersen commitments is
 that Pedersen commitments have the property of Additive Homomorphism:
@@ -1388,13 +1384,16 @@ Fiat-Shamir Heuristic suggested in the original bulletproofs paper
 was because in the original paper the Fiat-Shamir Heuristic did not
 include $\vec{V}$ in their hash function which allowed a malicious
 $\P$ to get a proof verified even if one or more $v$'s did not lie
-within the range. This is not a problem for the Dalek implementation as
-they include $V$ in the transcript, therefore our implementation also
-does not have this vulnerability. The paper has since been updated,
-but any implementation that has followed the old paper's Fiat-Shamir
+within the range. This could be done by commiting an $A$ which was 
+constructed from a $v$ which lies in the range, but the Fiat-Shamir 
+heuristic did not require the use of $V$ in its hasing this $V$ could 
+then be forged from a $v$ outside of the desired range while still 
+successfully convincing $\V$ that this $v$ lies outside of the given 
+range. This is not a problem for the Dalek implementation as they 
+include $V$ in the transcript, therefore our implementation also does 
+not have this vulnerability. The paper has since been updated, but any 
+implementation that has followed the old paper's Fiat-Shamir 
 specification could still be vulnerable.
-
-% NOTE: how does Prover cheat the verifier? Can he choose a value out of range?
 
 \section{Our Contributions:}
 
@@ -1697,8 +1696,9 @@ seen below, testing if various one-way-maps all map to the same point:
 \end{lstlisting}
 
 There were four of these tests in total, testing the one-way-map,
-encoding, and both succcessful decoding, as well as examples where
-decoding must fail, thus ensuring our implementation works as intended. % NOTE: Denne sætning er ikke korrekt
+encoding, and both a positive and a negative test for decoding.
+In the negative test, decoding must fail to ensure our 
+implementation works as intended. 
 
 The second series of tests were meant to randomly check if our
 implementation functioned equivalently to the Rust implementation
@@ -2364,6 +2364,7 @@ a single test for each of the 18 input sizes.
 	$n = 64, m = 64$  & 27.02 s   & 64.59 \\ \hline 
 \end{tabular}
 \end{center}
+
 
 % NOTE: specify performace increases
 
