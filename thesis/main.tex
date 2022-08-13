@@ -138,25 +138,28 @@ Department of Computer Science, Aarhus University\\
 \subsection*{Abstract:}
 
 {\itshape
-	In 2017, a cryptographic protocol called bulletproofs was
-	released. This protocol sought to safely and compactly encrypt
-	amounts sent in cryptocurrency transactions. About a year after
-	the release of the bulletproofs protocol, an implementation
-	was written in Rust. This implementation is efficient and
-	fast. We wish to improve the security of this implementation,
-	to avoid as many potential vulnerabilities as possible.
-	
-	To this end, we have implemented the bulletproofs protocol,
-	using the specification language Hacspec. The reasoning for
-	this is that Hacspec allows the programs written in it to be
-	compiled to so-called proof assistants such as Coq, which
-	will be able to prove various properties of the code. Our
-	implementation can later be transpiled to a proof
-	assistant. Given the rigorous testing which ensures that the
-	two implementations function identically, The properties proven
-	for our implementation, will also hold for the more efficient,
-	original Rust implementation. This will, in turn, improve the
-	security of the Rust bulletproofs implementation.
+	Bulletproofs is a zero-knowledge range proof protocol. About a
+	year after the release of the Bulletproofs paper, an efficient
+	and optimized implementation was written in Rust. In this thesis
+	we shall describe the implementation of this protocol in the
+	Hacspec specification language. Hacspec allows the programs
+	written in it to be transpiled to so-called proof assistants
+	such as Coq, which can be used to prove various properties
+	about the specification. Given the rigorous testing which ensures that
+	the two implementations function identically, The properties
+	proven for our implementation, will also hold for the original
+	Rust implementation.
+
+	In section \ref{prerequisites} we will go through the
+	prerequisites required to understand the Bulletproofs protocol
+	as well as a short introduction to Hacspec. In section
+	\ref{bulletproofs} we describe the Bulletproof protocol in
+	detail. In section \ref{our-contributions} we describe the
+	details of how the protocol was implemented in Hacspec. In
+	section \ref{future-work} and \ref{conclusions} we outline
+	the implications of our work, including how it can be used to
+	prove properties about the Rust implementation and how others
+	can use our modules to specify other cryptographic protocols.
 }
 
 \subsection*{Acknowledgements:}
@@ -213,17 +216,17 @@ al. \cite{bulletproofs}, in Hacspec. The protocol creates a compact
 zero-knowledge proof to show that one or more values lie within a
 range of $[0:2^n)$ for a provided $n$, without revealing any other
 information about the values themselves. A variant of this protocol
-is currently utilized in the cryptocurrency Monero. Additionally, we
-also wish to write our implementation in a modular fashion that allows
-future cryptographic protocols specified in hacspec to utilize parts
-of our specification.
+is currently utilized in the cryptocurrency Monero. Additionally,
+we also wish to write our implementation in a modular fashion that
+allows future cryptographic protocols specified in hacspec to utilize
+parts of our specification.
 
 We will be testing our implementation against the current Rust
 Bulletproofs crate \cite{dalek} by the Dalek team, using property-based
-testing to ensure, with high probability, that our implementation
-of the Bulletproofs protocol is equivalent to the Rust Bulletproofs
-crate. This will mean that using a proof assistant on our implementation
-will be approximately equivalent to using it on the Rust implementation.
+testing to ensure, with high probability, that our implementation of the
+Bulletproofs protocol is equivalent to the Rust Bulletproofs crate. This
+will mean that using a proof assistant on our implementation will be
+approximately equivalent to using it on the Rust implementation.
 
 In this paper we will briefly go over the prerequisites for
 understanding the bulletproofs protocol, describe the protocol itself,
@@ -269,7 +272,7 @@ A table of notation used throughout this report:
 \end{tabular}
 \end{center}
 
-\section{Prerequisites:}
+\section{Prerequisites:} \label{prerequisites}
 
 In this section we will be covering the necessary background knowledge
 to understand the results of the work in this project.
@@ -478,10 +481,11 @@ relation to the public elliptic curve points $X$ and $G$:
 $\V$ knows both $X$ and $G$ but not $x$. $\P$ wishes to show $\V$
 without simply revealing $x$ directly.
 
-The protocol is rather simple. First $\P$ chooses a random value $k$ and commits
-to this value by sending $K$, such that $K = kG$, to $\V$. $\V$ then
-chooses a random value $e$ and sends it to $\P$. Finally, $\P$ sends $s$
-such that $s = k + ex$. Written out as a transcript this would be:
+The protocol is rather simple. First $\P$ chooses a random value $k$ and
+commits to this value by sending $K$, such that $K = kG$, to $\V$. $\V$
+then chooses a random value $e$ and sends it to $\P$. Finally, $\P$
+sends $s$ such that $s = k + ex$. Written out as a transcript this
+would be:
 
 \eq{
 	\P \rightarrow \V &: K \\
@@ -525,11 +529,11 @@ $e$ by constructing $K$ as follows:
 	K = s(G - eX)
 }
 
-and then choose a random value $s$. If the verifier then did the check
-they would find that it holds. However, this is \textit{not} a possibility
-because $\P$ must commit to a $K$ before they are given $e$. There
-is a small probability that $\P$ could randomly guess $e$ correctly,
-but this is miniscule.
+and then choose a random value $s$. If the verifier then did the
+check they would find that it holds. However, this is \textit{not}
+a possibility because $\P$ must commit to a $K$ before they are given
+$e$. There is a small probability that $\P$ could randomly guess $e$
+correctly, but this is miniscule.
 
 \textbf{Zero-knowledge:}
 
@@ -786,8 +790,8 @@ defined as:
 We define $b(i,j)$\footnote{Note that in the code we zero-index
 so $j_{\text{code}} = j+1$.} to be -1 if $G_i$ appears in the left
 half of $\vec{G}^{(j)}$, and 1 if $G_i$ appears in the right half
-of $\vec{G}^{(j)}$. Therefore, $G_i$ appears in the right side of $\vec{G}^{(j)}$ if
-$(i \text{ mod } 2^j) < 2^{j-1}$.
+of $\vec{G}^{(j)}$. Therefore, $G_i$ appears in the right side of
+$\vec{G}^{(j)}$ if $(i \text{ mod } 2^j) < 2^{j-1}$.
 
 We make a similar argument for $H^{(0)}$. We want to define a vector
 $\vec{s'}$ such that $\dotp{\vec{s'}}{\vec{H}} = H^{(0)}$:
@@ -1141,18 +1145,19 @@ in order to 'cheat'. This happens with a probability so small it is
 entirely negligible, and thus the proof is also sound.
 
 But the proof being sound does not necessarily mean it is
-zero-knowledge. The proof also needs to be Zero-knowledge. If we look
-at all the values available to $\V$ we can see that it has only two
-of these values have any direct relation to $v$, these being $V$ and
-$t(\ran{x})B$. It is trivial to see that $\V$ cannot learn anything
-about $v$ from $V$ without knowledge of $\bv$ which $\V$ does not
-know. If we look at the definition of $t(\ran{x})B$ we can see that
-it DOES use $v$ in the calculation directly. However, the definition
-of $t(x)$ uses $t_2$, which is blinded using $\vecran{s_L}$ and
-$\vecran{s_R}$ neither of which $\V$ has any way to access. Additionally,
-$t_1$ also uses the definition of $t_2$ and thus is \textit{also} cannot
-be inferred. Thus, there is no amount of calculations that $\V$ can do to
-figure out anything about $v$ and thus the proof is also zero-knowledge.
+zero-knowledge. The proof also needs to be Zero-knowledge. If we
+look at all the values available to $\V$ we can see that it has only
+two of these values have any direct relation to $v$, these being
+$V$ and $t(\ran{x})B$. It is trivial to see that $\V$ cannot learn
+anything about $v$ from $V$ without knowledge of $\bv$ which $\V$
+does not know. If we look at the definition of $t(\ran{x})B$ we can
+see that it DOES use $v$ in the calculation directly. However,
+the definition of $t(x)$ uses $t_2$, which is blinded using
+$\vecran{s_L}$ and $\vecran{s_R}$ neither of which $\V$ has any way
+to access. Additionally, $t_1$ also uses the definition of $t_2$ and
+thus is \textit{also} cannot be inferred. Thus, there is no amount
+of calculations that $\V$ can do to figure out anything about $v$
+and thus the proof is also zero-knowledge.
 
 \subsection{Aggregation of range proofs:} \label{aggregation-of-range-proofs}
 
@@ -1304,9 +1309,9 @@ And if this holds then $\D$ is convinced that $\vec{l}(x)_{(j)}$ and
 $\vec{r}(x)_{(j)}$ are correctly constructed and that $t(x)_{(j)}
 = \dotp{\vec{l}(x)_{(j)}}{\vec{r}(x)_{(j)}}$. This, along with
 the previous part on top $\D$ is now convinced that all parties'
-$v_{(j)}$ are within the range (\ref{agg-range}) and thus the
-proof is complete. Additionally, using the same arguments as in
-section \ref{verifier-range-proof} for each $\P_{(j)}$, this is also sound
+$v_{(j)}$ are within the range (\ref{agg-range}) and thus the proof
+is complete. Additionally, using the same arguments as in section
+\ref{verifier-range-proof} for each $\P_{(j)}$, this is also sound
 and zero-knowledge.
 
 This protocol in transcript form would be the following: 
@@ -1364,15 +1369,16 @@ Crucially allowing $\P$ to construct the entire proof without
 interacting with $\V$. The proof is still sound as $\P$ cannot get $e$
 without committing to a $K$ first.
 
-Our Fiat-Shamir heuristic for the bulletproofs algorithm requires an
-\textit{overseer} for the parties who can gather all the $V$'s
-to create the challenges. In essence when a challenge is needed
-all parties will send their $V$'s to this local overseer
-who can then generate the challenges using the Fiat-Shamir
-heuristic. Specifically $\ran{y} = \textbf{H}(\vec{V},\vec{A},\vec{S}),
-\ \ran{z} = \textbf{H}(\vec{V},\vec{A},\vec{S}, \ran{y})$ and $\ran{x} =
-\textbf{H}(\vec{V},\vec{A},\vec{S}, \ran{y}, \ran{z}, \vec{T_1},\vec{T_2})$. This
-will result in the following final transcript:
+Our Fiat-Shamir heuristic for the bulletproofs algorithm requires
+an \textit{overseer} for the parties who can gather all the $V$'s
+to create the challenges. In essence when a challenge is needed all
+parties will send their $V$'s to this local overseer who can then
+generate the challenges using the Fiat-Shamir heuristic. Specifically
+$\ran{y} = \textbf{H}(\vec{V},\vec{A},\vec{S}), \ \ran{z} =
+\textbf{H}(\vec{V},\vec{A},\vec{S}, \ran{y})$ and $\ran{x}
+= \textbf{H}(\vec{V},\vec{A},\vec{S}, \ran{y}, \ran{z},
+\vec{T_1},\vec{T_2})$. This will result in the following final
+transcript:
 
 \eq{
 	&\P_{(j)} &&\rightarrow \D &&: V_{(j)}, n, A_{(j)}, S_{(j)}, j, T_{1, (j)}, T_{2,(j)}, t_{(j)}(\ran{x})B, \bt_{(j)}(\ran{x})\bB, \be
@@ -1397,7 +1403,7 @@ does not have this vulnerability. The paper has since been updated,
 but any implementation that has followed the old paper's Fiat-Shamir
 specification could still be vulnerable.
 
-\section{Our Contributions:}
+\section{Our Contributions:} \label{our-contributions}
 
 \subsection{Linear Algebra Library:} \label{linear-algebra-library}
 It was decided that the specification should of course consist of what
@@ -1528,11 +1534,11 @@ co-factor. One such vulnerability was found that affects all CryptoNote
 based cryptocurrencies \cite{cryptonote}.  Ristretto eliminates all of
 these checks and potential vulnerabilities by automatically mapping
 all points on the curve directly into the subset of the curve in the
-operations themselves. Additionally, Ristretto defines equality such that
-equivalent representations of the same point are considered equal. In
-the same vein the encoding function for points, encodes equivalent
-points to the same encoding and by proxy the decoding function decodes
-those points to the same point.
+operations themselves. Additionally, Ristretto defines equality such
+that equivalent representations of the same point are considered
+equal. In the same vein the encoding function for points, encodes
+equivalent points to the same encoding and by proxy the decoding
+function decodes those points to the same point.
 
 For our implementation of bulletproofs, seeing as we needed to test it
 against an existing implementation, we made use of the same elliptic
@@ -1541,7 +1547,9 @@ curve cryptography. The elliptic curve in question is Curve25519,
 which is widely used in encryption as is the case here. Curve25519,
 is defined by the following formula:
 
-$$y^2 = x^3 + 48662x^2 + x$$
+\eq{
+	y^2 = x^3 + 48662x^2 + x
+}
 
 This curve is defined over the prime field $p = 2^{255} - 19$ and base
 point defined at $x = 9$ with the positive $y$ value. This results
@@ -1730,34 +1738,34 @@ fn test_dalek_point_negation() {
 }
 \end{lstlisting}
 
-The \texttt{create\_points()} method uses the one-way-map to
-generate random points, which is also tested individually. We ran
-each function 10,000 times each with random input, except for the
-\texttt{mul()} function which were only run 1,000 times due to it being
-considerably slower. In total these tests took 1,957.14 seconds to
-complete. The relatively few amount of tests, compared to the other
-modules, means this module has the least amount of equivalence tests
-run, which means it serves as a weak point, as there is greater risk
-of undiscovered edge cases. However, the fact that it was directly implemented
-from an IETF-standard, including relevant unit tests, does mediate this
+The \texttt{create\_points()} method uses the one-way-map to generate
+random points, which is also tested individually. We ran each function
+10,000 times each with random input, except for the \texttt{mul()}
+function which were only run 1,000 times due to it being considerably
+slower. In total these tests took 1,957.14 seconds to complete. The
+relatively few amount of tests, compared to the other modules, means
+this module has the least amount of equivalence tests run, which means
+it serves as a weak point, as there is greater risk of undiscovered
+edge cases. However, the fact that it was directly implemented from
+an IETF-standard, including relevant unit tests, does mediate this
 weakness.
 
 \subsection{Implementing Merlin:} \label{implementing-merlin}
 
 Merlin \cite{merlin} is for the most part a wrapper over the Strobe
-protocol \cite{strobe}. It performs the Fiat-Shamir heuristic by
-keeping a running hash of the transcript. Importantly, it does this
-in such a way that algorithms implemented using it will appear to interact
-with a verifier, while remaining non-interactive. It achieves this
-by only allowing the algorithm to commit or receive challenge scalars
-from the transcript. This allows for simpler code that is less error-prone 
-than if the Fiat-Shamir heuristic were done without it.
+protocol \cite{strobe}. It performs the Fiat-Shamir heuristic by keeping
+a running hash of the transcript. Importantly, it does this in such a
+way that algorithms implemented using it will appear to interact with
+a verifier, while remaining non-interactive. It achieves this by only
+allowing the algorithm to commit or receive challenge scalars from the
+transcript. This allows for simpler code that is less error-prone than
+if the Fiat-Shamir heuristic were done without it.
 
 Most of the work was implementing strobe. There were no great
 difficulties in translating most functions, except that the
 \texttt{Strobe} type could not be mutably modified. Therefore, in our
-implementation we return a strobe object in each function instead
-of taking one as argument and modifying it. Since all operations needed
+implementation we return a strobe object in each function instead of
+taking one as argument and modifying it. Since all operations needed
 were supported by the Secret Integer Hacspec type, we naturally used
 this over the less secure Public Integers.
 
@@ -1765,8 +1773,8 @@ Merlin uses Keccakf1600 for its hashing, fortunately this cryptographic
 function was already defined in SHA-3 Hacspec library. We ran into
 issues however, since Keccakf1600 is defined for 64-bit integers
 and strobe operates on bytes. Therefore, we had to transmute the
-\texttt{state} object, from a list of bytes into a shorter list of 64-bit 
-integers. In the Dalek implementation of Merlin this was simple:
+\texttt{state} object, from a list of bytes into a shorter list of
+64-bit integers. In the Dalek implementation of Merlin this was simple:
 
 \begin{lstlisting}
 fn transmute_state(st: &mut AlignedKeccakState) -> &mut [u64; 25] {
@@ -1856,7 +1864,8 @@ fn merl_test_all_funcs() {
 }
 \end{lstlisting}
 
-We ran this test 100000 times with random \texttt{msg}'s, \texttt{n}'s and \texttt{buf\_size}'s, which took 119.81 seconds.
+We ran this test 100000 times with random \texttt{msg}'s, \texttt{n}'s
+and \texttt{buf\_size}'s, which took 119.81 seconds.
 
 \subsection{Implementing Inner Product Proof:} \label{implementing-inner-product-proof}
 
@@ -2099,7 +2108,7 @@ module and the external Dalek Ristretto module:
 With these performance increases we ran 100,000 tests using
 randomized $n$'s, which passed successfully, taking 17,392.57 seconds.
 
-\subsection{Implementing Bulletproofs:}
+\subsection{Implementing Bulletproofs:} \label{implementing-bulletproofs}
 
 The final part of the project was the implementation of the
 Bulletproofs protocol. The code is partly based on the code Dalek
@@ -2111,15 +2120,18 @@ proofs will be identical. A flow graph over the steps involved
 can be seen below:
 
 \begin{figure}[H]
-	\label{implementation-graph}
 	\centering
 	\includegraphics[scale=0.4]{img/multi-party protocol.png}
-	\caption{Graph over type and function interactions}
+	\caption{
+		Graph over type and function interactions. Graph from
+		\cite{dalek-notes}.
+	}
+	\label{implementation-graph}
 \end{figure}
 
 This flow graph is an outline for the full Bulletproofs protocol, 
-with each node being a method called in code. Below we have made 
-a highly simplified pseudocode for our implementation of this graph:
+with each node being a function called in the code. Below we outline
+a simplified pseudocode representing our implementation of this graph:
 
 \begin{algorithm}[H]
 	\DontPrintSemicolon
@@ -2168,23 +2180,50 @@ a highly simplified pseudocode for our implementation of this graph:
 \end{algorithm}
 
 Each of the methods called on lines 3, 5, 8, 10, 12, 14 and 16 are
-located in either the \texttt{party} or \texttt{dealer} modules and 
-correspond to the nodes in \ref{implementation-graph} with the left 
-nodes being the \texttt{party} methods and the right nodes being the 
-\texttt{dealer} methods. Each of these methods, in the simplest terms, 
-compute the values needed and generate the next party or dealer-object 
-in the sequence. The names of these have been shortened due to 
-formatting, but they also correspond to the outputted \texttt{party} 
-and \texttt{dealer} objects from \ref{implementation-graph}, which are 
-also written as comments above the line where they are created in the 
-pseudocode. The code we test against uses structs to keep hold of the 
-values for each of the different party and dealer objects, created by 
-the methods described above. Each dealer object implements the next 
-function required by the \texttt{dealer} to make, and the same goes 
-for each \texttt{party} object. This way of implementing the methods 
-ensures that a potential client cannot accidentally perform the steps 
-out of order, due to the next step being integrated in the struct 
-provided by the previous step.
+located in either the \texttt{party} or \texttt{dealer} modules
+and correspond to the nodes in figure \ref{implementation-graph}
+with the left nodes being the \texttt{party} methods and the right
+nodes being the \texttt{dealer} methods. Each of these methods, in
+the simplest terms, compute the values needed and generate the next
+party or dealer-object in the sequence. The names of these have been
+shortened due to formatting, but they correspond types from figure
+\ref{implementation-graph}, with the graph names written as comments
+above the line where they are created. The code we test against uses
+structs to represent the values for each of the different types of
+party and dealer, created by the methods described above. Each dealer
+struct implements the next function required to progress to the next
+\texttt{dealer} type to make, and the same goes for each \texttt{party}
+object. This way of implementing the methods ensures that a potential
+user of the crate cannot accidentally perform the steps out of order,
+due to the next step being integrated in the struct provided by the
+previous step.
+
+The first big roadblock we hit while implementing this protocol was the
+immense length it would have. This meant that writing any sort of test
+for the code would require it to be finished in nearly its entirety.
+This resulted in much debugging through printing out values comparing
+them with the Dalek implementation. This was an issue as the library we
+test against, also needed to have print statements. Yet another issue
+with this was the fact that their library has built-in randomness.
+This meant that our code had no way of utilizing the exact same random
+values, something that is vital when comparing the implementations.
+Therefore, we refactored all random values as function inputs in
+their library. This in no way changes the functionality of the Dalek
+implementation, but instead it allows us to control the random values
+it uses, which we can then match to our own, and thus allowing us to
+test against it.
+
+To keep our implementation as simple as possible we only implemented
+what would be equivalent to the \texttt{prove\_multiple\_with\_rng}
+method from the library we test against. We felt this was sufficient
+as the \texttt{prove\_multiple}, \texttt{prove\_single\_with\_rng}
+and \texttt{prove\_single} methods would all call
+\texttt{prove\_multiple\_with\_rng} in some way.
+
+Outside of a few indexing errors and wrong calculation occasionally,
+the implementation of the methods in a way that worked correctly
+was not much of an issue besides how long it took to fully
+implement.
 
 When we began our implementation we made use of tuples to represent our 
 types, however, not using structs caused severe code-bloating since 
@@ -2206,44 +2245,15 @@ right order, but this is not a great issue as our implementation is
 not meant to be used as a library, only for proving properties using 
 Proof Assistants.
 
-\textbf{Implementation issues:}
-
-The first big roadblock we hit while implementing this protocol was the 
-immense length it would have. This meant that writing any sort of test 
-for the code would require it to be finished in nearly its entirety. 
-This resulted in much debugging through printing out values comparing 
-them with the Dalek implementation. This was an issue as the library 
-we test against, also needed to have print statements. Yet another 
-issue with this was the fact that their library has built-in randomness. 
-This meant that our code had no way of utilizing the exact same random 
-values, something that is vital when comparing the implementations. 
-Therefore, we refactored all random values as function inputs in their 
-library. This in no way changes the functionality of the Dalek 
-implementation, but instead it allows us to control the random values 
-it uses, which we can then match to our own, and thus allowing us to 
-test against it.
-
-To keep our implementation as simple as possible we only implemented
-what would be equivalent to the \texttt{prove\_multiple\_with\_rng}
-method from the library we test against. We felt this was sufficient
-as the \texttt{prove\_multiple}, \texttt{prove\_single\_with\_rng}
-and \texttt{prove\_single} methods would all call
-\texttt{prove\_multiple\_with\_rng} in some way.
-
-Outside of a few indexing errors and wrong calculation occasionally,
-the implementation of the methods in a way that worked correctly
-was not much of an issue besides how long it took to fully
-implement.
-
 Additionally, due to the lack of optimizations our implementation is
 immensely slow, to the point where testing our full implementation
 takes 22 hours to complete, while the equivalent checks for the Dalek
-implementation takes a mere 2 minutes. To remedy this we instead utilized
-a wrapper module to use the Dalek Ristretto implementation instead
-of our own, as was also done when testing the inner product proof
-(section \ref{implementing-inner-product-proof}). This significantly
-boosted the speed of our implementation and thus allowed much more
-rigorous testing.
+implementation takes a mere 2 minutes. To remedy this we instead
+utilized a wrapper module to use the Dalek Ristretto implementation
+instead of our own, as was also done when testing the inner
+product proof (section \ref{implementing-inner-product-proof}). This
+significantly boosted the speed of our implementation and thus allowed
+much more rigorous testing.
 
 \textbf{Testing:}
 
@@ -2287,14 +2297,14 @@ fn i2j16() {
 ...
 \end{lstlisting}
 
-In order to avoid needing to spend 22 hours per test we instead 
+In order to avoid needing to spend 22 hours per test we instead
 individually tested each part, using the tests described in
 \ref{implementing-ristretto} and \ref{implementing-inner-product-proof}
-and when testing our implementation of Bulletproofs we simply made a wrapper, using
-the much more efficient Dalek Implementation to substitute for all the
-methods that have already been tested. This significantly boosted the
-speed of our implementation and thus allowed us to perform more than
-a single test for each of the 18 input sizes.
+and when testing our implementation of Bulletproofs we simply made
+a wrapper, using the much more efficient Dalek Implementation to
+substitute for all the methods that have already been tested. This
+significantly boosted the speed of our implementation and thus allowed
+us to perform more than a single test for each of the 18 input sizes.
 
 \begin{center}
 \begin{tabular}{ c|c|c } 
@@ -2339,7 +2349,7 @@ randomized test passing is solid evidence that the code functions
 properly for that combination of $n$ and $m$. With 5000 tests we 
 have 200 tests for each combination of inputs on average. 
 
-\section{Future work:}
+\section{Future work:} \label{future-work}
 
 Currently, our implementation functions as intended, however parts has
 yet to be properly merged into Hacspec. This is still being worked on in
@@ -2356,7 +2366,7 @@ More thorough testing could be done to ensure that the Hacspec and
 Rust implementations function identically, which could involve writing
 more property-based and unit tests as well as running tests longer.
 
-\section{Conclusion:}
+\section{Conclusion:} \label{conclusions}
 
 Our intended goal of a complete implementation of Bulletproofs was
 achieved. Necessary modules, namely Ristretto and Merlin were also
@@ -2378,7 +2388,7 @@ implement other cryptographic algorithms, by allowing them to use our
 Ristretto25519 and Merlin modules for implementing protocols applying
 elliptic-curve cryptography and zero-knowledge proofs respectively.
 
-\section{References}
+\section{References} \label{references}
 \printbibliography
 
 \end{document}
