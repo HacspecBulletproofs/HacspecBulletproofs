@@ -635,7 +635,7 @@ it does \textit{not} refer to exponentiation:
 	           \dotp{\vec{a}}{\vec{b}}Q \\
 } 
 
-This redefinition will be useful, because it will allow us redefine
+This redefinition will be useful, because it will allow us to redefine
 $\vec{a}, \vec{b}, \vec{G}, \vec{H}$ ($\vec{a}^{(k)}, \vec{b}^{(k)},
 \vec{G}^{(k)}, \vec{H}^{(k)}$) into a shorter format, while keeping the
 properties in equation \ref{ipp-def2} as invariants.
@@ -740,9 +740,9 @@ the so called \textit{transcript}, can be summarized as the following:
 }
 
 To make the inner product proof \textit{non-interactive}, the
-Fiat-Shamir Heuristic (\ref{fiat-shamir-heuristic}) can be used.
+Fiat-Shamir heuristic (\ref{fiat-shamir-heuristic}) can be used.
 
-\subsubsection{Verifiers Algorithm}
+\subsubsection{Verifier's Algorithm}
 $\V$ has knowledge of the following values:
 \eqn{def1-ver}{
 	a^{(0)}, b^{(0)} &\in \Z_p \\
@@ -782,7 +782,7 @@ defined as:
 We define $b(i,j)$\footnote{Note that in the code we zero-index
 so $j_{\text{code}} = j+1$.} to be -1 if $G_i$ appears in the left
 half of $\vec{G}^{(j)}$, and 1 if $G_i$ appears in the right half
-of $\vec{G}^{(j)}$. Therefore $G_i$ is in the right side if
+of $\vec{G}^{(j)}$. Therefore, $G_i$ is in the right side if
 $(i$ mod $2^j) < 2^{j-1}$.
 
 We make a similar argument for $H^{(0)}$. We want to define a vector
