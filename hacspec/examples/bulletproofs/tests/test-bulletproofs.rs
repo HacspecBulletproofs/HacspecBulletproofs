@@ -255,7 +255,17 @@ fn test_bulletproofs(number_of_values: usize, n: usize) {
 }
 
 // TEST FUNCTIONS:
+#[test]
+fn quickcheck() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..5000{
+        let n_range = rng.gen_range(0..4);
+        let m_range = rng.gen_range(1..7);
 
+        test_bulletproofs(2usize.pow(m_range), 8usize*2usize.pow(n_range));
+    }
+}
+/* 
 #[test]
 fn i2j8() {
     test_bulletproofs(2,8);
@@ -344,4 +354,4 @@ fn i32j64() {
 #[test] 
 fn i64j64() {
     test_bulletproofs(64,64);
-}
+}*/
