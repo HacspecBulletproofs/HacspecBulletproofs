@@ -2099,11 +2099,11 @@ randomized $n$'s, which passed successfully, taking 17,392.57 seconds.
 \subsection{Implementing Bulletproofs:}
 
 The final part of the project was the implementation of the
-Bulletproofs protocol. The code is partly based on the code we are Dalek
+Bulletproofs protocol. The code is partly based on the code Dalek
 implementation and partly based on the mathematical formulas explained
 in section \ref{range-proofs} and \ref{aggregation-of-range-proofs}. Our
 specification models the same types and functions as the Dalek
-implentation, therefore the steps performed in constructing the range
+implementation, therefore the steps performed in constructing the range
 proofs will be identical. A flow graph over the steps involved
 can be seen below:
 
@@ -2114,8 +2114,9 @@ can be seen below:
 	\caption{Graph over type and function interactions}
 \end{figure}
 
-Our implementation of this protocol ran into a few roadblocks during 
-development, some relating specifically to Hacspec.
+This flow graph is an outline for the full Bulletproofs protocol, 
+with each node being a method called in code. Below we have made 
+a highly simplified pseudocode for our implementation of this graph:
 
 \begin{algorithm}[H]
 	\DontPrintSemicolon
@@ -2159,33 +2160,57 @@ development, some relating specifically to Hacspec.
 \end{algorithm}
 
 Each of the methods called on lines 3, 5, 8, 10, 12, 14 and 16 are
-located in either the \texttt{party} or \texttt{dealer} modules. Each
-of these methods, in the simplest terms, compute the values needed and
-generate the next party or dealer-object in the sequence. The names of
-these have been shortened due to formatting. The code we test against
-uses structs to keep hold of the values for each of the different party
-and dealer objects, created by the methods described above. Each dealer
-object implements the next function required by the dealer to make,
-and the same goes for each party object. This way of implementing the
+located in either the \texttt{party} or \texttt{dealer} modules and 
+correspond to the nodes in \ref{implementation-graph} with the left 
+nodes being the \texttt{party} methods and the right nodes being the 
+\texttt{dealer} methods. Each of these methods, in the simplest terms, 
+compute the values needed and generate the next party or dealer-object 
+in the sequence. The names of these have been shortened due to 
+formatting, but they also correspond to the outputted \texttt{party} and \texttt{dealer} objects from \ref{implementation-graph}. The code we test against uses structs to keep hold of the 
+values for each of the different party and dealer objects, created by 
+the methods described above. Each dealer object implements the next 
+function required by the \texttt{dealer} to make,
+and the same goes for each \texttt{party} object. This way of implementing the
 methods ensures that a potential client cannot accidentally perform
 the steps out of order, due to the next step being integrated in the
 struct provided by the previous step.
 
+When we began our implementation we made use of tuples to represent our 
+types, however, not using structs caused severe code-bloating since 
+tuples do not implement the \texttt{Copy} trait or \texttt{Clone} 
+method, which caused issues. Not using structs also breaks the property 
+of only being able to perform the steps in the right order, as outlined 
+in figure \ref{implementation-graph}. Therefore, we switched to using 
+structs which can derive the \texttt{clone} method automatically. There
+is however one place where our implementation differs from this
+convention. Namely with the \texttt{ProofShare} object. This is due to
+both the dealer and party modules needing direct access to the struct's
+definition, and due to the modular structure of our implementation,
+this was not possible as \texttt{ProofShare} objects created in the
+party module will have type \texttt{party::types::ProofShare} where the
+needed type is \texttt{types::ProofShare}. As such \texttt{ProofShare}
+is a simple type-alias tuple, our original format. This \textit{does} 
+breaks the guarantee that the steps will always be performed in the 
+right order, but this is not a great issue as our implementation is 
+not meant to be used as a library, only for proving properties using 
+Proof Assistants.
+
 \textbf{Implementation issues:}
 
-The first big roadblock was the immense length it would have. This
-meant that writing any sort of test for the code would require it to be
-finished in nearly its entirety. This resulted in much debugging through
-printing out values comparing them with the Dalek implementation. This
-was an issue as the library we test against, also needed to have
-print statements. Yet another issue with this was the fact that their
-library has built-in randomness. This meant that our code had no way of
-utilizing the exact same random values, something that is vital when
-comparing the implementations. Therefore, we refactored all random
-values as function inputs in their library. This in no way changes the
-functionality of the Dalek implementation, but instead it allows us to
-control the random values it uses, which we can then match to our own,
-and thus allowing us to test against it.
+The first big roadblock we hit while implementing this protocol was the 
+immense length it would have. This meant that writing any sort of test 
+for the code would require it to be finished in nearly its entirety. 
+This resulted in much debugging through printing out values comparing 
+them with the Dalek implementation. This was an issue as the library 
+we test against, also needed to have print statements. Yet another 
+issue with this was the fact that their library has built-in randomness. 
+This meant that our code had no way of utilizing the exact same random 
+values, something that is vital when comparing the implementations. 
+Therefore, we refactored all random values as function inputs in their 
+library. This in no way changes the functionality of the Dalek 
+implementation, but instead it allows us to control the random values 
+it uses, which we can then match to our own, and thus allowing us to 
+test against it.
 
 To keep our implementation as simple as possible we only implemented
 what would be equivalent to the \texttt{prove\_multiple\_with\_rng}
@@ -2197,29 +2222,12 @@ and \texttt{prove\_single} methods would all call
 Outside of a few indexing errors and wrong calculation occasionally,
 the implementation of the methods in a way that worked correctly
 was not much of an issue besides how long it took to fully
-implement. We have settled on the following code-structure: 
-
-We started out using tuples to represent our types, however, not using
-structs caused severe code-bloating since tuples do not not implement
-the the \texttt{Copy} or \texttt{Clone} trait, which caused issues. This
-also keeps the property of only being able to perform the steps in the
-right order, as outlined in figure \ref{implementation-graph}. There
-is however one place where our implementation differs from this
-convention. Namely with the \texttt{ProofShare} object. This is due to
-both the dealer and party modules needing direct access to the structs
-definition, and due to the modular structure of our implementation,
-this was not possible as \texttt{ProofShare} objects created in the
-party module will have type \texttt{party::types::ProofShare} where the
-needed type is \texttt{types::ProofShare}. As such \texttt{ProofShare}
-is a simple type-alias. This breaks the guarantee that the steps
-will always be performed in the right order, but this is not a great
-issue as our implementation is not meant to be used as a library,
-only for proving properties using proof assistants.
+implement.
 
 Additionally, due to the lack of optimizations our implementation is
 immensely slow, to the point where testing our full implementation
 takes 22 hours to complete, while the equivalent checks for the Dalek
-implemenation takes a mere 2 minutes. To remedy this we instead utilized
+implementation takes a mere 2 minutes. To remedy this we instead utilized
 a wrapper module to use the Dalek Ristretto implementation instead
 of our own, as was also done when testing the inner product proof
 (section \ref{implementing-inner-product-proof}). This significantly
