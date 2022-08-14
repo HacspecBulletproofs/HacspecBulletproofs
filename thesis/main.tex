@@ -25,6 +25,12 @@
 
 \addbibresource{references.bib} % Import the bibliography file
 
+
+\newcommand*\ttvar[1]{\texttt{\expandafter\dottvar\detokenize{#1}\relax}}
+\newcommand*\dottvar[1]{\ifx\relax#1\else
+  \expandafter\ifx\string_#1\string_\allowbreak\else#1\fi
+  \expandafter\dottvar\fi}
+
 % === Paragraphing === %
 
 \makeatletter
@@ -543,10 +549,10 @@ inevitably cause the code to fail the Hacspec compliance check.
 However, Hacspec implements various cryptographic primitives, such as 
 field elements, which allow for easier cryptographic specification. 
 Some types and functions from the Rust standard library are not 
-available, for example \texttt{Vec<T>}, however some helpful wrapper 
-types are defined in the Hacpsec standard library. \texttt{Seq<T>}, 
+available, for example \ttvar{Vec<T>}, however some helpful wrapper 
+types are defined in the Hacpsec standard library. \ttvar{Seq<T>}, 
 as an example implements most of the same functionality as 
-\texttt{Vec<T>} and functions as a Hacspec counterpart to it. When 
+\ttvar{Vec<T>} and functions as a Hacspec counterpart to it. When 
 defining custom types, the Hacspec standard library differentiates 
 between so-called \textit{secret integers} and \textit{public integers}.
 Secret integers are protected from side-channel attacks, but do not 
@@ -1397,7 +1403,9 @@ It was decided that the specification should of course consist of what
 we need, but also of some general linear algebra functions that could
 be used by other specifications. The implemented operations included
 matrix instantiation, slicing, transposition, scalar multiplication,
-addition, subtraction, Hadamard product and matrix multiplication.
+addition, subtraction, Hadamard product and matrix multiplication. These
+operations were tested against the Rust Nalgebra crate \cite{nalgebra}
+to ensure that they had equivalent functionality.
 
 Since we were not able to find any general linear algebra
 specification, we simply implemented the desired functionality,
@@ -1416,11 +1424,11 @@ pub type MatRes = Result<Matrix, u8>;
 pub type ScalRes = Result<Scalar, u8>;
 \end{lstlisting}
 
-We model matrices as a \texttt{Seq<Scalar>} instead of a
-\texttt{Seq<Seq<Scalar>>} since we had problems with the Hacspec type
-checker when double indexing (\texttt{list[i][j]}), and it is more
+We model matrices as a \ttvar{Seq<Scalar>} instead of a
+\ttvar{Seq<Seq<Scalar>>} since we had problems with the Hacspec type
+checker when double indexing (\ttvar{list[i][j]}), and it is more
 efficient. Since this part was intended to be a library we wanted to
-generalize over the \texttt{Scalar} type. We wanted to at least have
+generalize over the \ttvar{Scalar} type. We wanted to at least have
 it be generalizable over any type that can be defined using Hacspec
 macros, for example the following Scalar:
 
@@ -1464,7 +1472,7 @@ type ScalRes<T> = Result<T, u8>;
 \end{lstlisting}
 
 Which would allow anyone using the library to use matrices with their
-own defined hacspec types. Notice the \texttt{hacspec\_lib::Integer},
+own defined hacspec types. Notice the \ttvar{hacspec_lib::Integer},
 this trait is implemented by all integers.
 
 \textbf{Testing:}
@@ -1476,7 +1484,7 @@ helper function that does the following: Construct two random matrices
 of random dimensions, make sure no dimension is set to 0, run equivalent
 operations on them and finally assert that the operations had the same
 effect. This was done for every function implemented. A simple example 
-is the \texttt{zeros} function:
+is the \ttvar{zeros} function:
 
 \begin{lstlisting}
 #[test]
@@ -1497,7 +1505,7 @@ fn test_nalg_zeros() {
 \end{lstlisting}
 
 Here, the only operation that is performed is the construction of the
-vectors. The \texttt{assert\_matrices} function is simply a function
+vectors. The \ttvar{assert_matrices} function is simply a function
 that checks each element in the two vectors and assert them all to
 be equal. We ran 100000 equivalence tests, taking 4.63 seconds in
 total. We also have simple unit tests that check our implementation
@@ -1532,11 +1540,9 @@ against an existing implementation, we made use of the same elliptic
 curve. The elliptic curve in question is Curve25519, which is widely
 used in encryption as is the case here. Curve25519, is defined by the
 following formula:
-
 \eq{
 	y^2 = x^3 + 48662x^2 + x
 }
-
 This curve is defined over the prime field $p = 2^{255} - 19$ and base
 point defined at $x = 9$ with the positive $y$ value. This results
 in a subgroup of order $2^{252} + 2774231777737235353585$, which has
@@ -1547,7 +1553,7 @@ Each internal representation of a Ristretto point is an Edwards point
 composed of four field elements $(X : Y : Z : T)$. Field-elements,
 as defined by the standard are values modulo $p$, with $p$ being the
 prime field for Curve25519, $2^{255} - 19$. This was achieved using
-the \texttt{public\_nat\_mod!} macro which defines finite fields over
+the \ttvar{public_nat_mod!()} macro which defines finite fields over
 a given modulo. Conveniently it accepts hex values as modulo values,
 which allowed us to easily make the modulo value $2^{255} - 19$:
 
@@ -1562,10 +1568,10 @@ public_nat_mod!(
 
 Additionally, the standard specified a series of constants. These
 constants were too large to be implemented as integers and Hacspec
-did not allow for the use \texttt{from\_hex()} method. As such, after
+did not allow for the use \ttvar{from_hex()} method. As such, after
 converting each of these constants into their corresponding hex-values,
 we built them as byte sequences for which we had an equivalent
-\texttt{from\_byte\_seq\_be} which created the correct constants. This
+\ttvar{from_byte_seq_be()} which created the correct constants. This
 worked as intended but inevitably reduced readability of the code. An
 example of such a constant definition can be seen below:
 
@@ -1595,7 +1601,7 @@ proved to work as intended passing the tests we set up. Due to the
 need for comparing points field elements had to be implemented using
 public integers rather than the more secure secret integers. We also
 ran into an issue with how we had to use the field elements when we
-had to perform a check in the \texttt{decode()} function:
+had to perform a check in the \ttvar{decode()} function:
 
 \begin{lstlisting}
 pub fn decode(u: RistrettoPointEncoded) -> DecodeResult {
@@ -1718,9 +1724,9 @@ fn test_dalek_point_negation() {
 }
 \end{lstlisting}
 
-The \texttt{create\_points()} method uses the one-way-map to generate
+The \ttvar{create_points()} method uses the one-way-map to generate
 random points, which is also tested individually. We ran each function
-100,000 times each with random input, except for the \texttt{mul()}
+100,000 times each with random input, except for the \ttvar{mul()}
 function which were only run 10,000 times due to it being considerably
 slower. In total these tests took 23,236.58 seconds to complete. The
 relatively few amount of tests, for point multiplication, means it can
@@ -1739,17 +1745,17 @@ allowing the algorithm to commit or receive challenge scalars from the
 transcript. This allows for simpler code that is less error-prone than
 if the Fiat-Shamir heuristic were done without it.
 
-The merlin library implements supports four functions: \texttt{new()}
-used for transcript instantiation, \texttt{append\_message()} used for
-appending a byte sequence to the transcript, \texttt{append\_U64()}
+The merlin library implements supports four functions: \ttvar{new()}
+used for transcript instantiation, \ttvar{append_message()} used for
+appending a byte sequence to the transcript, \ttvar{append_U64()}
 for appending a 64-bit secret integer to the transcript and finally
-\texttt{challenge\_bytes()} for getting challenge bytes that can be
+\ttvar{challenge_bytes()} for getting challenge bytes that can be
 converted to whatever challenge type needed.
 
 As most of these functions simply call a few Strobe functions, most
-of the work consisted of implementing the \texttt{strobe} subset
+of the work consisted of implementing the \ttvar{strobe} subset
 used in Merlin. There were no great difficulties in translating most
-functions, except that the \texttt{Strobe} type could not be mutably
+functions, except that the \ttvar{Strobe} type could not be mutably
 modified. Therefore, in our implementation we return a strobe object in
 each function instead of taking one as argument and modifying it. Since
 all operations needed were supported by the Secret Integer Hacspec type,
@@ -1759,7 +1765,7 @@ Merlin uses Keccakf1600 for its hashing, fortunately this cryptographic
 function was already defined in SHA-3 Hacspec library. We ran into
 issues however, since Keccakf1600 is defined for 64-bit integers
 and strobe operates on bytes. Therefore, we had to transmute the
-\texttt{state} object, from a list of bytes into a shorter list of
+\ttvar{state} object, from a list of bytes into a shorter list of
 64-bit integers. In the Dalek implementation of Merlin this was simple:
 
 \begin{lstlisting}
@@ -1809,8 +1815,8 @@ bottleneck.
 \textbf{Testing:}
 
 For testing the library we created a single test that runs
-the \texttt{append\_message()}, \texttt{append\_u64()} and
-\texttt{challenge\_bytes()} methods for both implementations and asserts
+the \ttvar{append_message()}, \ttvar{append_u64()} and
+\ttvar{challenge_bytes()} methods for both implementations and asserts
 that the challenge bytes returned are equivalent between implementations. 
 These functions are sufficient to test equivalence as they utilize all
 other functions implemented. The entire test can be seen below:
@@ -1850,8 +1856,8 @@ fn merl_test_all_funcs() {
 }
 \end{lstlisting}
 
-We ran this test 100000 times with random \texttt{msg}'s, \texttt{n}'s
-and \texttt{buf\_size}'s, which took 119.81 seconds.
+We ran this test 100000 times with random \ttvar{msg}'s, \ttvar{n}'s
+and \ttvar{buf_size}'s, which took 119.81 seconds.
 
 \subsection{Implementing Inner Product Proof:} \label{implementing-inner-product-proof}
 
@@ -1949,7 +1955,7 @@ G_L = v_p_add(v_p_mul(u_inv, G_L), v_p_mul(u, G_R));
 H_L = v_p_add(v_p_mul(u, H_L), v_p_mul(u_inv, H_R));
 \end{lstlisting}
 
-Where \texttt{v\_} indicates a vector operation and \texttt{p\_}
+Where \ttvar{v_} indicates a vector operation and \ttvar{p_}
 indicates a point operation. Having this many nested functions negatively 
 impacts readability, but supposing that we could define the multiplicative
 and additive operators for types in Hacspec, as we would be able to in 
@@ -1964,7 +1970,7 @@ H_L = H_L * u     + u_inv * H_R;
 
 This is indeed more intuitive and closer to the math, but it
 is not possible in Hacspec. While Hacspec supports limited structs, 
-it does \textit{not} support the \texttt{impl} keyword required for the 
+it does \textit{not} support the \ttvar{impl} keyword required for the 
 example shown above, and its implementation is not currently on the 
 development roadmap for Hacspec, and may not ever be incorporated. 
 %NOTE: Muligvis kig på resten af det her afsnit herfra
@@ -1974,8 +1980,8 @@ operations are defined over two vectors of the \textit{same} type. This
 could be solved by extending the hypothetical linear algebra vector 
 struct with a helper function that can multiply a vector by a scalar.
 
-In our implementation we also have the inputs \texttt{G\_factors}
-and \texttt{H\_factors}, which are simply factors applied to $\vec{G}$
+In our implementation we also have the inputs \ttvar{G_factors}
+and \ttvar{H_factors}, which are simply factors applied to $\vec{G}$
 and $\vec{H}$ respectively. The reason for having these inputs is 
 because the Dalek implementation also have this input. They have 
 optimizations which make the code faster than if they simply multiply 
@@ -2013,21 +2019,21 @@ Another aspect of this library worth noting is the file structure:
 		[\textbf{transcript}
 			[\texttt{\textit{errors.rs}}]
 		]
-		[\texttt{errors.rs}]
-		[\texttt{ipp.rs}]
-		[\texttt{transcript.rs}]
+		[\ttvar{errors.rs}]
+		[\ttvar{ipp.rs}]
+		[\ttvar{transcript.rs}]
 	]
 	[\textbf{tests}
-		[\texttt{test\_prop\_ipp.rs}]
-	[\texttt{Cargo.toml}]
+		[\ttvar{test_prop_ipp.rs}]
+	[\ttvar{Cargo.toml}]
 	]
 ]
 \end{forest}
 
-We created a \texttt{transcript.rs} file which implements wrapper
+We created a \ttvar{transcript.rs} file which implements wrapper
 functions over the Fiat-Shamir heuristic using the Merlin
 library (see section \ref{implementing-merlin}). This file needs 
-access to the same defined errors as the \texttt{ipp.rs} file. 
+access to the same defined errors as the \ttvar{ipp.rs} file. 
 Normally in Rust the solution would be: 
 
 \begin{lstlisting}
@@ -2035,7 +2041,7 @@ use crate::errors::*;
 \end{lstlisting}
 
 But as this is not valid Hacspec code, as the only file allowed to 
-access modules in this library's src folder is \texttt{ipp.rs}. To
+access modules in this library's src folder is \ttvar{ipp.rs}. To
 solve this we resorted to following:
 
 \begin{lstlisting}
@@ -2044,9 +2050,9 @@ use errors::*;
 \end{lstlisting}
 
 We created the \textbf{transcript} folder with a symbolic link
-\texttt{\textit{errors.rs}} $\rightarrow$ \texttt{errors.rs}. This
-lets both \texttt{ipp.rs} and \texttt{transcript.rs} access the
-\texttt{errors.rs} file without code duplication. This approach is not
+\texttt{\textit{errors.rs}} $\rightarrow$ \ttvar{errors.rs}. This
+lets both \ttvar{ipp.rs} and \ttvar{transcript.rs} access the
+\ttvar{errors.rs} file without code duplication. This approach is not
 ideal, but we have been unable to find any functional issues with it. If
 there should come objections during the merge process it could be solved
 using code duplication or by reducing modularization by having all the 
@@ -2177,11 +2183,11 @@ a simplified pseudocode representing our implementation of this graph:
 \end{algorithm}
 
 The functions called on lines 4, 12, 18, and 24 are from the
-\texttt{dealer} module while the functions called on lines 7, 9,
-15 and 21 are from the \texttt{party} module. Both sets of functions
+\ttvar{dealer} module while the functions called on lines 7, 9,
+15 and 21 are from the \ttvar{party} module. Both sets of functions
 correspond to the nodes in figure \ref{implementation-graph} with the
-left nodes being the \texttt{party} functions and the right nodes
-being the \texttt{dealer} functions. Each of these methods, in the
+left nodes being the \ttvar{party} functions and the right nodes
+being the \ttvar{dealer} functions. Each of these methods, in the
 simplest terms, compute the values needed for the current step of
 the protocol, and generate the next party or dealer instance in the
 sequence. The names of these have been shortened due to formatting, but
@@ -2190,37 +2196,37 @@ with the graph names written as comments above the line where they
 are created in the pseudocode.
 
 To keep our implementation as simple as possible we only implemented
-what would be equivalent to the \texttt{prove\_multiple\_with\_rng()}
+what would be equivalent to the \ttvar{prove_multiple_with_rng()}
 method from the crate we test against. We felt this was sufficient as
-the \texttt{prove\_multiple()}, \texttt{prove\_single\_with\_rng()}
-and \texttt{prove\_single} methods would all call
-\texttt{prove\_multiple\_with\_rng()} in some way.
+the \ttvar{prove_multiple()}, \ttvar{prove_single_with_rng()}
+and \ttvar{prove_single()} functions would all call
+\ttvar{prove_multiple_with_rng()} in some way.
 
 The Dalek implementation uses structs to represent the values for each
 of the different types of party and dealer, created by the functions
 described above. Each dealer struct implements the next function
-required to progress to the next \texttt{dealer} struct, and the same
-goes for each \texttt{party} struct. This way of implementing the
+required to progress to the next \ttvar{dealer} struct, and the same
+goes for each \ttvar{party} struct. This way of implementing the
 methods ensures that a potential user of the crate cannot accidentally
 perform the steps out of order, due to the next step being integrated
 in the struct provided by the previous step.
 
 When we began our implementation we made use of tuples to represent
 our types instead, however, not using structs eventually caused
-severe code-bloating since tuples do not implement the \texttt{Copy}
-or \texttt{Clone} trait requiring some cumbersome and sizable
+severe code-bloating since tuples do not implement the \ttvar{Copy}
+or \ttvar{Clone} trait requiring some cumbersome and sizable
 rewrites. Not using structs also breaks the property of only being
 able to perform the steps in the right order, as outlined in figure
 \ref{implementation-graph}. Therefore, we switched to using structs
-which can derive the \texttt{clone()} method automatically.
+which can derive the \ttvar{clone()} method automatically.
 
 There is however one place where our implementation differs from
-this convention. Namely with the \texttt{ProofShare} type. This is
-due to both the \texttt{dealer} and \texttt{party} modules needing
+this convention. Namely with the \ttvar{ProofShare} type. This is
+due to both the \ttvar{dealer} and \ttvar{party} modules needing
 direct access to the struct's definition, this was not possible as
-\texttt{ProofShare} instances created in the \texttt{party} module will
-have type \texttt{party::types::ProofShare} where the needed type is
-\texttt{types::ProofShare}. As such \texttt{ProofShare} is a simple
+\ttvar{ProofShare} instances created in the \ttvar{party} module will
+have type \ttvar{party::types::ProofShare} where the needed type is
+\ttvar{types::ProofShare}. As such \ttvar{ProofShare} is a simple
 type-alias tuple. This \textit{does} break the guarantee that the
 steps will always be performed in the right order, but this is not a
 major issue as our implementation is not meant to be used as a library,
@@ -2252,8 +2258,7 @@ rigorous testing.
 
 \textbf{Testing:}
 
-To test the code we created a main helper function \texttt{fn
-test\_bulletproofs(m:usize, n:usize)}:
+To test the code we created a main helper function \ttvar{test_bulletproofs()}:
 
 \begin{lstlisting}
 fn test_bulletproofs(m: usize, n: usize) {
@@ -2273,13 +2278,13 @@ fn test_bulletproofs(m: usize, n: usize) {
 	[...]
 \end{lstlisting}
 
-\texttt{BulletproofGens} and \texttt{PedersenGens} are converted from
+\ttvar{BulletproofGens} and \ttvar{PedersenGens} are converted from
 the Dalek implementation and the transcripts are initialized
-with the same label. The rest of the values, except \texttt{n} and
-\texttt{m}, are generated randomly using helper functions. The values
-\texttt{n} and \texttt{m} are taken as function parameters. This lets
-us run many short test functions testing for different \texttt{m}'s
-and \texttt{n}'s:
+with the same label. The rest of the values, except \ttvar{n} and
+\ttvar{m}, are generated randomly using helper functions. The values
+\ttvar{n} and \ttvar{m} are taken as function parameters. This lets
+us run many short test functions testing for different \ttvar{m}'s
+and \ttvar{n}'s:
 
 \begin{lstlisting}
 #[test]
