@@ -251,11 +251,8 @@ fn map(t: FieldElement) -> RistrettoPoint {
 /// Returns a pseudo-randomly generated Ristretto point following the defined IETF standard.
 /// While this function is not used for any point computations, it is useful for generating points.
 pub fn one_way_map(b: ByteString) -> RistrettoPoint {
-    let r0_bytes = b.slice(0, 32);
-    let r1_bytes = b.slice(32, 32);
-
-    let mut r0_bytes = r0_bytes.declassify();
-    let mut r1_bytes = r1_bytes.declassify();
+    let mut r0_bytes = b.slice(0, 32).declassify();
+    let mut r1_bytes = b.slice(32, 32).declassify();
 
     // The specification states:
     // Set r0 to the low 255 bits of b[ 0..32], taken mod p
