@@ -597,13 +597,16 @@ a library to be used with other cryptographic algorithms.
 
 \section{The Bulletproofs protocol} \label{bulletproofs}
 
-The ultimate goal of this project has been to implement Bulletproofs
-in Hacspec. Bulletproofs is a zero-knowledge range proof protocol
-that supports aggregation of proofs using a multiparty computation
-(MPC). The following subsections will describe this protocol in detail
-on a theoretic level. They are based on the original Bulletproofs
-paper \cite{bulletproofs} as well as the implementation notes from
-the Dalek Bulletproofs project \cite{dalek}.
+The ultimate goal of this project has been to implement
+Bulletproofs in Hacspec. Bulletproofs is a zero-knowledge range
+proof protocol that supports aggregation of proofs using a multiparty
+computation (MPC). They are based on the original Bulletproofs paper
+\cite{bulletproofs} as well as the implementation notes from the
+Dalek Bulletproofs project \cite{dalek-notes}. The following subsections
+will describe this protocol in detail on a theoretic level, which
+include the inner product proof (section \ref{inner-product-proof}),
+the range proof (section \ref{range-proofs}) and the aggregation of
+aforementioned range proofs (section \ref{range-proof-aggregation})
 
 \subsection{Inner Product Proof:} \label{inner-product-proof}
 A prover, $\P$, wants to prove to a verifier, $\V$, that he has
@@ -753,7 +756,7 @@ Fiat-Shamir heuristic (\ref{fiat-shamir-heuristic}) can be used.
 \subsubsection{Verifier's Algorithm}
 
 $\V$ has knowledge of the following values:
-\eqn{def1-ver}{
+\eq{
 	a^{(0)}, b^{(0)} &\in \Z_p \\
 	\vec{L}, \vec{R} &\in \G_p^{k} \\
 	\vec{G}, \vec{H} &\in \G^n \\
@@ -1163,7 +1166,7 @@ thus is \textit{also} cannot be inferred. Thus, there is no amount
 of calculations that $\V$ can do to figure out anything about $v$
 and thus the proof is also zero-knowledge.
 
-\subsection{Aggregation of range proofs:} \label{aggregation-of-range-proofs}
+\subsection{Range Proofs Aggregation:} \label{range-proof-aggregation}
 
 An aggregated range-proof is a range proof which proves that a series
 of values, $\vec{v} \in \Z^m$, lie within a certain range:
@@ -1344,7 +1347,7 @@ once, and $\V$ can simply reconstruct the hashes which an honest $\P$
 would have calculated and assert correctness. To show this we will
 once again look at the Schnorr Identity Protocol \cite{zkdocs-schnorr}, using it to show
 how the Fiat Shamir heuristic can be applied. We will use the same
-notation we used in section \ref{zero-knowledge}.
+notation we used in section \ref{zero-knowledge-proofs}.
 
 $\P$ wishes to show $\V$ that they know the secret value $x$ such that
 $X = xG$ for the public curve-points $X$ and $G$. Ordinarily $\P$ would
@@ -1360,7 +1363,7 @@ From here $\P$ can compute $s = k + ex$ and send $K$ and $s$ to $\V$.
 
 Then $\V$ can compute $e = \textbf{H}(X,P,K)$ and at this
 point the rest of the protocol functions the same as it does in
-\ref{zero-knowledge}. The transcript for this proof would thus go from:
+\ref{zero-knowledge-proofs}. The transcript for this proof would thus go from:
 \eq{
 	\P \rightarrow \V &: K \\
 	\V \rightarrow \P &: e \\
@@ -2129,7 +2132,7 @@ randomized $n$'s, which passed successfully, taking 17,392.57 seconds.
 The final part of the project was the implementation of the
 Bulletproofs protocol. The code is partly based on the code Dalek
 implementation and partly based on the mathematical formulas explained
-in section \ref{range-proofs} and \ref{aggregation-of-range-proofs}. Our
+in section \ref{range-proofs} and \ref{range-proof-aggregation}. Our
 specification models the same types and functions as the Dalek
 implementation, therefore the steps performed in constructing the range
 proofs will be identical. A flow graph over the steps involved
