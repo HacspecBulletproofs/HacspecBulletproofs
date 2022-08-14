@@ -1513,27 +1513,28 @@ against manually derived results.
 
 \subsection{Implementing Ristretto:} \label{implementing-ristretto}
 
-For the Ristretto Curve25519 implementation we used the Ristretto255
+For the Ristretto Curve25519 implementation we used the Ristretto25519
 IETF-standard \cite{ristretto-ietf} and the "Twisted Edwards Curves
 Revisited" paper \cite{edwards-curves} which was used as a guide for our
 implementation. This specification was very helpful when implementing,
 as it clearly defined the types and functionalities needed to implement
 Ristretto securely.
 
-Ristretto is, in essence, a prime-order subgroup of a non-prime-order
-Edwards curve which has a co-factor of 4 or 8. The subgroup formed
-under Ristretto is constructed in such a way that it eliminates this
-co-factor, which is useful to avoid additional checks and also avoids
-the risk of leaving in exploitable vulnerabilities which utilize the
-co-factor. One such vulnerability was found that affects all CryptoNote
-based cryptocurrencies, most notably Monero \cite{cryptonote}. Ristretto
-eliminates all of these checks and potential vulnerabilities by
-automatically mapping all points on the curve directly into the subset
-of the curve in the operations themselves. Additionally, Ristretto
-defines equality such that equivalent representations of the same point
-are considered equal. In the same vein the encoding function for points,
-encodes equivalent points to the same encoding and by proxy the decoding
-function decodes those points to the same point.
+Ristretto is, in essence, a way to form a prime-order subgroup of a 
+non-prime-order Edwards curve which has a co-factor of 4 or 8. The 
+subgroup formed under Ristretto is constructed in such a way that it 
+eliminates this co-factor, which is useful to avoid additional checks 
+and also avoids the risk of leaving in exploitable vulnerabilities 
+which utilize the co-factor. One such vulnerability was found that 
+affects all CryptoNote-based cryptocurrencies, most notably Monero 
+\cite{cryptonote}. Ristretto eliminates all of these checks and  
+potential vulnerabilities by automatically mapping all points on the 
+curve directly into the subset of the curve in the operations 
+themselves. Additionally, Ristretto defines equality such that equivalent 
+representations of the same point are considered equal. In the same 
+vein the encoding function for points, encodes equivalent points to the 
+same encoding and by proxy the decoding function decodes those points 
+to the same point.
 
 For our implementation of Bulletproofs, seeing as we needed to test it
 against an existing implementation, we made use of the same elliptic
@@ -1552,7 +1553,7 @@ eliminate this co-factor.
 Each internal representation of a Ristretto point is an Edwards point
 composed of four field elements $(X : Y : Z : T)$. Field-elements,
 as defined by the standard are values modulo $p$, with $p$ being the
-prime field for Curve25519, $2^{255} - 19$. This was achieved using
+prime field for Curve25519, $p = 2^{255} - 19$. This was achieved using
 the \ttvar{public_nat_mod!()} macro which defines finite fields over
 a given modulo. Conveniently it accepts hex values as modulo values,
 which allowed us to easily make the modulo value $2^{255} - 19$:
@@ -1569,8 +1570,8 @@ public_nat_mod!(
 Additionally, the standard specified a series of constants. These
 constants were too large to be implemented as integers and Hacspec
 did not allow for the use \ttvar{from_hex()} method. As such, after
-converting each of these constants into their corresponding hex-values,
-we built them as byte sequences for which we had an equivalent
+converting each of these constants into their corresponding hex-values
+manually, we built them as byte sequences for which we had an equivalent
 \ttvar{from_byte_seq_be()} which created the correct constants. This
 worked as intended but inevitably reduced readability of the code. An
 example of such a constant definition can be seen below:
@@ -1589,16 +1590,16 @@ fn P() -> FieldElement {
 While it is impossible for a legally encoded point to have its decoding
 fail, the decoding method has several checks that ensure that the input
 given is legal. The reason for this is that decoding is a public method
-and as such there is no guarantee that the inputted byte-strings are
-legal points. To this end the standard defines a list of properties
-that the inputted byte-string must satisfy in order for the decoding
-to be canonical and thus give a proper point as a result.
+and as such there is no guarantee that the inputted byte-strings should 
+decode to legal points. To this end the standard defines a list of 
+properties that the inputted byte-string must satisfy in order for the 
+decoding to be canonical and thus give a proper point as a result.
 
 While the IETF-standard was used for the implementation of nearly every
 operation implemented, the scalar multiplication was not specified,
 therefore we used an algorithm described in \cite{elliptic-curves}. This
 proved to work as intended passing the tests we set up. Due to the
-need for comparing points field elements had to be implemented using
+need for comparing points, field elements had to be implemented using
 public integers rather than the more secure secret integers. We also
 ran into an issue with how we had to use the field elements when we
 had to perform a check in the \ttvar{decode()} function:
@@ -1634,22 +1635,19 @@ fn geq_p(x: Seq<U8>) -> bool {
 This check involves checking to see if the input byte sequence,
 if interpreted as a field element, is larger than $p$. This is
 naturally not possible to do directly, since all field elements in
-our implementation are integers mod $p$. As such it is done in this
+our implementation are integers mod $p$. As such, it is done in this
 manner to circumvent this issue.
 
-Another, issue we encountered was in the implementation of the one-way
+Another issue we encountered was in the implementation of the one-way
 map, where we must mod the 255 least significant bits of both halves
-of the split 512 bits. However, the two halves of our bytestring are
+of the split 512 bits. However, the two halves of our ByteStrings are
 each 256 bits, so the most significant bit must be set to 0, therefore
 we mod the most significant byte by 128:
 
 \begin{lstlisting}
 pub fn one_way_map(b: ByteString) -> RistrettoPoint {
-	let r0_bytes = b.slice(0, 32);
-	let r1_bytes = b.slice(32, 32);
-
-	let mut r0_bytes = r0_bytes.declassify();
-	let mut r1_bytes = r1_bytes.declassify();
+	let mut r0_bytes = b.slice(0, 32).declassify();
+	let mut r1_bytes = b.slice(32, 32).declassify();
 
 	// The specification states:
 	// Set r0 to the low 255 bits of b[ 0..32], taken mod p
@@ -1670,8 +1668,8 @@ intended it to.
 \textbf{Testing:}
 
 When testing our implementation we made two series of tests. 
-One was unit-tests, defined by the IETF-standard which were designed 
-to catch edge-cases in the various functions. Once such test can be 
+One was unit-tests, defined by the IETF-standard, which were designed 
+to catch edge-cases in the various functions. One such test can be 
 seen below, testing if various one-way-maps all map to the same point:
 
 \begin{lstlisting}
@@ -1693,17 +1691,17 @@ fn unit_test_same_point_map() {
 \end{lstlisting}
 
 There were four of these tests in total, testing the one-way-map,
-encoding, and both a positive and a negative test for decoding.  In the
+encoding, and both a positive and a negative test for decoding. In the
 negative test, a series of points must fail to decode to ensure our
 implementation works as intended.
 
-The second series of tests were meant to randomly check if our
-implementation functioned equivalently to the Dalek implementation
-of Ristretto. This was done by making a test for every public
-method, generating a random input and creating equivalent points
-for both implementations, running the same operations and finally
-comparing the results. Below is an example of one of these tests,
-testing that both point negation methods works identically:
+The second series of randomly check if our implementation functioned 
+equivalently to the Dalek implementation of Ristretto. This was done 
+by making a test for every public method, generating a random input 
+and creating equivalent points for both implementations, running the 
+same operations and finally comparing the results. Below is an example
+of one of these tests, testing that both point negation methods works 
+identically:
 
 \begin{lstlisting}
 #[test]
@@ -1727,12 +1725,12 @@ fn test_dalek_point_negation() {
 The \ttvar{create_points()} method uses the one-way-map to generate
 random points, which is also tested individually. We ran each function
 100,000 times each with random input, except for the \ttvar{mul()}
-function which were only run 10,000 times due to it being considerably
-slower. In total these tests took 23,236.58 seconds to complete. The
-relatively few amount of tests, for point multiplication, means it can
-be considered a weak point, as there is greater risk of undiscovered
-edge cases. However, we test edge cases using unit tests so it should
-not be a major issue.
+function which was only run 10,000 times due to it being considerably
+slower. In total, these tests took 23,236.58 seconds to complete. The
+relatively few amount of tests for point multiplication, means it can
+be considered a weak-point, as there is greater risk of undiscovered
+edge cases. However, we test edge cases using unit tests, so it should
+not be a major concern.
 
 \subsection{Implementing Merlin:} \label{implementing-merlin}
 
