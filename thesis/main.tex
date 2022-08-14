@@ -606,7 +606,7 @@ created based on the original bulletproofs paper \cite{bulletproofs}
 as well as the implementation notes from the Dalek-Bulletproofs project
 \cite{dalek}.
 
-\subsection{Inner Product Proof:}
+\subsection{Inner Product Proof:} \label{inner-product-proof}
 A prover, $\P$, wants to prove to a verifier, $\V$, that he has
 knowledge of two vectors $\vec{a}$, $\vec{b}$ and know their inner
 product $\dotp{\vec{a}}{\vec{b}} = c$. The prover could simply send
@@ -838,11 +838,11 @@ $\dotp{\vec{a}}{\vec{b}} = c$:
 
 \subsection{Range Proofs:} \label{range-proofs}
 
-A range-proof is a zero-knowledge proof which seeks to prove that for
+A range proof is a zero-knowledge proof which seeks to prove that for
 some value $v$, $v$ lies within the range of $[0,2^n)$ without revealing
 $v$ or any additional information about $v$, thus zero-knowledge. We
-wish to express this property of $v$ in a single inner product to be
-able to use an inner product proof as described above.
+wish to express this property of $v$ using a single inner product to be
+able to use an inner product proof as described in \ref{inner-product-proof}.
 
 \subsubsection{Prover's Algorithm}\label{prover-range-proofs}
 
@@ -855,7 +855,7 @@ To start, the prover, $\P$, is given the following values:
 	\vec{G}, \vec{H} &\in \G^n \\
 }
 
-$\P$ wishes to convince the verifer, $\V$ that the value, $v$ lies
+$\P$ wishes to convince the verifier, $\V$, that the value, $v$ lies
 within the range $[0,2^n)$.
 
 The first step towards this is for $\P$ to commit to $v$ using
@@ -882,9 +882,8 @@ proven by the following property:
 This property will only hold if $\vec{a}$ has entries that are either
 0 or 1. Due to needing to commit to both $\vec{a}$ and $\vec{a}
 - \vec{1}$, they will henceforth be referred to as $\vecl{a}$
-and $\vecr{a}$ respectively and add another property to show the
-relationship between these two which gives us the following final
-properties:
+and $\vecr{a}$ respectively. Additionally, we add another property to show the
+relationship between these two which gives us the following properties:
 
 \eq{
 	\dotp{\vecl{a}}{\vec{2^n}} = v \\
@@ -892,8 +891,8 @@ properties:
 	(\vecl{a} - \vec{1}) - \vecr{a} = \vec{0}
 }
 
-We wish to combine these properties into a single inner product which
-$\P$ will then prove to $\V$. To do this we observe that $\vec{a}
+We wish to combine these properties into a single inner product, which
+$\P$ will then prove to $\V$. To do this, we observe that $\vec{a}
 = \vec{0} \iff \forall y\in\mathbb{Z}: \dotp{\vec{a}}{\vec{y^n}} =
 \vec{0}$. So $\P$ lets $\V$ chose a random scalar $\ran{y}$ and using
 $\ran{y}$ we get a new set of properties:
@@ -915,11 +914,11 @@ statement:
 	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y}^{\vec{n}}}
 }
 
-With this we have condensed the properties we wish to describe into
-a single statement. We wish to rewrite this as a single inner product
-where $\vecl{a}$ appears only in the first argument of the inner product
-and $\vecr{a}$ appears only in the second argument and all non-secret
-terms are factored out.
+With this, we have condensed the needed properties into a single equation. 
+We wish to rewrite this as a single inner product where $\vecl{a}$ 
+appears only in the first argument of the inner product and $\vecr{a}$ 
+appears only in the second argument and all non-secret terms are factored 
+out.
 
 First we can rewrite the middle term:
 
