@@ -2183,21 +2183,22 @@ a simplified pseudocode representing our implementation of this graph:
 	\caption{Bulletproof algorithm}
 \end{algorithm}
 
-Each of the methods called on lines 3, 5, 8, 10, 12, 14 and 16 are
-located in either the \texttt{party} or \texttt{dealer} modules
-and correspond to the nodes in figure \ref{implementation-graph}
-with the left nodes being the \texttt{party} methods and the right
-nodes being the \texttt{dealer} methods. Each of these methods, in
+The functions called on lines 3, 8, 12 and 16 are from the
+\texttt{dealer} module while the functions called on lines 5, 10
+and 14 are from the \texttt{party} module. Both sets of functions
+corresponding to the nodes in figure \ref{implementation-graph}
+with the left nodes being the \texttt{party} functions and the right
+nodes being the \texttt{dealer} functions. Each of these methods, in
 the simplest terms, compute the values needed and generate the next
-party or dealer-object in the sequence. The names of these have been
-shortened due to formatting, but they correspond types from figure
+party or dealer instance in the sequence. The names of these have been
+shortened due to formatting, but they correspond to types from figure
 \ref{implementation-graph}, with the graph names written as comments
 above the line where they are created. The code we test against uses
 structs to represent the values for each of the different types of
 party and dealer, created by the methods described above. Each dealer
 struct implements the next function required to progress to the next
 \texttt{dealer} type to make, and the same goes for each \texttt{party}
-object. This way of implementing the methods ensures that a potential
+type. This way of implementing the methods ensures that a potential
 user of the crate cannot accidentally perform the steps out of order,
 due to the next step being integrated in the struct provided by the
 previous step.
@@ -2206,58 +2207,54 @@ The first big roadblock we hit while implementing this protocol was the
 immense length it would have. This meant that writing any sort of test
 for the code would require it to be finished in nearly its entirety.
 This resulted in much debugging through printing out values comparing
-them with the Dalek implementation. This was an issue as the library we
-test against, also needed to have print statements. Yet another issue
-with this was the fact that their library has built-in randomness.
-This meant that our code had no way of utilizing the exact same random
-values, something that is vital when comparing the implementations.
-Therefore, we refactored all random values as function inputs in
-their library. This in no way changes the functionality of the Dalek
-implementation, but instead it allows us to control the random values
-it uses, which we can then match to our own, and thus allowing us to
-test against it.
+them with the Dalek implementation. Another issue was the fact that
+their library has built-in randomness. This meant that our code had
+no way of utilizing the exact same random values, something that is
+vital when comparing the implementations. Therefore, we refactored
+all random values as function inputs in their library. This in no way
+changes the functionality of the Dalek implementation, but instead
+it allows us to control the random values it uses, which we can then
+match to our own, and thus allowing us to test against it.
 
 To keep our implementation as simple as possible we only implemented
-what would be equivalent to the \texttt{prove\_multiple\_with\_rng}
-method from the library we test against. We felt this was sufficient
-as the \texttt{prove\_multiple}, \texttt{prove\_single\_with\_rng}
+what would be equivalent to the \texttt{prove\_multiple\_with\_rng()}
+method from the library we test against. We felt this was sufficient as
+the \texttt{prove\_multiple()}, \texttt{prove\_single\_with\_rng()}
 and \texttt{prove\_single} methods would all call
-\texttt{prove\_multiple\_with\_rng} in some way.
+\texttt{prove\_multiple\_with\_rng()} in some way. Outside of a
+few indexing errors and a wrong calculation occasionally, correct
+implementation of these functions was not much of an issue besides how
+long it took to fully implement.
 
-Outside of a few indexing errors and wrong calculation occasionally,
-the implementation of the methods in a way that worked correctly
-was not much of an issue besides how long it took to fully
-implement.
-
-When we began our implementation we made use of tuples to represent our 
-types, however, not using structs caused severe code-bloating since 
-tuples do not implement the \texttt{Copy} trait or \texttt{Clone} 
-method, which caused issues. Not using structs also breaks the property 
-of only being able to perform the steps in the right order, as outlined 
-in figure \ref{implementation-graph}. Therefore, we switched to using 
-structs which can derive the \texttt{clone} method automatically. There
+When we began our implementation we made use of tuples to represent our
+types, however, not using structs caused severe code-bloating since
+tuples do not implement the \texttt{Copy} trait or \texttt{Clone}
+trait. Not using structs also breaks the property of only being
+able to perform the steps in the right order, as outlined in figure
+\ref{implementation-graph}. Therefore, we switched to using structs
+which can derive the \texttt{clone} method automatically. There
 is however one place where our implementation differs from this
-convention. Namely with the \texttt{ProofShare} object. This is due to
+convention. Namely with the \texttt{ProofShare} type. This is due to
 both the dealer and party modules needing direct access to the struct's
 definition, and due to the modular structure of our implementation,
-this was not possible as \texttt{ProofShare} objects created in the
+this was not possible as \texttt{ProofShare} instances created in the
 party module will have type \texttt{party::types::ProofShare} where the
 needed type is \texttt{types::ProofShare}. As such \texttt{ProofShare}
-is a simple type-alias tuple, our original format. This \textit{does} 
-breaks the guarantee that the steps will always be performed in the 
-right order, but this is not a great issue as our implementation is 
-not meant to be used as a library, only for proving properties using 
-Proof Assistants.
+is a simple type-alias tuple. This \textit{does} break the guarantee
+that the steps will always be performed in the right order, but this
+is not a major issue as our implementation is not meant to be used as
+a library, it is only intended for proving properties using proof
+assistants.
 
 Additionally, due to the lack of optimizations our implementation is
 immensely slow, to the point where testing our full implementation
 takes 22 hours to complete, while the equivalent checks for the Dalek
 implementation takes a mere 2 minutes. To remedy this we instead
 utilized a wrapper module to use the Dalek Ristretto implementation
-instead of our own, as was also done when testing the inner
-product proof (section \ref{implementing-inner-product-proof}). This
-significantly boosted the speed of our implementation and thus allowed
-much more rigorous testing.
+instead of our own, as was done when testing the inner product proof
+(section \ref{implementing-inner-product-proof}). This significantly
+increased the speed of our implementation and thus allowed much more
+rigorous testing.
 
 \textbf{Testing:}
 
@@ -2301,14 +2298,11 @@ fn i2j16() {
 ...
 \end{lstlisting}
 
-In order to avoid needing to spend 22 hours per test we instead
-individually tested each part, using the tests described in
-\ref{implementing-ristretto} and \ref{implementing-inner-product-proof}
-and when testing our implementation of Bulletproofs we simply made
-a wrapper, using the much more efficient Dalek Implementation to
-substitute for all the methods that have already been tested. This
-significantly boosted the speed of our implementation and thus allowed
-us to perform more than a single test for each of the 18 input sizes.
+After running a single test for most combinations of $n$ and $m$, to
+test all modules in one test, we replaced the Hacspec Ristretto module
+with our wrapped module. This greatly increased speed and therefore
+the amount of tests run. Below is a table of what tests were done and
+how long they took:
 
 \begin{center}
 \begin{tabular}{ c|c|c|c } 
