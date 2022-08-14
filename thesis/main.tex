@@ -138,28 +138,29 @@ Department of Computer Science, Aarhus University\\
 \subsection*{Abstract:}
 
 {\itshape
-	Bulletproofs is a zero-knowledge range proof protocol. About a
-	year after the release of the Bulletproofs paper, an efficient
-	and optimized implementation was written in Rust. In this thesis
-	we shall describe the implementation of this protocol in the
-	Hacspec specification language. Hacspec allows the programs
+	Bulletproofs is a zero-knowledge range proof protocol. In this
+	thesis we shall describe the implementation of this protocol
+	in Hacspec, a cryptographic specification language, that is
+	defined to be a subset of Rust. Hacspec allows the programs
 	written in it to be transpiled to so-called proof assistants
 	such as Coq, which can be used to prove various properties
-	about the specification. Given the rigorous testing which ensures that
-	the two implementations function identically, the properties
-	proven for our implementation, will also hold for the original
-	Rust implementation.
+	about the specification. We will use rigorous property based
+	testing which will ensure that our implementation functions
+	identically to a much more efficient Rust implementation. Thus,
+	if a property is proven for the Hacspec specification, it is
+	plausible that it also holds for the Rust implementation.
 
 	In section \ref{prerequisites} we will go through the
-	prerequisites required to understand the Bulletproofs protocol
-	as well as a short introduction to Hacspec. In section
-	\ref{bulletproofs} we describe the Bulletproof protocol in
-	detail. In section \ref{our-contributions} we describe the
-	details of how the protocol was implemented in Hacspec. In
-	section \ref{future-work} and \ref{conclusions} we outline
-	the implications of our work, including how it can be used to
-	prove properties about the Rust implementation and how others
-	can use our modules to specify other cryptographic protocols.
+	prerequisites required to understand the Bulletproofs
+	protocol and give a short introduction to Hacspec. In section
+	\ref{bulletproofs} we describe the Bulletproofs protocol in
+	detail. In section \ref{our-contributions} we describe how
+	the protocol was implemented in Hacspec and what testing was
+	done. In section \ref{future-work} and \ref{conclusions}
+	we outline the implications of our work, including how it
+	can be used to prove properties about the equivalent Rust
+	implementations and how others can use our modules to specify
+	other cryptographic protocols.
 }
 
 \subsection*{Acknowledgements:}
@@ -167,10 +168,11 @@ Department of Computer Science, Aarhus University\\
 We would like to express our gratitude and thanks towards all who have
 helped us with making this project possible.
 
-Firstly, we would like to thank Bas Spitters, our supervisor, for
-his guidance and expertise on the subject. Without him this project
-would not have been possible. Secondly, we thank Franziskus Kiefer for
-his helpfulness in answering questions about various Hacspec-related
+Firstly, we would like to thank Bas Spitters, our supervisor,
+for his guidance and expertise on the subject, as well as giving
+us the idea for the project. Without him this project would not
+have been possible. Secondly, we thank Franziskus Kiefer for his
+helpfulness in answering questions about various Hacspec-related
 quirks, issues, as well as being swift in these responses despite
 his large workload. Thirdly, we want to thank Las Safin, who helped
 proofreading and thus make this report more bulletproof. Finally, we
@@ -237,7 +239,7 @@ by discussing possible future work that can be done on the back of
 our work, concluding the overall project.
 
 All the project's Hacpspec code as well as the latex to
-compile this report can be found on our github repository
+compile this report can be found on our GitHub repository
 \cite{hacspec-bulletproofs}.
 
 % NOTE: afprøv hacspec/lead the way for zeroknowledge protocols for hacspec
@@ -1531,21 +1533,20 @@ under Ristretto is constructed in such a way that it eliminates this
 co-factor, which is useful to avoid additional checks and also avoids
 the risk of leaving in exploitable vulnerabilities which utilize the
 co-factor. One such vulnerability was found that affects all CryptoNote
-based cryptocurrencies \cite{cryptonote}.  Ristretto eliminates all of
-these checks and potential vulnerabilities by automatically mapping
-all points on the curve directly into the subset of the curve in the
-operations themselves. Additionally, Ristretto defines equality such
-that equivalent representations of the same point are considered
-equal. In the same vein the encoding function for points, encodes
-equivalent points to the same encoding and by proxy the decoding
+based cryptocurrencies, most notably Monero \cite{cryptonote}. Ristretto
+eliminates all of these checks and potential vulnerabilities by
+automatically mapping all points on the curve directly into the subset
+of the curve in the operations themselves. Additionally, Ristretto
+defines equality such that equivalent representations of the same point
+are considered equal. In the same vein the encoding function for points,
+encodes equivalent points to the same encoding and by proxy the decoding
 function decodes those points to the same point.
 
 For our implementation of bulletproofs, seeing as we needed to test it
 against an existing implementation, we made use of the same elliptic
-curve, as well as gained an understanding of the basics of elliptic
-curve cryptography. The elliptic curve in question is Curve25519,
-which is widely used in encryption as is the case here. Curve25519,
-is defined by the following formula:
+curve. The elliptic curve in question is Curve25519, which is widely
+used in encryption as is the case here. Curve25519, is defined by the
+following formula:
 
 \eq{
 	y^2 = x^3 + 48662x^2 + x
@@ -1574,7 +1575,7 @@ public_nat_mod!(
 );
 \end{lstlisting}
 
-Additionally, the standard, specified a series of constants. These
+Additionally, the standard specified a series of constants. These
 constants were too large to be implemented as integers and Hacspec
 did not allow for the use \texttt{from\_hex()} method. As such, after
 converting each of these constants into their corresponding hex-values,
@@ -1594,88 +1595,82 @@ fn P() -> FieldElement {
 }
 \end{lstlisting}
 
-While it is impossible for a legal point to be encoded and then have the
-decoding on its encoding fail, the decoding method has several checks
-that ensure that the input given is legal. The reason for this
-is that decoding is a method available to the client and as such there
-is no guarantee that the byte-strings they want to decode are legal
-points that they first encoded properly, but could be artificially
-constructed byte-strings. We want to avoid this and thus the standard
-has a list of properties the byte-string input must satisfy for the
-decoding to be canonical and thus give a proper point as a result.
+While it is impossible for a legally encoded point to have its decoding
+fail, the decoding method has several checks that ensure that the input
+given is legal. The reason for this is that decoding is a public method
+and as such there is no guarantee that the inputted byte-strings are
+legal points. To this end the standard defines a list of properties
+that the inputted byte-string must satisfy in order for the decoding
+to be canonical and thus give a proper point as a result.
 
-The IETF-standard was used for the implementation of nearly every
-operation implemented, however, scalar multiplication was not specified,
-however we used the specification from \cite{elliptic-curves}. This
-proved to work perfectly, with the given tests and the IETF-standard
-methods.
-
-Due to the need for comparing points scalars had to be implemented
-using \texttt{public\_nat\_mod!} rather than the more secure
-\texttt{nat\_mod!} which has nearly identical functionality except
-over secret integers. However, since secret integers cannot be compared,
-something that was required by the IETF-standard, we chose to use
-public integers.
-
-Additionally, we ran into two issues with using
-\texttt{public\_nat\_mod!}. The first was one of the checks in decode:
+While the IETF-standard was used for the implementation of nearly every
+operation implemented, the scalar multiplication was not specified,
+therefore we used an algorithm described in \cite{elliptic-curves}. This
+proved to work as intended passing the tests we set up. Due to the
+need for comparing points field elements had to be implemented using
+public integers rather than the more secure secret integers. We also
+ran into an issue with how we had to use the field elements when we
+had to perform a check in the \texttt{decode()} function:
 
 \begin{lstlisting}
-	pub fn decode(u: RistrettoPointEncoded) -> DecodeResult {
+pub fn decode(u: RistrettoPointEncoded) -> DecodeResult {
 	let mut ret = DecodeResult::Err(DECODING_ERROR);
 
 	let s = FieldElement::from_byte_seq_le(u);
 
-	if !geq_p(u.to_le_bytes()) && !is_negative(s)
+	if !geq_p(u.to_le_bytes()) && !is_negative(s) {
+		[...]
+	}
+}
 
-	[...]
+[...]
 
-	fn geq_p(x: Seq<U8>) -> bool {
-		let p_seq = byte_seq!([....]);
-		let mut res = true;
+fn geq_p(x: Seq<U8>) -> bool {
+	let p_seq = byte_seq!([....]);
+	let mut res = true;
 
-		for index in 0..p_seq.len() {
-			let x_index = x[index].declassify();
-			let p_index = p_seq[index].declassify();
-			if x_index != p_index {
-				res = x_index > p_index;
-			}
+	for index in 0..p_seq.len() {
+		let x_index = x[index].declassify();
+		let p_index = p_seq[index].declassify();
+		if x_index != p_index {
+			res = x_index > p_index;
 		}
-		res
+	}
+	res
 }
 \end{lstlisting}
 
-This check involves checking to see if the input byte sequence, if
-interpreted as a field element, is larger than $p$. This is naturally
-not possible to do directly given that all field elements in our
-implementation are integers mod $p$. As such it is done in this manner
-to circumvent this issue.
+This check involves checking to see if the input byte sequence,
+if interpreted as a field element, is larger than $p$. This is
+naturally not possible to do directly, since all field elements in
+our implementation are integers mod $p$. As such it is done in this
+manner to circumvent this issue.
 
 Another, issue we encountered was in the implementation of the one-way
-map, in which, we must mod the 255 least significant bits of both halves
-of a ByteString object. However, the two halves of the ByteString are
-each 256 bits. This means that the most significant bit must be set
-to 0, therefore we mod the most significant byte by 128:
+map, where we must mod the 255 least significant bits of both halves
+of the split 512 bits. However, the two halves of our bytestring are
+each 256 bits, so the most significant bit must be set to 0, therefore
+we mod the most significant byte by 128:
 
 \begin{lstlisting}
-	pub fn one_way_map(b: ByteString) -> RistrettoPoint {
-		let r0_bytes = b.slice(0, 32);
-		let r1_bytes = b.slice(32, 32);
+pub fn one_way_map(b: ByteString) -> RistrettoPoint {
+	let r0_bytes = b.slice(0, 32);
+	let r1_bytes = b.slice(32, 32);
 
-		let mut r0_bytes = r0_bytes.declassify();
-		let mut r1_bytes = r1_bytes.declassify();
+	let mut r0_bytes = r0_bytes.declassify();
+	let mut r1_bytes = r1_bytes.declassify();
 
-		// The specification states:
-		// Set r0 to the low 255 bits of b[ 0..32], taken mod p
-		// Set r1 to the low 255 bits of b[32..64], taken mod p
-		// Note the low 255 bits. NOT 256 bits! This is why we mod the most significant byte
-		r0_bytes[31] = r0_bytes[31] % 128u8;
-		r1_bytes[31] = r1_bytes[31] % 128u8;
+	// The specification states:
+	// Set r0 to the low 255 bits of b[ 0..32], taken mod p
+	// Set r1 to the low 255 bits of b[32..64], taken mod p
+	// Note the low 255 bits. NOT 256 bits! This is why we mod the most significant byte
+	r0_bytes[31] = r0_bytes[31] % 128u8;
+	r1_bytes[31] = r1_bytes[31] % 128u8;
 
-		let r0 = FieldElement::from_public_byte_seq_le(r0_bytes);
-		let r1 = FieldElement::from_public_byte_seq_le(r1_bytes);
+	let r0 = FieldElement::from_public_byte_seq_le(r0_bytes);
+	let r1 = FieldElement::from_public_byte_seq_le(r1_bytes);
 
-	[...]
+[...]
 \end{lstlisting}
 
 This interaction was tested thoroughly to ensure it functions as we 
@@ -1689,31 +1684,31 @@ to catch edge-cases in the various functions. Once such test can be
 seen below, testing if various one-way-maps all map to the same point:
 
 \begin{lstlisting}
-	#[test]
-	fn unit_test_same_point_map() {
-		let input_hexs = Seq::<&str>::from_vec(vec![
-			"edffff [...] 000000",
-			"edffff [...] ffffff",
-			"000000 [...] ffff7f",
-			"000000 [...] 000080",
-		]);
-		let result_hex = "30428 [...] cb8e5ef0517f";
-		let result_point = decode(RistrettoPointEncoded::from_hex(result_hex)).unwrap();
-	
-		input_hexs
-			.iter()
-			.for_each(|x| assert!(equals(result_point, one_way_map(ByteString::from_hex(x)))))
-	}
+#[test]
+fn unit_test_same_point_map() {
+	let input_hexs = Seq::<&str>::from_vec(vec![
+		"edffff [...] 000000",
+		"edffff [...] ffffff",
+		"000000 [...] ffff7f",
+		"000000 [...] 000080",
+	]);
+	let result_hex = "30428 [...] cb8e5ef0517f";
+	let result_point = decode(RistrettoPointEncoded::from_hex(result_hex)).unwrap();
+
+	input_hexs
+		.iter()
+		.for_each(|x| assert!(equals(result_point, one_way_map(ByteString::from_hex(x)))))
+}
 \end{lstlisting}
 
 There were four of these tests in total, testing the one-way-map,
-encoding, and both a positive and a negative test for decoding.
-In the negative test, decoding must fail to ensure our 
-implementation works as intended. 
+encoding, and both a positive and a negative test for decoding.  In the
+negative test, a series of points must fail to decode to ensure our
+implementation works as intended.
 
 The second series of tests were meant to randomly check if our
-implementation functioned equivalently to the Rust implementation
-of Ristretto25519. This was done by making a test for every public
+implementation functioned equivalently to the Dalek implementation
+of Ristretto. This was done by making a test for every public
 method, generating a random input and creating equivalent points
 for both implementations, running the same operations and finally
 comparing the results. Below is an example of one of these tests,
@@ -1722,33 +1717,31 @@ testing that both point negation methods works identically:
 \begin{lstlisting}
 #[test]
 fn test_dalek_point_negation() {
-    fn helper(v: Vec<u8>) -> TestResult {
-        if v.len() < 64 {
-            return TestResult::discard();
-        }
+	fn helper(v: Vec<u8>) -> TestResult {
+		if v.len() < 64 {
+			return TestResult::discard();
+		}
 
-        let (hac_pnt, dal_pnt) = create_points(v);
+		let (hac_pnt, dal_pnt) = create_points(v);
 
-        let hac_neg = neg(hac_pnt);
-        let dal_neg = dal_pnt.neg();
+		let hac_neg = neg(hac_pnt);
+		let dal_neg = dal_pnt.neg();
 
-        TestResult::from_bool(cmp_points(hac_neg, dal_neg))
-    }
-    quickcheck(100, helper as fn(Vec<u8>) -> TestResult)
+		TestResult::from_bool(cmp_points(hac_neg, dal_neg))
+	}
+	quickcheck(100, helper as fn(Vec<u8>) -> TestResult)
 }
 \end{lstlisting}
 
 The \texttt{create\_points()} method uses the one-way-map to generate
 random points, which is also tested individually. We ran each function
-10,000 times each with random input, except for the \texttt{mul()}
-function which were only run 1,000 times due to it being considerably
-slower. In total these tests took 1,957.14 seconds to complete. The
-relatively few amount of tests, compared to the other modules, means
-this module has the least amount of equivalence tests run, which means
-it serves as a weak point, as there is greater risk of undiscovered
-edge cases. However, the fact that it was directly implemented from
-an IETF-standard, including relevant unit tests, does mediate this
-weakness.
+100,000 times each with random input, except for the \texttt{mul()}
+function which were only run 10,000 times due to it being considerably
+slower. In total these tests took 23,236.58 seconds to complete. The
+relatively few amount of tests, for point multiplication, means it can
+be considered a weak point, as there is greater risk of undiscovered
+edge cases. However, we test edge cases using unit tests so it should
+not be a major issue.
 
 \subsection{Implementing Merlin:} \label{implementing-merlin}
 
