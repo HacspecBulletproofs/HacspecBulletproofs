@@ -2307,29 +2307,29 @@ to run. Below is a table of what tests were done and how long they took:
 \begin{center}
 \begin{tabular}{ c|c|c|c } 
 	& Using Hacspec Ristretto & Using Dalek Ristretto & Times faster\\ \hline\hline
-	$n = 8, m = 2$    & 420.02 s     & 0.57  & 736.84 \\ \hline 
-	$n = 16, m = 2$   & 809.14 s     & 0.97  & 834.16 \\ \hline 
-	$n = 32, m = 2$   & 1,563.87 s   & 1.83  & 854.57 \\ \hline 
-	$n = 64, m = 2$   & 2,073.97 s   & 3.56  & 582.57 \\ \hline 
+	$m = 2, n = 8 $    & 420.02 s     & 0.57  & 736.84 \\ \hline 
+	$m = 2, n = 16 $   & 809.14 s     & 0.97  & 834.16 \\ \hline 
+	$m = 2, n = 32 $   & 1,563.87 s   & 1.83  & 854.57 \\ \hline 
+	$m = 2, n = 64 $   & 2,073.97 s   & 3.56  & 582.57 \\ \hline 
 	\hline\hline
-	$n = 8, m = 4$    & 823.68 s     & 0.97  & 849.15 \\ \hline 
-	$n = 16, m = 4$   & 1,585.96 s   & 1.79  & 886.01 \\ \hline 
-	$n = 32, m = 4$   & 3,075.16 s   & 3.32  & 926.25 \\ \hline 
-	$n = 64, m = 4$   & 6,107.19 s   & 6.55  & 932.39 \\ \hline 
+	$m = 4, n = 8$    & 823.68 s     & 0.97  & 849.15 \\ \hline 
+	$m = 4, n = 16$   & 1,585.96 s   & 1.79  & 886.01 \\ \hline 
+	$m = 4, n = 32$   & 3,075.16 s   & 3.32  & 926.25 \\ \hline 
+	$m = 4, n = 64$   & 6,107.19 s   & 6.55  & 932.39 \\ \hline 
 	\hline\hline
-	$n = 8, m = 8$    & 1,624.98 s   & 1.85  & 878.36 \\ \hline 
-	$n = 16, m = 8$   & 3,127.60 s   & 3.49  & 896.16 \\ \hline 
-	$n = 32, m = 8$   & 6,114.07 s   & 6.63  & 922.18 \\ \hline 
-	$n = 64, m = 8$   & 10,418.94 s  & 12.69 & 821.03 \\ \hline 
+	$m = 8, n = 8$    & 1,624.98 s   & 1.85  & 878.36 \\ \hline 
+	$m = 8, n = 16$   & 3,127.60 s   & 3.49  & 896.16 \\ \hline 
+	$m = 8, n = 32$   & 6,114.07 s   & 6.63  & 922.18 \\ \hline 
+	$m = 8, n = 64$   & 10,418.94 s  & 12.69 & 821.03 \\ \hline 
 	\hline\hline
-	$n = 8, m = 16$   & 3,191.85 s   & 3.63  & 879.29 \\ \hline 
-	$n = 16, m = 16$  & 6,209.07 s   & 7.20  & 862.37 \\ \hline 
-	$n = 32, m = 16$  & 12,246.25 s  & 13.56 & 903.11 \\ \hline 
-	$n = 64, m = 16$  & 24,303.13 s  & 26.06 & 932.58 \\ \hline 
+	$m = 16, n = 8$   & 3,191.85 s   & 3.63  & 879.29 \\ \hline 
+	$m = 16, n = 16$  & 6,209.07 s   & 7.20  & 862.37 \\ \hline 
+	$m = 16, n = 32$  & 12,246.25 s  & 13.56 & 903.11 \\ \hline 
+	$m = 16, n = 64$  & 24,303.13 s  & 26.06 & 932.58 \\ \hline 
 	\hline\hline
-	$n = 64, m = 32$  & 39,100.84 s  & 41.70 & 937.67 \\ \hline 
+	$m = 32, n = 64$  & 39,100.84 s  & 41.70 & 937.67 \\ \hline 
 	\hline\hline
-	$n = 64, m = 64$  & 67,508.52 s  & 64.59 & 1,045.18 \\ \hline 
+	$m = 64, n = 64$  & 67,508.52 s  & 64.59 & 1,045.18 \\ \hline 
 \end{tabular}
 \end{center}
 
@@ -2342,7 +2342,8 @@ thoroughly tested as we would have liked, which makes the property of
 equivalence between the Bulletproof implementations weaker compared to 
 the other specifications. This is mediated by how comprehensive the 
 protocol is, meaning a single randomized test passing is good evidence 
-to support that the code functions properly for that combination of $n$
+to 
+support that the code functions properly for that combination of $n$
 and $m$. With 5,000 tests we have 200 tests for each combination of
 inputs on average.
 
