@@ -1754,13 +1754,21 @@ allowing the algorithm to commit or receive challenge scalars from the
 transcript. This allows for simpler code that is less error-prone than
 if the Fiat-Shamir heuristic were done without it.
 
-Most of the work was implementing \texttt{strobe}. There were no great
-difficulties in translating most functions, except that the
-\texttt{Strobe} type could not be mutably modified. Therefore, in our
-implementation we return a strobe object in each function instead of
-taking one as argument and modifying it. Since all operations needed
-were supported by the Secret Integer Hacspec type, we naturally used
-this type over the less secure Public Integers.
+The merlin library implements supports four functions: \texttt{new()}
+used for transcript instantiation, \texttt{append\_message()} used for
+appending a byte sequence to the transcript, \texttt{append\_U64()}
+for appending a 64-bit secret integer to the transcript and finally
+\texttt{challenge\_bytes()} for getting challenge bytes that can be
+converted to whatever challenge type needed.
+
+As most of these functions simply call a few Strobe functions, most
+of the work consisted of implementing the \texttt{strobe} subset
+used in Merlin. There were no great difficulties in translating most
+functions, except that the \texttt{Strobe} type could not be mutably
+modified. Therefore, in our implementation we return a strobe object in
+each function instead of taking one as argument and modifying it. Since
+all operations needed were supported by the Secret Integer Hacspec type,
+we naturally used this type over the less secure Public Integers.
 
 Merlin uses Keccakf1600 for its hashing, fortunately this cryptographic
 function was already defined in SHA-3 Hacspec library. We ran into
@@ -1834,7 +1842,7 @@ fn merl_test_all_funcs() {
 		buf.resize(buf_size as usize, 0);
 
 		t1 = append_message(t1, b("msg"), to_seq(msg.clone()));
-		t1 = append_u64(t1, b("n"), U64::classify(n));
+		t1 = append_U64(t1, b("n"), U64::classify(n));
 
 		t2.append_message(b"msg", &msg);
 		t2.append_u64(b"n", n);
