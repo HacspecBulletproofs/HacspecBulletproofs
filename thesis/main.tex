@@ -146,7 +146,7 @@ Department of Computer Science, Aarhus University\\
 	written in it to be transpiled to so-called proof assistants
 	such as Coq, which can be used to prove various properties
 	about the specification. Given the rigorous testing which ensures that
-	the two implementations function identically, The properties
+	the two implementations function identically, the properties
 	proven for our implementation, will also hold for the original
 	Rust implementation.
 
@@ -1761,13 +1761,13 @@ allowing the algorithm to commit or receive challenge scalars from the
 transcript. This allows for simpler code that is less error-prone than
 if the Fiat-Shamir heuristic were done without it.
 
-Most of the work was implementing strobe. There were no great
+Most of the work was implementing \texttt{strobe}. There were no great
 difficulties in translating most functions, except that the
 \texttt{Strobe} type could not be mutably modified. Therefore, in our
 implementation we return a strobe object in each function instead of
 taking one as argument and modifying it. Since all operations needed
 were supported by the Secret Integer Hacspec type, we naturally used
-this over the less secure Public Integers.
+this type over the less secure Public Integers.
 
 Merlin uses Keccakf1600 for its hashing, fortunately this cryptographic
 function was already defined in SHA-3 Hacspec library. We ran into
@@ -1817,16 +1817,16 @@ fn transmute_state_to_u8(state: StateU64) -> StateU8 {
 
 Although this method is significantly slower, it's not a big problem
 as the overall runtime of this module is quite fast compared to other
-modules, namely the Ristretto module. It is therefore not a great
+modules, namely the Ristretto module. It is therefore not a detrimental
 bottleneck.
 
 \textbf{Testing:}
 
-For testing the library we created one test that runs
+For testing the library we created a single test that runs
 the \texttt{append\_message()}, \texttt{append\_u64()} and
-\texttt{challenge\_bytes()} for both implementations and asserts that
-the challenge bytes returned are equivalent. These functions are
-sufficient to test equivalence as these three functions utilizes all
+\texttt{challenge\_bytes()} methods for both implementations and asserts
+that the challenge bytes returned are equivalent between implementations. 
+These functions are sufficient to test equivalence as they utilize all
 other functions implemented. The entire test can be seen below:
 
 \begin{lstlisting}
@@ -1939,8 +1939,8 @@ implemented in pseudocode. Note that we index at 1:
 \end{algorithm}
 
 We tried to find a way to incorporate the linear algebra library into
-our implementation, but this turned out to be bothersome. Lines 13-16
-are run in a for-loop, but although less efficient, it would be more
+our implementation, but this turned out to be cumbersome. Lines 13-16
+are run in a for-loop. Although less efficient, it would be more
 clear to have $\vec{a}, \vec{b}, \vec{G}, \vec{H},$ calculated using
 built-in linear algebra functions. If we take the actual implementation:
 
@@ -1954,7 +1954,7 @@ for i in 0..n {
 \end{lstlisting}
 
 We could rewrite this with vector operations, but this would not
-necessarily mean it's more clear. Take for example
+necessarily make the code more readable. Take for example
 
 \begin{lstlisting}
 a_L = v_add(v_scale(u, a_L), v_scale(u_inv, a_R));
@@ -1964,9 +1964,10 @@ H_L = v_p_add(v_p_mul(u, H_L), v_p_mul(u_inv, H_R));
 \end{lstlisting}
 
 Where \texttt{v\_} indicates a vector operation and \texttt{p\_}
-indicates a point operation. Having this many nested functions impacts
-readability, but supposing that we could define the multiplicative
-and additive operators for types like it would be possible in Rust:
+indicates a point operation. Having this many nested functions negatively 
+impacts readability, but supposing that we could define the multiplicative
+and additive operators for types in Hacspec, as we would be able to in 
+Rust this would simplify to:
 
 \begin{lstlisting}
 a_L = a_L * u     + u_inv * a_R;
@@ -1976,25 +1977,30 @@ H_L = H_L * u     + u_inv * H_R;
 \end{lstlisting}
 
 This is indeed more intuitive and closer to the math, but it
-is not possible in Hacspec due to the absence of structs. While
-Hacspec supports limited structs, it does \textit{not} support the
-\texttt{impl} keyword needed for this, and it is at least not on the
-roadmap currently, and may not ever be incorperated. Even if this were
-solved by introducing limited structs we would still have to deal with
-the fact that linear algebra operations are defined over two vectors
-of the \textit{same} type. This could be solved by extending the
-hypothetical linear algebra vector struct as a sort of helper function.
+is not possible in Hacspec. While Hacspec supports limited structs, 
+it does \textit{not} support the \texttt{impl} keyword required for the 
+example shown above, and its implementation is not currently on the 
+development roadmap for Hacspec, and may not ever be incorporated. 
+%NOTE: Muligvis kig på resten af det her afsnit herfra
+Even if this were solved by introducing limited binary operators for 
+structs we would still have to deal with the fact that linear algebra 
+operations are defined over two vectors of the \textit{same} type. This 
+could be solved by extending the hypothetical linear algebra vector 
+struct with a helper function that can multiply a vector by a scalar.
 
 In our implementation we also have the inputs \texttt{G\_factors}
-and \texttt{H\_factors}, which is simply factors applied to $\vec{G}$
-and $\vec{H}$ respectively. We have these as the Dalek implementation
-also have this input because they make optimizations which make the code
-faster than simply multiplying them on before running the function. We
-chose for our implementation to take them as an input, so that the
-two functions take the same arguments, but to apply the factors before
-running the loop as it simplifies and shortens the code. Furthermore,
-the performance increase, while noticeable was not significant compared
-to other bottlenecks. The file structure here is notable:
+and \texttt{H\_factors}, which are simply factors applied to $\vec{G}$
+and $\vec{H}$ respectively. The reason for having these inputs is 
+because  the Dalek implementation also have this input. They have 
+optimizations which make the code faster than if they simply multiply 
+the factors on before running the function. We chose for our 
+implementation to take them as an input, so that the two functions 
+take the same arguments, however we apply the factors before running 
+the loop as it simplifies and shortens the code. The performance
+increase resulting from this, while noticeable, was not significant 
+compared to other bottlenecks. 
+
+Another aspect of this library worth noting is the file structure:
 
 \begin{forest}
 	for tree={
@@ -2032,66 +2038,71 @@ to other bottlenecks. The file structure here is notable:
 ]
 \end{forest}
 
-We created a \texttt{transcript.rs} file that implemented wrapper
-functions over the Fiat-Shamir heuristic introduced by the Merlin
-library. This file needed access to defined errors needed access to
-the same errors as the \texttt{transcript.rs} file. Normally in Rust
-the solution would be: 
+We created a \texttt{transcript.rs} file which implements wrapper
+functions over the Fiat-Shamir heuristic using the Merlin
+library (see section \ref{implementing-merlin}). This file needs 
+access to the same defined errors as the \texttt{ipp.rs} file. 
+Normally in Rust the solution would be: 
 
 \begin{lstlisting}
 use crate::errors::*;
 \end{lstlisting}
 
-But this is not valid Hacspec code, so we resorted to:
+But as this is not valid Hacspec code, as the only file allowed to 
+access modules in this library's src folder is \texttt{ipp.rs}. To
+solve this we resorted to following:
 
 \begin{lstlisting}
 mod errors;
 use errors::*;
 \end{lstlisting}
 
-And creating the \textbf{transcript} folder with a symbolic link
+We created the \textbf{transcript} folder with a symbolic link
 \texttt{\textit{errors.rs}} $\rightarrow$ \texttt{errors.rs}. This
 lets both \texttt{ipp.rs} and \texttt{transcript.rs} access the
 \texttt{errors.rs} file without code duplication. This approach is not
 ideal, but we have been unable to find any functional issues with it. If
 there should come objections during the merge process it could be solved
-using code duplication or by copying the error constants to both files.
+using code duplication or by reducing modularization by having all the 
+methods in a single file.
 
 \textbf{Testing:}
 
 To test the inner product one big function was created. Only one
-function was really needed as this function both asserts that our
-constructs valid proofs by succeeding the verification check on valid
+function is needed as this function both asserts that our implementation
+constructs valid proofs by passing the verification check on valid
 inputs and that the output of each public function matches that of the
 Dalek implementation. This function creates an inner product for
 both implementations using random values for $\vec{a}, \vec{b}, \vec{G},
-\vec{H}, Q, n$ where $n$ is selected as a power of two. QuickCheck
-was not used for this randomness, as there is a significant amount of
-random values to be generated and with specific requirements.
+\vec{H}, Q, n$ where $n$ is randomly selected as a power of two. 
+QuickCheck was not used for this randomness, as there is a significant 
+amount of random values to be generated and with specific requirements.
 
 Since the $n \in \{2, 4, 8, 16, 32, 64\}$ is chosen randomly some tests
 take longer since there are exponentially longer loops. While $n$
 could be almost arbitrarily large having \textit{very} large inputs does
-not help much more, hence the limited range for $n$. Various helper
-functions were also created to convert between types, so we could more
-simply convert the random data to each respective implementation types.
+not help much more in proving the equivalence property, hence the 
+limited range for $n$. Various helper functions were also created to 
+convert between types, so we could easily convert the random data to 
+each respective implementation types.
 
 As the inner product part of the Dalek implementation is not publically
-exposed we forked the library, simply changing the functions to be
+exposed we had to fork the library, to simply change the functions to be
 globally public instead of merely public within the crate. No other
-changes were made to the library to ensure it worked as closely to
+changes were made to the library to ensure it worked identically to
 the actual Dalek implementation.
 
-The tests are quite slow, reducing the guarantee that the two
-implementations are equivalent. To remedy this, a wrapper library was
-created that implements the same functions as our hacspec Ristretto
-specification, but for each operation it simply calls functions from
-the Dalek Ristretto crate. This still gives us equivalence guarantees,
-as we have already tested our Hacspec Ristretto specification against
-the Dalek Ristretto implementation. This leads to much more rigorous
-testing, as it causes \textit{significant} performance increases. The
-table below compares runtimes using our Hacspec Ristretto
-module and the external Dalek Ristretto module:
+The tests using our full implementation are quite slow, reducing the 
+guarantee that the two implementations are equivalent, due to us not 
+being able to run as many tests as we would like. To remedy this, 
+a wrapper library was created which implements the same functions as 
+our Hacspec Ristretto specification, but for each operation it simply 
+calls functions from the Dalek Ristretto crate. This still gives us 
+equivalence guarantees, as we have already tested our Hacspec Ristretto 
+specification against the Dalek Ristretto implementation. This lead to 
+much more rigorous testing, as it caused a \textit{significant} 
+performance increases. The table below compares runtimes using our 
+Hacspec Ristretto module and the wrapper for the Dalek Ristretto library:
 
 \begin{center}
 \begin{tabular}{ c|c|c } 
