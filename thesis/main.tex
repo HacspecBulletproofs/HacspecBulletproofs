@@ -256,8 +256,8 @@ A table of notation used throughout this report:
 	$\vec{a}$                   & A vector \\
 	$A$                         & A curve point \\
 	$\vec{A}$                   & A vector of curve points \\
-	$\ran{a}$                   & A scalar random variable \\
-	$\vecran{a}$                & A vector of scalar random variables \\
+	$\ran{a}$                   & A challenge scalar \\
+	$\vecran{a}$                & A vector of challenge scalars \\
 	$\vecran{A}$                & A vector of random curve points \\
 	$\vec{A}_{[b : c]}$            & The slice $[A_b, A_{b+1}, \cdots  A_{c-1}]$ \\ 
 	$\veclo{a}$                 & The first half of vector $\vec{a}$, ($\veclo{a} = [a_{1}, \cdots, a_{n/2}]$) \\
@@ -982,19 +982,19 @@ be constructed using $\vec{l_0}$ and $\vec{r_0}$ in a way that blinds
 them, while still allowing $\P$ to prove to $\V$ that $v$ lies in
 $[0,2^n)$.
 
-First $\P$ chooses random blinding factors $\vecran{s_L}$ and
-$\vecran{s_R}$ such that $\vecl{s},\vecr{s}\in \Z^n_p$. Using these
-$\P$ can construct $\vec{l_1} = \vecl{s}$ and $\vec{r_1} = \vecr{s}\circ \vec{\ran{y}^n}$, 
-and with these, $\P$ constructs two vector-function $\vec{l}(x)$ and $\vec{r}(x)$
-in the following way:
+First $\P$ chooses random blinding factors $\vecl{\blind{s}}$ and
+$\vecr{\bs}$ such that $\vecl{\bs},\vecr{\bs}\in \Z^n_p$. Using
+these $\P$ can construct $\vec{l_1} = \vecl{\bs}$ and $\vec{r_1} =
+\vecr{\bs}\circ \vec{\ran{y}^n}$, and with these, $\P$ constructs two
+vector-function $\vec{l}(x)$ and $\vec{r}(x)$ in the following way:
 
 \eq{
 	\vec{l}(x) &= \vec{l_0} + \vec{l_1}x \\ 
-	&= (\vecl{a} - \ran{z}\vec{1}) + \vecl{s}x \\ 
-	&= (\vecl{a} + \vecl{s}x) - \ran{z}\vec{1}\\&\\
+	&= (\vecl{a} - \ran{z}\vec{1}) + \vecl{\bs}x \\ 
+	&= (\vecl{a} + \vecl{\bs}x) - \ran{z}\vec{1}\\&\\
 	\vec{r}(x) &= \vec{r_0} + \vec{r_1}x \\ 
-	&= (\ran{z^2}\vec{2^n} + (\vecr{a} + \ran{z}\vec{1})\circ\vecran{y}^{\vec{n}}) + \vecr{s}x\circ\vecran{y}^{\vec{n}} \\ 
-	&= ((\vecr{a} + \vecr{s}x) + \ran{z}\vec{1}) \circ \vecran{y}^{\vec{n}} + \ran{z}^2\vec{2^n}
+	&= (\ran{z^2}\vec{2^n} + (\vecr{a} + \ran{z}\vec{1})\circ\vecran{y}^{\vec{n}}) + \vecr{\bs}x\circ\vecran{y}^{\vec{n}} \\ 
+	&= ((\vecr{a} + \vecr{\bs}x) + \ran{z}\vec{1}) \circ \vecran{y}^{\vec{n}} + \ran{z}^2\vec{2^n}
 }
 
 Now $\P$ can construct $t(x)$ as follows:
@@ -1044,15 +1044,15 @@ Next $\P$ wishes to convince $\V$ that $\vec{l}(x)$ and
 $\vec{r}(x)$ are both constructed correctly and that $t(x) =
 \dotp{\vec{l}(x)}{\vec{r}(x)}$. To achieve this $\P$ will use a similar
 construction as seen above. We want $\P$ to make commitments that allows
-$\V$ to relate $\vec{l}(x)$ and $\vec{r}(x)$ to $\vecl{a}, \vecl{s},
-\vecr{a}$ and $\vecr{s}$. It is not that simple, however. As seen here:
+$\V$ to relate $\vec{l}(x)$ and $\vec{r}(x)$ to $\vecl{a}, \vecl{\bs},
+\vecr{a}$ and $\vecr{\bs}$. It is not that simple, however. As seen here:
 
 \eq{
-	\vec{r}(x) = \ran{z^2}\vec{2^n} + ((\vecr{a} + \vecr{s}x) + \ran{z}\vec{1})\circ\vecran{y}^{\vec{n}}
+	\vec{r}(x) = \ran{z^2}\vec{2^n} + ((\vecr{a} + \vecr{\bs}x) + \ran{z}\vec{1})\circ\vecran{y}^{\vec{n}}
 }
 
 This means we want $\P$ to make commitments to $\vec{\ran{y}^n}\circ
-\vecr{a}$ and $\vec{\ran{y}^n}\circ\vecr{s}$. This is a problem as these
+\vecr{a}$ and $\vec{\ran{y}^n}\circ\vecr{\bs}$. This is a problem as these
 commitments need to be made and sent to $\V$ \textit{before} $\P$
 gets the challenge $\ran{y}$ from $\V$. To fix this issue $\P$ will
 make a special commitment to $\vecl{a}$ and $\vecr{a}$ as follows:
@@ -1061,8 +1061,8 @@ make a special commitment to $\vecl{a}$ and $\vecr{a}$ as follows:
 	C(\vecl{a}, \vecr{a}, \ba) = \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecr{a}}{\vec{H}} + \ba\bB
 }
 
-This same construction is used for the commitment to $C(\vecl{s},
-\vecr{s}, \bs)$. Here we notice that:
+This same construction is used for the commitment to $C(\vecl{\bs},
+\vecr{\bs}, \bs)$. Here we notice that:
 
 \eq{
 	C(\vecl{a}, \vecr{a}, \ba) &= \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecr{a}}{\vec{H}} + \ba\bB \\
@@ -1070,13 +1070,13 @@ This same construction is used for the commitment to $C(\vecl{s},
 }
 
 We define $\vec{H'} = \vecran{y^{-n}}\circ\vec{H}$, $A =
-C(\vecl{a},\vecr{a}, \ba)$ and $S = C(\vecl{s}, \vecr{s},
+C(\vecl{a},\vecr{a}, \ba)$ and $S = C(\vecl{\bs}, \vecr{\bs},
 \bs)$ and can now construct our argument similarly to what
 was done in the previous segment:
 
 \eq{
-	\dotp{\vec{l}(\ran{x})}{\vec{G}} &= \dotp{\vecl{a}}{\vec{G}} &&+ \ran{x}\dotp{\vecl{s}}{\vec{G}} &&+ \dotp{-\ran{z}\vec{1}}{\vec{G}} \\
-	\dotp{\vec{r}(\ran{x})}{\vec{H'}} &= \dotp{\vecr{a}}{\vec{H}} &&+ \ran{x}\dotp{\vecr{s}}{\vec{H}} &&+ \dotp{\ran{z}\vecran{y}^{\vec{n}} + \ran{z^2}\vec{2^n}}{\vec{H'}}\\
+	\dotp{\vec{l}(\ran{x})}{\vec{G}} &= \dotp{\vecl{a}}{\vec{G}} &&+ \ran{x}\dotp{\vecl{\bs}}{\vec{G}} &&+ \dotp{-\ran{z}\vec{1}}{\vec{G}} \\
+	\dotp{\vec{r}(\ran{x})}{\vec{H'}} &= \dotp{\vecr{a}}{\vec{H}} &&+ \ran{x}\dotp{\vecr{\bs}}{\vec{H}} &&+ \dotp{\ran{z}\vecran{y}^{\vec{n}} + \ran{z^2}\vec{2^n}}{\vec{H'}}\\
 	\be\bB &= \ba\bB &&+ \ran{x}\bs\bB &&+ 0 \bB \\
 	\dotp{\vec{l}(\ran{x})}{\vec{G}} + \dotp{\vec{r}(\ran{x})}{\vec{H'}} + \be\bB &= A &&+ \ran{x}S &&+ (\dotp{\ran{z}\vecran{y}^{\vec{n}} + \ran{z^2}\vec{2^n}}{\vec{H'}} - \ran{z}\dotp{\vec{1}}{\vec{G}})
 }
@@ -1147,7 +1147,7 @@ complete.
 
 Additionally, by looking at the transcript one can deduce that the
 only way for $\P$ to construct $A$ and $V$ such that they can convince
-$\V$ that v lies in the range, would be if they can correctly guess
+$\V$ that $v$ lies in the range, would be if they can correctly guess
 \textit{all} three challenge scalars, $\ran{y}, \ran{z}$ and $\ran{x}$
 in order to 'cheat'. This happens with a probability so small it is
 entirely negligible, and thus the proof is also sound.
@@ -1160,7 +1160,7 @@ cannot learn anything about $v$ from $V$ without knowledge of $\bv$
 which $\V$ does not know. If we look at the definition of $t(\ran{x})B$ 
 we can see that it DOES use $v$ in the calculation directly. However,
 the definition of $t(x)$ uses $t_2$, which is blinded using
-$\vecran{s_L}$ and $\vecran{s_R}$ neither of which $\V$ has any way
+$\vecl{\bs}$ and $\vecr{\bs}$ neither of which $\V$ has any way
 to access. Additionally, $t_1$ also uses the definition of $t_2$ and
 thus is \textit{also} cannot be inferred. Thus, there is no amount
 of calculations that $\V$ can do to figure out anything about $v$
@@ -1257,7 +1257,7 @@ we know that $z_{(j)} = z^j$ we can make a small rewrite:
 
 \eq{
 	t(\ran{x})B + \bt (\ran{x})\bB \stackrel{?}{=}
-	\sum^{m-1}_{j = 0} \ran{z^{j+2}} \cdot V_{(j)} +
+	\sum^{m-1}_{j = 0} \ran{z}^{j+2} \cdot V_{(j)} +
 	\delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
 }
 
@@ -1294,7 +1294,7 @@ Additionally, $\D$ can construct the following:
 
 \eq{
 	\vecran{y}^{\vec{n}}_{(j)} &= \vecran{y}^{\vec{n \cdot m}}_{[j \cdot n : (j+1) \cdot n]}\\
-	\ran{z_{(j)}}      &= \ran{z^j}\\
+	\ran{z}_{(j)}      &= \ran{z}^j\\
 	\be      &= \sum^{m-1}_{j = 0} \be_{(j)}\\
 	A                  &= \sum^{m-1}_{j = 0} A_{(j)}\\
 	S                  &= \sum^{m-1}_{j = 0} S_{(j)}
