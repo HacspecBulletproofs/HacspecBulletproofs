@@ -1984,7 +1984,7 @@ struct with a helper function that can multiply a vector by a scalar.
 In our implementation we also have the inputs \texttt{G\_factors}
 and \texttt{H\_factors}, which are simply factors applied to $\vec{G}$
 and $\vec{H}$ respectively. The reason for having these inputs is 
-because  the Dalek implementation also have this input. They have 
+because the Dalek implementation also have this input. They have 
 optimizations which make the code faster than if they simply multiply 
 the factors on before running the function. We chose for our 
 implementation to take them as an input, so that the two functions 
@@ -2098,14 +2098,14 @@ performance increases. The table below compares runtimes using our
 Hacspec Ristretto module and the wrapper for the Dalek Ristretto library:
 
 \begin{center}
-\begin{tabular}{ c|c|c } 
-          & Using Hacspec Ristretto & Using Dalek Ristretto \\ \hline\hline
- $n = 2$  & 27.02 s    & 0.07 \\ \hline
- $n = 4$  & 61.78 s    & 0.12 \\ \hline
- $n = 8$  & 144.57 s   & 0.24 \\ \hline
- $n = 16$ & 260.30 s   & 0.33 \\ \hline
- $n = 32$ & 517.62 s   & 0.61 \\ \hline
- $n = 64$ & 1,004.01 s & 1.08 \\ \hline
+\begin{tabular}{ c|c|c|c } 
+          & Using Hacspec Ristretto & Using Dalek Ristretto & Speed Increase \\ \hline\hline
+ $n = 2$  & 27.02 s    & 0.07 & 38,600.00 \% \\ \hline
+ $n = 4$  & 61.78 s    & 0.12 & 51,483.33 \% \\ \hline
+ $n = 8$  & 144.57 s   & 0.24 & 60,237.50 \% \\ \hline
+ $n = 16$ & 260.30 s   & 0.33 & 78,878.78 \% \\ \hline
+ $n = 32$ & 517.62 s   & 0.61 & 84,855.73 \% \\ \hline
+ $n = 64$ & 1,004.01 s & 1.08 & 92,963.88 \% \\ \hline
 \end{tabular}
 \end{center}
 
@@ -2311,31 +2311,31 @@ significantly boosted the speed of our implementation and thus allowed
 us to perform more than a single test for each of the 18 input sizes.
 
 \begin{center}
-\begin{tabular}{ c|c|c } 
-	& Using Hacspec Ristretto & Using Dalek Ristretto \\ \hline\hline
-	$n = 8, m = 2$    & 420.02 s     & 0.57  \\ \hline 
-	$n = 16, m = 2$   & 809.14 s     & 0.97  \\ \hline 
-	$n = 32, m = 2$   & 1,563.87 s   & 1.83  \\ \hline 
-	$n = 64, m = 2$   & 2,073.97 s   & 3.56  \\ \hline 
+\begin{tabular}{ c|c|c|c } 
+	& Using Hacspec Ristretto & Using Dalek Ristretto & Speed Increase\\ \hline\hline
+	$n = 8, m = 2$    & 420.02 s     & 0.57  & 73,684.71 \% \\ \hline 
+	$n = 16, m = 2$   & 809.14 s     & 0.97  & 83,416.49 \% \\ \hline 
+	$n = 32, m = 2$   & 1,563.87 s   & 1.83  & 85,457.37 \% \\ \hline 
+	$n = 64, m = 2$   & 2,073.97 s   & 3.56  & 58,257.58 \% \\ \hline 
 	\hline\hline
-	$n = 8, m = 4$    & 823.68 s     & 0.97  \\ \hline 
-	$n = 16, m = 4$   & 1,585.96 s   & 1.79  \\ \hline 
-	$n = 32, m = 4$   & 3,075.16 s   & 3.32  \\ \hline 
-	$n = 64, m = 4$   & 6,107.19 s   & 6.55  \\ \hline 
+	$n = 8, m = 4$    & 823.68 s     & 0.97  & 84,915.46 \% \\ \hline 
+	$n = 16, m = 4$   & 1,585.96 s   & 1.79  & 88,601.11 \% \\ \hline 
+	$n = 32, m = 4$   & 3,075.16 s   & 3.32  & 92,625.30 \% \\ \hline 
+	$n = 64, m = 4$   & 6,107.19 s   & 6.55  & 93,239.54 \% \\ \hline 
 	\hline\hline
-	$n = 8, m = 8$    & 1,624.98 s   & 1.85  \\ \hline 
-	$n = 16, m = 8$   & 3,127.60 s   & 3.49  \\ \hline 
-	$n = 32, m = 8$   & 6,114.07 s   & 6.63  \\ \hline 
-	$n = 64, m = 8$   & 10,418.94 s  & 12.69 \\ \hline 
+	$n = 8, m = 8$    & 1,624.98 s   & 1.85  & 87,836.75 \% \\ \hline 
+	$n = 16, m = 8$   & 3,127.60 s   & 3.49  & 89,616.04 \% \\ \hline 
+	$n = 32, m = 8$   & 6,114.07 s   & 6.63  & 92,218.25 \% \\ \hline 
+	$n = 64, m = 8$   & 10,418.94 s  & 12.69 & 82,103.54 \% \\ \hline 
 	\hline\hline
-	$n = 8, m = 16$   & 3,191.85 s   & 3.63  \\ \hline 
-	$n = 16, m = 16$  & 6,209.07 s   & 7.20  \\ \hline 
-	$n = 32, m = 16$  & 12,246.25 s  & 13.56 \\ \hline 
-	$n = 64, m = 16$  & 24,303.13 s  & 26.06 \\ \hline 
+	$n = 8, m = 16$   & 3,191.85 s   & 3.63  & 87,929.75 \% \\ \hline 
+	$n = 16, m = 16$  & 6,209.07 s   & 7.20  & 86,237.08 \% \\ \hline 
+	$n = 32, m = 16$  & 12,246.25 s  & 13.56 & 90,311.57 \% \\ \hline 
+	$n = 64, m = 16$  & 24,303.13 s  & 26.06 & 93,258.36 \% \\ \hline 
 	\hline\hline
-	$n = 64, m = 32$  & 39,100.84 s  & 41.70 \\ \hline 
+	$n = 64, m = 32$  & 39,100.84 s  & 41.70 & 93,767.00 \% \\ \hline 
 	\hline\hline
-	$n = 64, m = 64$  & 67,508.52 s  & 64.59 \\ \hline 
+	$n = 64, m = 64$  & 67,508.52 s  & 64.59 & 104,518.53 \% \\ \hline 
 \end{tabular}
 \end{center}
 
