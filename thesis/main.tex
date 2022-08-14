@@ -396,7 +396,7 @@ Torben Pryds Pedersen \cite{pedersen}. The essence of Pedersen
 commitments is the so-called \textit{Additive Homomorphism}
 (def. \ref{pedersen-additive-homomorphism}). For our purposes we
 redefine the scheme to work with commitments to elliptic curve points
-rather than a value. Firstly, two points $B$ and $\bB$ on an elliptic
+rather than a value. Firstly, two generator points $B$ and $\bB$ on an elliptic
 curve are chosen. $B$ will be the standard generator, called the
 base point, with $\bB$ being the so-called \textit{blinding point}
 to $B$. These two points are agreed upon by both the sender of the
@@ -416,9 +416,11 @@ The construction of $\ba\bB$ ensures \textit{perfect hiding} as there
 is many possible combinations of two points that can add to any given
 point. However, it does not provide \textit{perfect binding}, because
 multiple $a$'s can map to multiple $P$'s. It is important to note that
-the person constructing the Pedersen commitment can not \textit{predict}
-the other valid $a$'s that maps to $P$. A crucial property of Pedersen
-commitments is the property of \textit{Additive Homomorphism}:
+the person constructing the Pedersen commitment cannot \textit{predict}
+the other valid $a$'s that maps to $P$. And by the same logic the 
+reciever of the commitment cannot infer neither $a$ nor $\ba$. A crucial 
+property of Pedersen commitments as mentioned previously is the property 
+of \textit{Additive Homomorphism}:
 
 \begin{definition}[Additive Homomorphism] \label{pedersen-additive-homomorphism}
 	For any two Pedersen commitments $C(a_1,\ba_1), C(a_2,\ba_2)$ we have:
@@ -448,7 +450,7 @@ without $\V$ gaining any additional information. To exemplify this we
 will show the simplest example of a zero-knowledge proof, using the
 so-called Schnorr Identity Protocol \cite{zkdocs-schnorr}.
 
-This crux of the Schnorr Identity Protocol is for $\P$ to show that
+The crux of the Schnorr Identity Protocol is for $\P$ to show that
 they know the secret value $x$. This secret value has the following
 relation to the public elliptic curve points $X$ and $G$:
 
@@ -456,8 +458,8 @@ relation to the public elliptic curve points $X$ and $G$:
 	X = xG
 }
 
-$\V$ knows both $X$ and $G$ but not $x$. $\P$ wishes to show $\V$
-without simply revealing $x$ directly.
+$\V$ knows both $X$ and $G$ but not $x$. $\P$ wishes to show $\V$ that 
+they know $x$ without simply revealing it directly.
 
 The protocol is rather simple. First $\P$ chooses a random value $k$ and
 commits to this value by sending $K$, such that $K = kG$, to $\V$. $\V$
@@ -494,7 +496,7 @@ Identity protocol is complete because of the following:
 \textbf{Soundness:}
 
 For a proof to be sound it means that a \textit{dishonest} $\P$
-cannot convince an honest $\V$ that their statement is true. For the 
+\textit{cannot} convince an honest $\V$ that their statement is true. For the 
 Schnorr Identity protocol it means that $\P$ does not know $x$ 
 but wishes to convince $\V$ that it does, and for the protocol to be 
 sound this should not be possible. In order for $\P$ to convince $\V$ 
@@ -507,11 +509,11 @@ $e$ by constructing $K$ as follows:
 	K = s(G - eX)
 }
 
-and then choose a random value $s$. If the verifier then did the
+and then choosing a random value $s$. If the verifier then did the
 check they would find that it holds. However, this is \textit{not}
 a possibility because $\P$ must commit to a $K$ before they are given
 $e$. There is a small probability that $\P$ could randomly guess $e$
-correctly, but this is miniscule.
+correctly, but this is miniscule, and therefore the proof is still sound. 
 
 \textbf{Zero-knowledge:}
 
@@ -529,30 +531,34 @@ to be a specification language for cryptographic algorithms, with the
 special properties that it is executable (since it is valid rust code),
 but also that it is defined such that it can easily be transpiled into
 theorem solvers, namely Coq and F*. The cost for having this property
-is certain syntactic enhancements that are available in Rust are not
+is that certain syntactic enhancements available in Rust are not
 defined in Hacspec. This makes the language simpler, but it also makes
-it harder to simply express some concepts. The language however is
-still in development, balancing and adding features.
+it harder to express certain concepts. However, the language is 
+currently still in development, so some features are still being 
+balanced or added. Most notably generics are currently on the roadmap, 
+and these would be useful for our purposes.
 
-External crates are of course not allowed as they will inevitably
-fail to be Hacspec compliant. However, Hacspec implements various
-cryptographic primitives, such as field elements, that allows for
-easier cryptographic specification. Some types and functions from the
-Rust standard library are not available, for example \texttt{Vec<T>},
-however some helpful wrapper types are defined in the Hacpsec standard
-library, for example \texttt{Seq<T>}, that implement most of the same
-functionality as their \texttt{Vec<T>} counterparts. When defining
-custom types, the Hacspec standard library differentiates between
-so-called \textit{secret integers}. Secret integers are protected
-from side-channel attacks, but do not implement certain operations,
-namely equality. We have used secret integers wherever possible, but
-while they are more secure, they are not always feasible.
+External crates are, of course, not allowed in Hacspec as they will 
+inevitably cause the code to fail the Hacspec compliance check. 
+However, Hacspec implements various cryptographic primitives, such as 
+field elements, which allow for easier cryptographic specification. 
+Some types and functions from the Rust standard library are not 
+available, for example \texttt{Vec<T>}, however some helpful wrapper 
+types are defined in the Hacpsec standard library. \texttt{Seq<T>}, 
+as an example implements most of the same functionality as 
+\texttt{Vec<T>} and functions as a Hacspec counterpart to it. When 
+defining custom types, the Hacspec standard library differentiates 
+between so-called \textit{secret integers} and \textit{public integers}.
+Secret integers are protected from side-channel attacks, but do not 
+implement certain operations, namely equality. We have used secret 
+integers wherever possible, but while they are more secure, they are 
+not always feasible.
 
 The Hacspec repository have an array of code examples. These examples
-can serve both as a guideline for future implementations, but can also
+can serve as a guideline for future implementations, but can also
 be used as libraries. In our project we utilize the Sha-3 Hacspec
-example in our Merlin specification. It is our goal to merge the
-entirety of our Hacspec code into the main repository. So far, the
+example in our Merlin specification. It is our goal to eventually merge 
+the entirety of our Hacspec code into the main repository. So far, the
 entire the linear algebra library (section \ref{linear-algebra-library})
 and approximately half of the ristretto specification (section
 \ref{implementing-ristretto}) have been merged into Hacspec.
@@ -562,7 +568,7 @@ Hacspec compliant. Our Bulletproofs specification is meant to be simply
 understood compared to the more obfuscated, but highly optimized Dalek
 implementation \cite{dalek}. We will use property based testing with
 QuickCheck \cite{quickcheck} where possible and convenient to test
-our specifications against the equivelent Rust implementations. We
+our specifications against the equivalent Rust implementations. We
 have also created a minimal linear algebra library, in Hacspec, with
 the intention of it aiding in our implementation while also creating
 a library to be used with other cryptographic algorithms.
