@@ -276,8 +276,12 @@ A table of notation used throughout this report:
 
 \section{Prerequisites:} \label{prerequisites}
 
-In this section we will be covering the necessary background knowledge
-to understand the results of the work in this project.
+In this section we will be covering the necessary background
+knowledge to understand the Bulletproofs protocol. This includes
+finite field arithmetic (section \ref{finite-field-arithmetic}),
+elliptic curves (section \ref{elliptic-curves}), pedersen commitments
+(section \ref{pedersen-commitments}) and finally the concept of
+zero-knowledge proofs (section \ref{zero-knowledge-proofs})
 
 \subsection{Finite Field Arithmetic:} \label{finite-field-arithmetic}
 
@@ -413,7 +417,7 @@ curve's \textit{generator}.
 	generators for a curve is denoted $\G$.
 \end{definition}
 
-\subsection{Pedersen Commitment:}
+\subsection{Pedersen Commitments:} \label{pedersen-commitments}
 
 A Pedersen commitment is a commitment scheme originally defined by
 Torben Pryds Pedersen \cite{pedersen}. The essence of Pedersen
@@ -463,13 +467,13 @@ commitments:
 Which ensures a homomorphism between the sum of commitments and the
 commitment to the sum.
 
-\subsection{Zero Knowledge Proofs:}\label{zero-knowledge}
+\subsection{Zero-Knowledge Proofs:}\label{zero-knowledge-proofs}
 
 A zero-knowledge proof is a cryptographical concept in which a prover,
 $\P$, will convince a verifier, $\V$, that a certain property holds,
 usually in the form of a mathematical equation, and $\P$ will do so
 without $\V$ gaining any additional information. To exemplify this we
-will show the simplest example of a Zero-knowledge proof, using the
+will show the simplest example of a zero-knowledge proof, using the
 so-called Schnorr Identity Protocol \cite{zkdocs-schnorr}.
 
 This crux of the Schnorr Identity Protocol is for $\P$ to show that
@@ -574,35 +578,32 @@ while they are more secure, they are not always feasible.
 
 The Hacspec repository have an array of code examples. These examples
 can serve both as a guideline for future implementations, but can also
-be used as modules. In our project we utilize the Sha-3 Hacspec example
-in our Merlin specification. It is our goal to merge the entirety
-of our Hacspec code into the main repository. So far, the entire
-the linear algebra library (section \ref{linear-algebra-library})
+be used as libraries. In our project we utilize the Sha-3 Hacspec
+example in our Merlin specification. It is our goal to merge the
+entirety of our Hacspec code into the main repository. So far, the
+entire the linear algebra library (section \ref{linear-algebra-library})
 and approximately half of the ristretto specification (section
 \ref{implementing-ristretto}) have been merged into Hacspec.
 
-All code, except tests, written for this project was written to
-be Hacspec compliant. Our implementation is a specification meant
-to be simply understood compared to a more obfuscated, but highly
-optimized implementation. We will use property based testing with
-QuickCheck \cite{quickcheck} where possible and convenient and test
-our Bulletproofs implementation against the Dalek-Cryptography group's
-Bulletproofs Rust implementation \cite{dalek}. We have also created
-a minimal linear algebra library, in Hacspec, with the intention of
-it aiding in our implementation while also creating a library to be
-used with other cryptographic algorithms.
+All code, except tests, written for this project was written to be
+Hacspec compliant. Our Bulletproofs specification is meant to be simply
+understood compared to the more obfuscated, but highly optimized Dalek
+implementation \cite{dalek}. We will use property based testing with
+QuickCheck \cite{quickcheck} where possible and convenient to test
+our specifications against the equivelent Rust implementations. We
+have also created a minimal linear algebra library, in Hacspec, with
+the intention of it aiding in our implementation while also creating
+a library to be used with other cryptographic algorithms.
 
 \section{The Bulletproofs protocol} \label{bulletproofs}
 
-The ultimate goal of this project has been to implement bulletproofs
-in Hacspec, using property-based testing to ensure it is equivalent to
-the implementation done in Rust, using Curve25519. A Bulletproof is a
-non-interactive aggregation of range proofs using Pedersen commitments.
-The following section will describe each of these terms in greater
-detail on a theoretic level. The following subsections have been
-created based on the original bulletproofs paper \cite{bulletproofs}
-as well as the implementation notes from the Dalek-Bulletproofs project
-\cite{dalek}.
+The ultimate goal of this project has been to implement Bulletproofs
+in Hacspec. Bulletproofs is a zero-knowledge range proof protocol
+that supports aggregation of proofs using a multiparty computation
+(MPC). The following subsections will describe this protocol in detail
+on a theoretic level. They are based on the original Bulletproofs
+paper \cite{bulletproofs} as well as the implementation notes from
+the Dalek Bulletproofs project \cite{dalek}.
 
 \subsection{Inner Product Proof:} \label{inner-product-proof}
 A prover, $\P$, wants to prove to a verifier, $\V$, that he has
@@ -610,7 +611,7 @@ knowledge of two vectors $\vec{a}$, $\vec{b}$ and know their inner
 product $\dotp{\vec{a}}{\vec{b}} = c$. The prover could simply send
 the verifier $\vec{a}, \vec{b}, c$, but this would take up $O(n)$
 bandwidth and time to verify. Instead, we will use a compression
-technique included in the bulletproofs paper which allows for just
+technique included in the Bulletproofs paper which allows for just
 $O(\log_2(n))$ bandwidth and time to verify.
 
 \subsubsection{Prover's Algorithm:}
@@ -1374,7 +1375,7 @@ Crucially allowing $\P$ to construct the entire proof without
 interacting with $\V$. The proof is still sound as $\P$ cannot get $e$
 without committing to a $K$ first.
 
-Our Fiat-Shamir heuristic for the bulletproofs algorithm requires
+Our Fiat-Shamir heuristic for the Bulletproofs algorithm requires
 an \textit{overseer} for the parties who can gather all the $V$'s
 to create the challenges. In essence when a challenge is needed all
 parties will send their $V$'s to this local overseer who can then
@@ -1391,7 +1392,7 @@ transcript:
 
 Worth noting is that a recently found vulnerability, the Frozen
 Heart vulnerability \cite{frozen-heart}, describes how in the
-Fiat-Shamir heuristic suggested in the original bulletproofs paper
+Fiat-Shamir heuristic suggested in the original Bulletproofs paper
 \cite{bulletproofs}, a malicious prover could cheat successfully. This
 was because in the original paper the Fiat-Shamir heuristic did not
 include $V$ in their hash function which allowed a malicious $\P$
@@ -1545,7 +1546,7 @@ are considered equal. In the same vein the encoding function for points,
 encodes equivalent points to the same encoding and by proxy the decoding
 function decodes those points to the same point.
 
-For our implementation of bulletproofs, seeing as we needed to test it
+For our implementation of Bulletproofs, seeing as we needed to test it
 against an existing implementation, we made use of the same elliptic
 curve. The elliptic curve in question is Curve25519, which is widely
 used in encryption as is the case here. Curve25519, is defined by the
