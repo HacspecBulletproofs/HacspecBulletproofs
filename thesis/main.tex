@@ -31,6 +31,9 @@
   \expandafter\ifx\string_#1\string_\allowbreak\else#1\fi
   \expandafter\dottvar\fi}
 
+
+\renewcommand*{\thefootnote}{[\arabic{footnote}]}
+
 % === Paragraphing === %
 
 \makeatletter
@@ -580,16 +583,16 @@ a library to be used with other cryptographic algorithms.
 
 \section{The Bulletproofs protocol} \label{bulletproofs}
 
-The ultimate goal of this project is to implement
-Bulletproofs in Hacspec. Bulletproofs is a zero-knowledge range
-proof protocol that supports aggregation of proofs using a multiparty
-computation (MPC). They are based on the original Bulletproofs paper
-\cite{bulletproofs} as well as the implementation notes from the
-Dalek Bulletproofs project \cite{dalek-notes}. The following subsections
-will describe this protocol in detail on a theoretic level, including 
-the inner product proof (section \ref{inner-product-proof}),
-the range proof (section \ref{range-proofs}) and the aggregation of the
-aforementioned range proofs (section \ref{range-proof-aggregation})
+The ultimate goal of this project is to implement Bulletproofs in
+Hacspec. Bulletproofs is a zero-knowledge range proof protocol that
+supports aggregation of the range proofs using multiparty computation
+(MPC). The following subsections are based on the original Bulletproofs
+paper \cite{bulletproofs} as well as the implementation notes from the
+Dalek Bulletproofs project \cite{dalek-notes}. They will describe this
+protocol in detail on a theoretic level, including the inner product
+proof (section \ref{inner-product-proof}), the range proof (section
+\ref{range-proofs}) and the aggregation of the aforementioned range
+proofs (section \ref{range-proof-aggregation})
 
 \subsection{Inner Product Proof:} \label{inner-product-proof}
 A prover, $\P$, wants to prove to a verifier, $\V$, that he has
@@ -602,7 +605,6 @@ $O(\log_2(n))$ bandwidth and time to verify.
 
 \subsubsection{Prover's Algorithm:}
 $\P$ is given values with the following definitions:
-
 \eqn{ipp-def1}{
 	\vec{a}, \vec{b} &\in \Z^n_p \\
 	\vec{G}, \vec{H} &\in \G^n \\
@@ -620,20 +622,17 @@ available to both prover and verifier. We will introduce a combined
 form of $P$ and $c$ in the form of $P^{(k)}$, The parenthesized
 superscript, denotes that it's a new variable, it does \textit{not}
 refer to exponentiation:
-
 \eq{
 	P^{(k)} &= \dotp{\vec{a}}{\vec{G}} +
 	           \dotp{\vec{b}}{\vec{H}} +
 	           \dotp{\vec{a}}{\vec{b}}Q \\
 } 
-
 The $Q$ introduced here is just another public point,
 like $\vec{G}$ and $\vec{H}$. This redefinition will be useful, as
 it will allow us to redefine $\vec{a}, \vec{b}, \vec{G}, \vec{H}$
 ($\vec{a}^{(k)}, \vec{b}^{(k)}, \vec{G}^{(k)}, \vec{H}^{(k)}$) into a
 shorter format, while keeping the properties in equation \ref{ipp-def2}
 as invariants.
-
 \eq{
 	\vec{a}^{(k-1)} &= \veclo{a^{\text{(k)}}} &&\cdot \ran{u}_k      &&+ \ran{u}^{-1}_k &&\cdot \vechi{a^{\text{(k)}}} \\
 	\vec{b}^{(k-1)} &= \veclo{b^{\text{(k)}}} &&\cdot \ran{u}^{-1}_k &&+ \ran{u}_k      &&\cdot \vechi{b^{\text{(k)}}} \\
@@ -643,7 +642,7 @@ as invariants.
 
 Notice that these redefined vectors will have a length half that
 of the original vectors, satisfying our requirement for more compact
-vectors. The random variable, $\ran{u_k}$, will be provided by $\V$
+vectors. The random variable, $\ran{u}_k$, will be provided by $\V$
 to ensure that it is indeed random. From these new vectors we will
 define a new compressed $P^{(k-1)}$ and isolate the variable $\ran{u}$:
 
@@ -672,7 +671,7 @@ our defined variables:
 	&\dotp
 		{        \veclo{a} &&\cdot u_k      &&+ u_k^{-1} &&\cdot \vechi{a}}
 		{&&\quad \veclo{b} &&\cdot u_k^{-1} &&+ u_k      &&\cdot \vechi{b}}
-	\cdot Q \\
+	\cdot Q
 }
 
 And group the terms:
@@ -709,7 +708,7 @@ simplify further by defining variables $L_k$ and $R_k$:
 }
 
 So, $\P$ calculates $L_k, R_k$ and sends it to $\V$. Afterwards,
-$\V$ responds with $u_k$. This is repeated $k = \log_2(n)$ times,
+$\V$ responds with $\ran{u}_k$. This is repeated $k = \log_2(n)$ times,
 until we get the final $P$, $P^{(0)}$:
 
 \eq{
@@ -718,6 +717,8 @@ until we get the final $P$, $P^{(0)}$:
 }
 
 Finally, $\P$ sends $(a^{(0)}, b^{(0)})$ to $\V$.
+
+\newpage
 
 The entirety of the dialogue between $\V$ and $\P$,
 the so-called \textit{transcript}, can be summarized as the following:
@@ -744,23 +745,21 @@ $\V$ has knowledge of the following values:
 	\vec{L}, \vec{R} &\in \G_p^{k} \\
 	\vec{G}, \vec{H} &\in \G^n \\
 	P^{(k)}, Q &\in \G \\
-	\vec{u} &\in \Z^{k} \\
+	\vecran{u} &\in \Z^{k}
 }
 
 We need a way to get the final $G^{(0)}$ and $H^{(0)}$, from $\vec{G}$
 and $\vec{H}$, let's start with the former. We recall our reduced
 version of $\vec{G}$:
-
 \eqn{G0}{
-	\vec{G}^{(j-1)} = \veclo{G^\textit{(j)}} u^{-1}_j + \vechi{G^\textit{(j)}} u^{1}_j
+	\vec{G}^{(j-1)} = \veclo{G^\textit{(j)}} \ran{u}^{-1}_j + \vechi{G^\textit{(j)}} \ran{u}^{1}_j
 }
 
 We want to define a vector $\vec{s}$ such that $\dotp{\vec{s}}{\vec{G}}
 = G^{(0)}$. From equation \ref{G0} we conclude that each $s_i$ is
 defined as:
-
 \eq{
-	&s_i = u^{b(i,k)}_k \cdots u^{b(i,1)}_1 \\
+	&s_i = \ran{u}^{b(i,k)}_k \cdots \ran{u}^{b(i,1)}_1 \\
 	&\textbf{where:} \\
 	&b(i,j) = 
 	\begin{cases}
@@ -780,32 +779,28 @@ half of $\vec{G}^{(j)}$, and 1 if $G_i$ appears in the right half
 of $\vec{G}^{(j)}$. Therefore, $G_i$ appears in the right side of
 $\vec{G}^{(j)}$ if $(i \text{ mod } 2^j) < 2^{j-1}$.
 
+\newpage
+
 We make a similar argument for $H^{(0)}$. We want to define a vector
 $\vec{s'}$ such that $\dotp{\vec{s'}}{\vec{H}} = H^{(0)}$:
 \eqn{H0}{
-	\vec{H}^{(k-1)} = \veclo{H^\textit{(k)}} u^{1}_j + \vechi{H^\textit{(j)}} u^{-1}_j
+	\vec{H}^{(k-1)} = \veclo{H^\textit{(k)}} \ran{u}^{1}_j + \vechi{H^\textit{(j)}} \ran{u}^{-1}_j
 }
-
 To construct $\vec{s'}$:
-
 \eq{
-	&s_i' = u^{b'(i,k)}_k \cdots u^{b'(i,1)}_1 \\
+	&s_i' = \ran{u}^{b'(i,k)}_k \cdots \ran{u}^{b'(i,1)}_1 \\
 	&\textbf{where:} \\
 	&b'(i,j) = 
 	\begin{cases}
 		\text{-1} &\quad  \lnot g(i,j) = \top \\
 		\text{1}  &\quad  \lnot g(i,j) = \bot \\
-	\end{cases} \\
+	\end{cases}
 }
-
 But this is indeed just:
-
 \eq{
 	\vec{s'} = \frac{1}{s_1}, \frac{1}{s_2}, \cdots \frac{1}{s_n}
 }
-
 Leading us to our desired $G^{(0)}, H^{(0)}$:
-
 \eq{
 	G^{(0)} &= \dotp{\vec{s}}{\vec{G}} \\
 	H^{(0)} &= \dotp{\vec{s'}}{\vec{H}}
@@ -817,93 +812,90 @@ $\dotp{\vec{a}}{\vec{b}} = c$:
 
 \eq{
 	P^{(k)} &\stackrel{?}{=} P^{\V} \\
-	        &\stackrel{?}{=} a^{(0)}G^{(0)} + b^{(0)}H^{(0)} + a^{(0)}b^{(0)}Q - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i) \\
-	        &\stackrel{?}{=} \dotp{a\vec{s}}{\vec{G}} + \dotp{b\vec{s'}}{\vec{H}} + abQ - \sum^k_{i=1} (L_i u^2_i + u^{-2}_i R_i)
+	        &\stackrel{?}{=} a^{(0)}G^{(0)} + b^{(0)}H^{(0)} + a^{(0)}b^{(0)}Q - \sum^k_{i=1} (L_i \ran{u}^2_i + \ran{u}^{-2}_i R_i) \\
+	        &\stackrel{?}{=} \dotp{a\vec{s}}{\vec{G}} + \dotp{b\vec{s'}}{\vec{H}} + abQ - \sum^k_{i=1} (L_i \ran{u}^2_i + \ran{u}^{-2}_i R_i)
 }
-
 \subsection{Range Proofs:} \label{range-proofs}
 
 A range proof is a zero-knowledge proof which seeks to prove that for
 some value $v$, $v$ lies within the range of $[0,2^n)$ without revealing
 $v$ or any additional information about $v$, thus zero-knowledge. We
 wish to express this property of $v$ using a single inner product to be
-able to use an inner product proof as described in \ref{inner-product-proof}.
+able to use an inner product proof as described in section
+\ref{inner-product-proof}.
 
 \subsubsection{Prover's Algorithm}\label{prover-range-proofs}
 
 To start, the prover, $\P$, is given the following values:
-
 \eqn{def1}{
 	v &\in \Z_p \\
 	n &\in \Z\\
 	B, \bB &\in \G\\
-	\vec{G}, \vec{H} &\in \G^n \\
+	\vec{G}, \vec{H} &\in \G^n
 }
 
 $\P$ wishes to convince the verifier, $\V$, that the value, $v$ lies
 within the range $[0,2^n)$.
 
+\newpage
+
 The first step towards this is for $\P$ to commit to $v$ using
 a Pedersen commitment $V$, and sending this to the $\V$, as well
 committing to the desired range $n$, which is not blinded. With the
 Pedersen-commitment having base-point $B$ and blinding point $\bB$:
-
 \eq{
 	V = vB + \bv \bB
 }
-
 If we let $\vec{a}$ be $v$ expressed in bits then we know the following:
-
 \eq{
 	\dotp{\vec{a}}{\vec{2^n}} = v
 }
-
 Additionally, as we also need a guarantee that $\vec{a}$ consists
 entirely of bits i.e. $\vec{a} \in \{0,1\}^n$. This can be
 proven by the following property:
-
-\eq{\vec{a} \circ (\vec{a} - \vec{1}) = \vec{0}}
-
+\eq{
+	\vec{a} \circ (\vec{a} - \vec{1}) = \vec{0}
+}
 This property will only hold if $\vec{a}$ has entries that are either
 0 or 1. Due to needing to commit to both $\vec{a}$ and $\vec{a}
-- \vec{1}$, they will henceforth be referred to as $\vecl{a}$
-and $\vecr{a}$ respectively. Additionally, we add another property to show the
-relationship between these two which gives us the following properties:
+- \vec{1}$, they will henceforth be referred to as $\vecl{a}$ and
+$\vecr{a}$ respectively. Additionally, we add another property to
+show the relationship between these two which gives us the following
+properties:
 
 \eq{
 	\dotp{\vecl{a}}{\vec{2^n}} = v \\
 	\vecl{a}\circ \vecr{a} = \vec{0} \\
-	(\vecl{a} - \vec{1}) - \vecr{a} = \vec{0}
+	(\vecl{a} - \vec{1}) - \vecr{a} = \vec{0} \\
 }
 
 We wish to combine these properties into a single inner product, which
 $\P$ will then prove to $\V$. To do this, we observe that $\vec{a}
 = \vec{0} \iff \forall y\in\mathbb{Z}: \dotp{\vec{a}}{\vec{y^n}} =
-\vec{0}$. So $\P$ lets $\V$ chose a random scalar $\ran{y}$ and using
-$\ran{y}$ we get a new set of properties:
-
+\vec{0}$. So $\P$ lets $\V$ chose a random challenge scalar $\ran{y}$
+and using $\ran{y}$ we get a new set of properties:
 \eq{
 	\dotp{\vecl{a}}{\vec{2^n}} = v \\
 	\dotp{\vecl{a} - \vec{1} - \vecr{a}}{\vecran{y}^{\vec{n}}} = 0 \\
 	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y}^{\vec{n}}} = 0
 }
 
-Next $\P$ lets $\V$ chose another random scalar $\ran{z}$, and using
-this we can combine the three properties above to the following single
-statement:
+Next $\P$ lets $\V$ chose another random challenge scalar $\ran{z}$,
+and using this we can combine the three properties above to the
+following single statement:
 
 \eq{
 	\ran{z^2}v = 
 	\ran{z^2}\dotp{\vecl{a}}{\vec{2^n}} +
 	\ran{z}\dotp{\vecl{a} - \vec{1} - \vecr{a}}{\vecran{y}^{\vec{n}}} +
-	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y}^{\vec{n}}}
+	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y}^{\vec{n}}} \\
 }
 
-With this, we have condensed the needed properties into a single equation. 
-We wish to rewrite this as a single inner product where $\vecl{a}$ 
-appears only in the first argument of the inner product and $\vecr{a}$ 
-appears only in the second argument and all non-secret terms are factored 
-out.
+With this, we have condensed the needed properties into a single
+equation.  We wish to rewrite this as a single inner product where
+$\vecl{a}$ appears only in the first argument of the inner product
+and $\vecr{a}$ appears only in the second argument and all non-secret
+terms are factored out.
 
 First we can rewrite the middle term:
 
@@ -939,23 +931,19 @@ inner product we add $\dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} +
 	\dotp{-z\vec{1}}{\vecr{a}\circ\vecran{y}^{\vec{n}}} + \dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y}^{\vec{n}}} \\ 
 	&\ran{z^2}v + (\ran{z} - \ran{z^2})\dotp{\vec{1}}{\vecran{y}^{\vec{n}}} - \ran{z^3}\dotp{\vec{1}}{\vec{2^n}} &&= \dotp{\vecl{a}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y}^{\vec{n}} + \vecr{a}\circ \vecran{y}^{\vec{n}}} + \dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n}+\ran{z}\vecran{y}^{\vec{n}} + \vecr{a}\circ\vecran{y}^{\vec{n}}}
 	\\
-	&\ran{z^2}v + (\ran{z} - \ran{z^2})\dotp{\vec{1}}{\vecran{y}^{\vec{n}}} - \ran{z^3}\dotp{\vec{1}}{\vec{2^n}} &&= \dotp{\vecl{a}- \ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y}^{\vec{n}} + \vecr{a}\circ \vecran{y}^{\vec{n}}}
+	&\ran{z^2}v + (\ran{z} - \ran{z^2})\dotp{\vec{1}}{\vecran{y}^{\vec{n}}} - \ran{z^3}\dotp{\vec{1}}{\vec{2^n}} &&= \dotp{\vecl{a}- \ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y}^{\vec{n}} + \vecr{a}\circ \vecran{y}^{\vec{n}}} \\
 }
 
 We define a function $\delta(y,z) = (z - z^2)\dotp{\vec{1}}{\vec{y^n}}
 - z^3\dotp{\vec{1}}{\vec{2^n}}$ and finish simplifying:
-
 \eq{
 	\ran{z^2}v + \delta(\ran{y},\ran{z}) = \dotp{\vecl{a} - \ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + (\vecr{a} + \ran{z}\vec{1})\circ\vecran{y}^{\vec{n}}}
 }
-
 From here on we will refer to the first argument of the inner product
 as $\vec{l_0}$ and the second argument as $\vec{r_0}$:
-
 \eq{
 	\ran{z^2}v + \delta(\ran{y},\ran{z}) = \dotp{\vec{l_0}}{\vec{r_0}}
 }
-
 If the goal was simply to construct a single inner product which
 would prove that $v$ lies in $[0,2^n)$, then $\P$ could simply send
 these values to $\V$ and be done. However, we wish for the proof to be
@@ -970,7 +958,6 @@ $\vecr{\bs}$ such that $\vecl{\bs},\vecr{\bs}\in \Z^n_p$. Using
 these $\P$ can construct $\vec{l_1} = \vecl{\bs}$ and $\vec{r_1} =
 \vecr{\bs}\circ \vec{\ran{y}^n}$, and with these, $\P$ constructs two
 vector-function $\vec{l}(x)$ and $\vec{r}(x)$ in the following way:
-
 \eq{
 	\vec{l}(x) &= \vec{l_0} + \vec{l_1}x \\ 
 	&= (\vecl{a} - \ran{z}\vec{1}) + \vecl{\bs}x \\ 
@@ -981,13 +968,11 @@ vector-function $\vec{l}(x)$ and $\vec{r}(x)$ in the following way:
 }
 
 Now $\P$ can construct $t(x)$ as follows:
-
 \eq{
 	t(x) = \dotp{\vec{l}(x)}{\vec{r}(x)}
 }
 
 We group $x$ to get:
-
 \eq{
 	&t(x) = t_0 + t_1x + t_2x^2 \\
 	&\textbf{where:} \\
@@ -1000,6 +985,8 @@ Now $\P$ wishes to prove to $\V$ that $t_0$ and $t(x)$ are correctly
 constructed. So, $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$, and $t(x)
 = \dotp{\vec{l}(x)}{\vec{r}(x)}$ such that, $\vec{l}(x) = \vec{l_0}
 + \vec{l_1}x$, and, $\vec{r}(x) = \vec{r_0} + \vec{r_1}x$.
+
+\newpage
 
 First $\P$ wants to show that $t_0$ is correctly constructed. $\P$
 starts by making commitments to each of the coefficients of $t(x)$. Here
@@ -1014,7 +1001,7 @@ following manner:
 \eq{
 	t(\ran{x})B                   &= \ran{z^2}vB      &&+ \delta(\ran{y},\ran{z})B &&+ \ran{x}t_1B       &&+ \ran{x^2}t_2B \\
 	\bt(\ran{x})\bB               &= \ran{z^2}\bv \bB &&+ 0\bB                     &&+ \ran{x} \bt_1 \bB &&+ \ran{x^2} \bt_2 \bB\\
-	t(\ran{x})B + \bt(\ran{x})\bB &= \ran{z^2}V       &&+ \delta(\ran{y},\ran{z})B &&+ \ran{x}T_1        &&+ \ran{x^2}T_2
+	t(\ran{x})B + \bt(\ran{x})\bB &= \ran{z^2}V       &&+ \delta(\ran{y},\ran{z})B &&+ \ran{x}T_1        &&+ \ran{x^2}T_2 \\
 }
 
 The sum of the two top-most coefficients in each 'column' is also
@@ -1029,27 +1016,23 @@ $\vec{r}(x)$ are both constructed correctly and that $t(x) =
 construction as seen above. We want $\P$ to make commitments that allows
 $\V$ to relate $\vec{l}(x)$ and $\vec{r}(x)$ to $\vecl{a}, \vecl{\bs},
 \vecr{a}$ and $\vecr{\bs}$. It is not that simple, however. As seen here:
-
 \eq{
 	\vec{r}(x) = \ran{z^2}\vec{2^n} + ((\vecr{a} + \vecr{\bs}x) + \ran{z}\vec{1})\circ\vecran{y}^{\vec{n}}
 }
-
 This means we want $\P$ to make commitments to $\vec{\ran{y}^n}\circ
 \vecr{a}$ and $\vec{\ran{y}^n}\circ\vecr{\bs}$. This is a problem as these
 commitments need to be made and sent to $\V$ \textit{before} $\P$
 gets the challenge $\ran{y}$ from $\V$. To fix this issue $\P$ will
 make a special commitment to $\vecl{a}$ and $\vecr{a}$ as follows:
-
 \eq{
 	C(\vecl{a}, \vecr{a}, \ba) = \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecr{a}}{\vec{H}} + \ba\bB
 }
-
 This same construction is used for the commitment to $C(\vecl{\bs},
 \vecr{\bs}, \bs)$. Here we notice that:
 
 \eq{
 	C(\vecl{a}, \vecr{a}, \ba) &= \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecr{a}}{\vec{H}} + \ba\bB \\
-	&= \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecran{y}^{\vec{n}}\circ \vecr{a}}{\vecran{y^{-n}}\circ \vec{H}} + \ba\bB
+	&= \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecran{y}^{\vec{n}}\circ \vecr{a}}{\vecran{y^{-n}}\circ \vec{H}} + \ba\bB \\
 }
 
 We define $\vec{H'} = \vecran{y^{-n}}\circ\vec{H}$, $A =
@@ -1061,7 +1044,7 @@ was done in the previous segment:
 	\dotp{\vec{l}(\ran{x})}{\vec{G}} &= \dotp{\vecl{a}}{\vec{G}} &&+ \ran{x}\dotp{\vecl{\bs}}{\vec{G}} &&+ \dotp{-\ran{z}\vec{1}}{\vec{G}} \\
 	\dotp{\vec{r}(\ran{x})}{\vec{H'}} &= \dotp{\vecr{a}}{\vec{H}} &&+ \ran{x}\dotp{\vecr{\bs}}{\vec{H}} &&+ \dotp{\ran{z}\vecran{y}^{\vec{n}} + \ran{z^2}\vec{2^n}}{\vec{H'}}\\
 	\be\bB &= \ba\bB &&+ \ran{x}\bs\bB &&+ 0 \bB \\
-	\dotp{\vec{l}(\ran{x})}{\vec{G}} + \dotp{\vec{r}(\ran{x})}{\vec{H'}} + \be\bB &= A &&+ \ran{x}S &&+ (\dotp{\ran{z}\vecran{y}^{\vec{n}} + \ran{z^2}\vec{2^n}}{\vec{H'}} - \ran{z}\dotp{\vec{1}}{\vec{G}})
+	\dotp{\vec{l}(\ran{x})}{\vec{G}} + \dotp{\vec{r}(\ran{x})}{\vec{H'}} + \be\bB &= A &&+ \ran{x}S &&+ (\dotp{\ran{z}\vecran{y}^{\vec{n}} + \ran{z^2}\vec{2^n}}{\vec{H'}} - \ran{z}\dotp{\vec{1}}{\vec{G}}) \\
 }
 
 From here, using the same argument as above $\P$ commits $\be$
@@ -1070,6 +1053,8 @@ and $\vec{r}(x)$ are correctly constructed and that $t(x) =
 \dotp{\vec{l}(x)}{\vec{r}(x)}$ and together with the previous
 commitments to $\V$, $\P$ will be able to successfully convince $\V$
 that $v$ lies in the range $[0, 2^n)$.
+
+\newpage
 
 In summary the transcript between $\V$ and $\P$, will end up being
 the following:
@@ -1089,7 +1074,6 @@ non-interactive.
 \subsubsection{Verifier's Algorithm:} \label{verifier-range-proof}
 
 $\V$ has access to the following values:
-
 \eqn{range-def1-ver}{
 	\ran{y}, \ran{z}, \ran{x}, \be &\in \Z_p \\
 	\vec{L}, \vec{R} &\in \G_p^{k} \\
@@ -1103,7 +1087,6 @@ prove to it.
 
 To check the first property $\V$ simply checks if the following
 equation holds:
-
 \eq{
 	t(\ran{x})B + \bt(\ran{x})\bB \stackrel{?}{=} \ran{z^2} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
 }
@@ -1117,7 +1100,7 @@ this equation holds:
 
 \eq{
 	P &= -\be\bB &&+ A &&+ \ran{x}S &&+ \dotp{\ran{z}\vecran{y}^{\vecran{n}} + \ran{z^2}\vec{2^n}}{\vec{H'}} &&- \ran{z}\dotp{\vec{1}}{\vec{\vec{G}}} \\
-	&= -\be\bB &&+ A &&+ \ran{x}S &&+ \dotp{\ran{z}\vecran{y}^{\vecran{n}} + \ran{z^2}\vec{2^n}\circ\vecran{y^{-n}}}{\vec{H}} &&- \ran{z}\dotp{\vec{1}}{\vec{G}}
+	&= -\be\bB &&+ A &&+ \ran{x}S &&+ \dotp{\ran{z}\vecran{y}^{\vecran{n}} + \ran{z^2}\vec{2^n}\circ\vecran{y^{-n}}}{\vec{H}} &&- \ran{z}\dotp{\vec{1}}{\vec{G}} \\
 }
 
 From the column-sum argument we can deduce that $P =
@@ -1153,11 +1136,9 @@ and thus the proof is also zero-knowledge.
 
 An aggregated range-proof is a range proof which proves that a series
 of values, $\vec{v} \in \Z^m$, lie within a certain range:
-
 \eqn{agg-range}{
 	[0,2^n)
 }
-
 for some integer $n$. This is done by aggregating $m$ range-proofs for
 each individual value $v_j$ into a single proof which, if verified,
 proves that each $v_j$ given lies within the range $[0,2^n)$, while
@@ -1186,9 +1167,8 @@ to 'cheat'. This offset is defined as such for the $j$th party:
 \eq{
 	&\ran{z}_{(j)}   = \ran{z}^j \cdot \vecran{y}^{\vec{n}}_{(j)} \\
 	&\textbf{where:}\\
-	&\vecran{y}^{\vec{n}}_{(j)} = \vecran{y}^{\vec{n \cdot m}}_{[j \cdot n:(j+1) \cdot n]}
+	&\vecran{y}^{\vec{n}}_{(j)} = \vecran{y}^{\vec{n \cdot m}}_{[j \cdot n:(j+1) \cdot n]} \\
 }
-
 The evaluation point $x$ is the same for all parties. The choice
 of $\ran{y}, \ran{z}$ and $\ran{x}$ is done where it would ordinarily
 be done, but only once $\D$ has received the needed values from \textit{all}
@@ -1209,19 +1189,19 @@ means proving that $t_{0,(j)}$ is correct as well as proving that
 $\vec{l}(x)_{(j)}$ and $\vec{r}(x)_{(j)}$ are created correctly and
 that $t(x)_{(j)} = \dotp{\vec{l}(x)_{(j)}}{\vec{r}(x)_{(j)}}$.
 
+\newpage
+
 Each $\P_{(j)}$ sends their $T_{1,(j)}$ and $T_{2,(j)}$, to the dealer,
 which can then compute:
 
 \eq{
 	T_1 &= \sum^{m-1}_{j = 0} T_{1,(j)}\\
 	T_2 &= \sum^{m-1}_{j = 0} T_{2,(j)}\\
-	\delta(y,z) &= \sum^{m-1}_{j = 0} \delta_{(j)}(y,z)
+	\delta(y,z) &= \sum^{m-1}_{j = 0} \delta_{(j)}(y,z) \\
 }
-
 From here $\D$ sends back the challenge $\ran{x}$ and $\P_{(j)}$
 will return $t(\ran{x})_{(j)}B$ and $\bt(\ran{x})_{(j)}\bB$. $\D$
 can then sum these together as well:
-
 \eq{
 t(x)B &= \sum^{m-1}_{j = 0} t_{j}(x)B\\
 \bt(x)\bB &= \sum^{m-1}_{j = 0} \bt_{j}(x)\bB
@@ -1229,22 +1209,17 @@ t(x)B &= \sum^{m-1}_{j = 0} t_{j}(x)B\\
 
 And finally convince themselves that for all $t_{0,(j)}$ are correct
 by performing the following check:
-
 \eq{
 	t(\ran{x})B + \bt (\ran{x})\bB \stackrel{?}{=}
 	\ran{z^2}\sum^{m-1}_{j = 0} \ran{z_{(j)}} \cdot V_{(j)} +
 	\delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
 }
-
 we know that $z_{(j)} = z^j$ we can make a small rewrite:
-
 \eq{
 	t(\ran{x})B + \bt (\ran{x})\bB \stackrel{?}{=}
 	\sum^{m-1}_{j = 0} \ran{z}^{j+2} \cdot V_{(j)} +
 	\delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
 }
-
-
 And this check will then convince $\D$ that all $t_{0,(j)}$
 are correct.
 
@@ -1253,7 +1228,6 @@ that each $\vec{l}(x)_{(j)}$ and $\vec{r}(x)_{(j)}$ are constructed
 correctly. This is done similarly to proving that $t_{0,(j)}$
 are all correct. Proving this property for the $j$th party would be
 proving the following:
-
 \eq{
 	\dotp{\vec{l}(\ran{x})_{(j)}}{\vec{G}_{(j)}} + \dotp{\vec{r}(\ran{x})_{(j)}}{\vec{H'}_{(j)}} \stackrel{?}{=}
 	-\be_{(j)}\bB + A_{(j)} + \ran{x}S_{(j)} +
@@ -1273,8 +1247,9 @@ which $\D$ can then combine in the following manner:
 	\vec{H'}   &= \vec{H'}_{(0)}   &&\concat \vec{H'}_{(1)}   &&\concat \dots &&\concat \vec{H'}_{(m-1)}
 }
 
-Additionally, $\D$ can construct the following:
+\newpage
 
+Additionally, $\D$ can construct the following:
 \eq{
 	\vecran{y}^{\vec{n}}_{(j)} &= \vecran{y}^{\vec{n \cdot m}}_{[j \cdot n : (j+1) \cdot n]}\\
 	\ran{z}_{(j)}      &= \ran{z}^j\\
@@ -1287,14 +1262,12 @@ Note that $\D$ has already received $A_{(j)}$ and $S_{(j)}$ from the
 first step of the transcript. $\D$ can then use the following check
 to convince itself that all $\vec{l}(x)_{(j)}$ and $\vec{r}(x)_{(j)}$
 are correctly constructed:
-
 \eq{
 	\vec{l}(\ran{x})_{(j)} + \vec{r}(\ran{x})_{(j)} \stackrel{?}{=}
 	-\be\bB + A + \ran{x}S - \ran{z}\dotp{\vec{1}}{\vec{G}} +
 	\ran{z}\dotp{\vecran{y}^{\vec{n \cdot m}}}{\vec{H'}} +
 	\sum^{m-1}_{j = 0}\dotp{\ran{z^{j+2}} \cdot \vec{2^n}}{\vec{H'}_{[j \cdot n: (j+1) \cdot n]}}
 }
-
 And if this holds then $\D$ is convinced that $\vec{l}(x)_{(j)}$ and
 $\vec{r}(x)_{(j)}$ are correctly constructed and that $t(x)_{(j)}
 = \dotp{\vec{l}(x)_{(j)}}{\vec{r}(x)_{(j)}}$. This, along with
@@ -1311,9 +1284,8 @@ This protocol in transcript form would be the following:
 	&\D &&\rightarrow \P_{(j)} &&: \ran{y}, \ran{z}, j \\
 	&\P_{(j)} &&\rightarrow \V &&: T_{1, (j)}, T_{2,(j)} \\
 	&\D &&\rightarrow \P_{(j)} &&: \ran{x} \\
-	&\P_{(j)} &&\rightarrow \V &&: t(\ran{x})_{(j)} B, \bt(\ran{x})_{(j)}\bB, \be
+	&\P_{(j)} &&\rightarrow \V &&: t(\ran{x})_{(j)} B, \bt(\ran{x})_{(j)}\bB, \be \\
 }
-
 With $t(x)_{(j)}$ and $\bt(x)_{(j)}$ both evaluated with challenge $\ran{x}$
 
 \subsection{Fiat-Shamir Heuristic}\label{fiat-shamir-heuristic}
@@ -1337,7 +1309,6 @@ $X = xG$ for the public curve-points $X$ and $G$. Ordinarily $\P$ would
 send a commitment $K$, to a randomly chosen $k$, to $\V$, who would
 then send back a challenge $e$. However with the Fiat-Shamir heuristic,
 $\P$ will instead compute:
-
 \eq{
 	e = \textbf{H}(X,P,K)
 }
@@ -1350,13 +1321,12 @@ point the rest of the protocol functions the same as it does in
 \eq{
 	\P \rightarrow \V &: K \\
 	\V \rightarrow \P &: e \\
-	\P \rightarrow \V &: s \\
+	\P \rightarrow \V &: s
 }
 To the much shorter:
 \eq{
 	\P \rightarrow \V: K, s
 }
-
 Crucially allowing $\P$ to construct the entire proof without
 interacting with $\V$. The proof is still sound as $\P$ cannot get $e$
 without committing to a $K$ first.
@@ -1371,7 +1341,6 @@ $\ran{y} = \textbf{H}(\vec{V},\vec{A},\vec{S}), \ \ran{z} =
 = \textbf{H}(\vec{V},\vec{A},\vec{S}, \ran{y}, \ran{z},
 \vec{T_1},\vec{T_2})$. This will result in the following final
 transcript:
-
 \eq{
 	&\P_{(j)} &&\rightarrow \D &&: V_{(j)}, n, A_{(j)}, S_{(j)}, j, T_{1, (j)}, T_{2,(j)}, t_{(j)}(\ran{x})B, \bt_{(j)}(\ran{x})\bB, \be
 }
@@ -1818,7 +1787,10 @@ the \ttvar{append_message()}, \ttvar{append_u64()} and
 \ttvar{challenge_bytes()} methods for both implementations and asserts
 that the challenge bytes returned are equivalent between implementations. 
 These functions are sufficient to test equivalence as they utilize all
-other functions implemented. The entire test can be seen below:
+other functions implemented. The entire test can be seen on the
+next page:
+
+\newpage
 
 \begin{lstlisting}
 // Tests all merlin functions against the external merlin counterparts.
