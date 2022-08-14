@@ -140,20 +140,20 @@ Department of Computer Science, Aarhus University\\
 {\itshape
 	Bulletproofs is a zero-knowledge range proof protocol. In this
 	thesis we shall describe the implementation of this protocol
-	in Hacspec, a cryptographic specification language, that is
-	defined to be a subset of Rust. Hacspec allows the programs
+	in Hacspec, a cryptographic specification language,	defined to 
+	be a subset of Rust. Hacspec allows the programs
 	written in it to be transpiled to so-called proof assistants
 	such as Coq, which can be used to prove various properties
 	about the specification. We will use rigorous property based
 	testing which will ensure that our implementation functions
 	identically to a much more efficient Rust implementation. Thus,
-	if a property is proven for the Hacspec specification, it is
-	plausible that it also holds for the Rust implementation.
+	if a property is proven for our Hacspec specification, it is
+	very plausible that it also holds for the Rust implementation.
 
 	In section \ref{prerequisites} we will go through the
 	prerequisites required to understand the Bulletproofs
 	protocol and give a short introduction to Hacspec. In section
-	\ref{bulletproofs} we describe the Bulletproofs protocol in
+	\ref{bulletproofs} we will describe the Bulletproofs protocol in
 	detail. In section \ref{our-contributions} we describe how
 	the protocol was implemented in Hacspec and what testing was
 	done. In section \ref{future-work} and \ref{conclusions}
@@ -199,9 +199,9 @@ already had such vulnerabilities \cite{cryptonote} \cite{zcash}. Both of
 these cryptocurrencies have marketcaps over a billion dollars, therefore
 it is crucial to minimize the attack surface. One way of doing this
 is by using proof assistants, such as Coq, on the implementations of
-these protocols, proving that necessary properties holds.
+these protocols, proving that necessary properties hold.
 
-However, effective implementations are often unfeasible to implement
+However, efficient implementations are often infeasible to implement
 and run in proof assistant languages. A relatively new tool in this
 space is Hacspec \cite{hacspec}, a subset of Rust that functions
 as a specification language. It implements cryptographic primitives
@@ -213,21 +213,21 @@ implementation using property based testing to ensure that the Hacspec
 and Rust implementations function identically.
 
 The overall goal of this paper is to implement the zero-knowledge
-rangeproof protocol, Bulletproofs, created by Bünz et
+range proof protocol, Bulletproofs, created by Bünz et
 al. \cite{bulletproofs}, in Hacspec. The protocol creates a compact
 zero-knowledge proof to show that one or more values lie within a
 range of $[0:2^n)$ for a provided $n$, without revealing any other
 information about the values themselves. A variant of this protocol
 is currently utilized in the cryptocurrency Monero. Additionally,
 we also wish to write our implementation in a modular fashion that
-allows future cryptographic protocols specified in hacspec to utilize
+allows future cryptographic protocols specified in Hacspec to utilize
 parts of our specification.
 
 We will be testing our implementation against the current Rust
-Bulletproofs crate \cite{dalek} by the Dalek team, using property-based
-testing to ensure, with high probability, that our implementation of the
+Bulletproofs crate \cite{dalek} created by the Dalek team, using property-based
+testing to assert, with high probability, that our implementation of the
 Bulletproofs protocol is equivalent to the Rust Bulletproofs crate. This
-will mean that using a proof assistant on our implementation will be
+will mean that using a proof assistant on our implementation will be 
 approximately equivalent to using it on the Rust implementation.
 
 In this paper we will briefly go over the prerequisites for
@@ -238,7 +238,7 @@ implementation hurdles encountered in the process. We end this paper
 by discussing possible future work that can be done on the back of
 our work, concluding the overall project.
 
-All the project's Hacpspec code as well as the latex to
+All the project's Hacspec code as well as the latex to
 compile this report can be found on our GitHub repository
 \cite{hacspec-bulletproofs}.
 
@@ -277,7 +277,7 @@ A table of notation used throughout this report:
 \section{Prerequisites:} \label{prerequisites}
 
 In this section we will be covering the necessary background knowledge
-to understand the results of the work in this project.
+to understand the results of the work done in this project.
 
 \subsection{Finite Field Arithmetic:} \label{finite-field-arithmetic}
 
