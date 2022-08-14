@@ -281,7 +281,7 @@ knowledge to understand the Bulletproofs protocol. This includes
 finite field arithmetic (section \ref{finite-field-arithmetic}),
 elliptic curves (section \ref{elliptic-curves}), pedersen commitments
 (section \ref{pedersen-commitments}) and finally the concept of
-zero-knowledge proofs (section \ref{zero-knowledge-proofs})
+zero-knowledge proofs (section \ref{zero-knowledge-proofs}).
 
 \subsection{Finite Field Arithmetic:} \label{finite-field-arithmetic}
 
@@ -2290,6 +2290,8 @@ fn test_bulletproofs(m: usize, n: usize) {
 	let (s_R_hac, s_R_rust) = generate_many_random_scalars(n, number_of_values);
 	let (t1_blindings_hac, t1_blindings_rust) = generate_random_scalars(number_of_values);
 	let (t2_blindings_hac, t2_blindings_rust) = generate_random_scalars(number_of_values);
+
+	[...]
 \end{lstlisting}
 
 \texttt{BulletproofGens} and \texttt{PedersenGens} are converted from
@@ -2310,7 +2312,8 @@ fn i2j8() {
 fn i2j16() {
     test_bulletproofs(2,16);
 }
-...
+
+[...]
 \end{lstlisting}
 
 After running a single test for most combinations of $n$ and $m$, to
