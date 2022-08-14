@@ -255,6 +255,35 @@ compile this report can be found on our GitHub repository
 
 \newpage
 
+\section{Appendix A: Notation:} \label{notation}
+
+A table of notation used throughout this report:
+
+\begin{center}
+\begin{tabular}{ c l }
+	$a$                         & A scalar \\
+	$\vec{a}$                   & A vector \\
+	$A$                         & A curve point \\
+	$\vec{A}$                   & A vector of curve points \\
+	$\ran{a}$                   & A challenge scalar \\
+	$\vecran{a}$                & A vector of challenge scalars \\
+	$\vecran{A}$                & A vector of random curve points \\
+	$\vec{A}_{[b : c]}$            & The slice $[A_b, A_{b+1}, \cdots  A_{c-1}]$ \\ 
+	$\veclo{a}$                 & The first half of vector $\vec{a}$, ($\veclo{a} = [a_{1}, \cdots, a_{n/2}]$) \\
+	$\vechi{a}$                 & The second half of vector $\vec{a}$, ($\vechi{a} = [a_{n/2+1}, \cdots, a_{n}]$) \\
+	$\vec{a^n}$                 & A vector of scalars which are made up of powers of $a$ i.e. $[1,a,a^2, \cdots, a^{n-1}]$\\
+	$\vec{a} \concat \vec{b}$   & A vector, $\vec{a}$, concatinated with another vector, $\vec{b}$\\
+	$\mathbb{A}$                & A set \\
+	$\mathbb{A}^n$              & A vector space of dimension $n$ \\ 
+	$\mathbb{A}_n$              & A set whose elements are mod $n$ \\ 
+	$a(x)$                      & A function mapping integers mod $p$ to integers mod $p$: $\Z_p \rightarrow \Z_p$ \\
+	$\vec{a}(x)$                & A function mapping integers mod $p$ to vectors containing integers mod $p$: $\Z_p \rightarrow \Z^n_p$ \\
+	$\dotp{\vec{a}}{\vec{b}}$   & Dot product of $\vec{a}$ and $\vec{b}$ \\
+	$\dotp{\vec{a}}{\vec{A}}$   & The sum of scalar-point products of $\vec{a}$ and $\vec{A}$ ($\dotp{\vec{a}}{\vec{A}} = a_1 A_1 + a_2 A_2 + \cdots + a_n A_n$) \\
+\end{tabular}
+\end{center}
+
+
 \section{Prerequisites:} \label{prerequisites}
 
 In this section we will be covering the necessary background
@@ -299,6 +328,8 @@ respectively:
 	a-b         &= a + (-b) \\
 	\frac{a}{b} &= a \cdot b^{-1}
 }
+
+\newpage
 
 This leads us to \textit{finite fields}:
 
@@ -386,6 +417,8 @@ naturally yield the identity element $\mathcal{O}$ by definition.
 Additionally multiplying by a negative integer, ${-m}$, is defined as
 $-m\cdot P = m\cdot ({-P})$. 
 
+\newpage
+
 These definitions give rise to the concept of an elliptic
 curve's \textit{generator points}:
 
@@ -460,7 +493,6 @@ a zero-knowledge proof, using the so-called Schnorr Identity Protocol
 The crux of the Schnorr Identity Protocol is for $\P$ to show that
 they know the secret value $x$. This secret value has the following
 relation to the public elliptic curve points $X$ and $G$:
-
 \eq{
 	X = xG
 }
@@ -485,7 +517,6 @@ From here $\V$ can do a simple check to see if $\P$ truly knows $x$:
 \eq{
 	sG \stackrel{?}{=} K + \ran{e}X
 }
-
 
 \textbf{Completeness:}
 
@@ -513,9 +544,8 @@ creation of $s$. This \textit{could} be done if $\P$ had knowledge of
 $e$ by constructing $K$ as follows:
 
 \eq{
-	K = s(G - \ran{e}X)
+	K = s(G - \ran{e}X) \\
 }
-
 and then choosing a random value $s$. If the verifier then did the
 check they would find that it holds. However, this is \textit{not}
 a possibility because $\P$ must commit to a $K$ before they are given
@@ -531,6 +561,8 @@ and see that $K$ does not include $x$ in its calculations, but $s$
 does. However, $s$ is blinded by $k$ meaning that $\V$ cannot infer
 $x$ without knowing $k$. And $\V$ cannot infer $k$ from $K$ any easier
 than it can infer $x$ from $X$, thus this proof is also zero-knowledge.
+
+\newpage
 
 \subsection{Hacspec:} \label{hacspec}
 
@@ -603,6 +635,8 @@ bandwidth and time to verify. Instead, we will use a compression
 technique included in the Bulletproofs paper which allows for just
 $O(\log_2(n))$ bandwidth and time to verify.
 
+\newpage
+
 \subsubsection{Prover's Algorithm:}
 $\P$ is given values with the following definitions:
 \eqn{ipp-def1}{
@@ -625,7 +659,7 @@ refer to exponentiation:
 \eq{
 	P^{(k)} &= \dotp{\vec{a}}{\vec{G}} +
 	           \dotp{\vec{b}}{\vec{H}} +
-	           \dotp{\vec{a}}{\vec{b}}Q \\
+	           \dotp{\vec{a}}{\vec{b}}Q
 } 
 The $Q$ introduced here is just another public point,
 like $\vec{G}$ and $\vec{H}$. This redefinition will be useful, as
@@ -633,26 +667,24 @@ it will allow us to redefine $\vec{a}, \vec{b}, \vec{G}, \vec{H}$
 ($\vec{a}^{(k)}, \vec{b}^{(k)}, \vec{G}^{(k)}, \vec{H}^{(k)}$) into a
 shorter format, while keeping the properties in equation \ref{ipp-def2}
 as invariants.
+
 \eq{
 	\vec{a}^{(k-1)} &= \veclo{a^{\text{(k)}}} &&\cdot \ran{u}_k      &&+ \ran{u}^{-1}_k &&\cdot \vechi{a^{\text{(k)}}} \\
 	\vec{b}^{(k-1)} &= \veclo{b^{\text{(k)}}} &&\cdot \ran{u}^{-1}_k &&+ \ran{u}_k      &&\cdot \vechi{b^{\text{(k)}}} \\
 	\vec{G}^{(k-1)} &= \veclo{G^{\text{(k)}}} &&\cdot \ran{u}^{-1}_k &&+ \ran{u}_k      &&\cdot \vechi{G^{\text{(k)}}} \\
 	\vec{H}^{(k-1)} &= \veclo{H^{\text{(k)}}} &&\cdot \ran{u}_k      &&+ \ran{u}^{-1}_k &&\cdot \vechi{H^{\text{(k)}}} \\
 }
-
 Notice that these redefined vectors will have a length half that
 of the original vectors, satisfying our requirement for more compact
 vectors. The random variable, $\ran{u}_k$, will be provided by $\V$
 to ensure that it is indeed random. From these new vectors we will
 define a new compressed $P^{(k-1)}$ and isolate the variable $\ran{u}$:
-
 \eq{
 	P^{(k-1)} =
 	\dotp{\vec{a}^{(k-1)}}{\vec{G}^{(k-1)}} +
 	\dotp{\vec{b}^{(k-1)}}{\vec{H}^{(k-1)}} +
 	\dotp{\vec{a}^{(k-1)}}{\vec{b}^{(k-1)}} \cdot Q
 }
-
 Notice that $P^{(k-1)}$ is still defined the same way
 that we defined $P^{(k)}$, and that the property $c^{(k-1)} =
 \dotp{\vec{a}^{(k-1)}}{\vec{b}^{(k-1)}}$ still holds. If we substitute
@@ -693,8 +725,9 @@ And group the terms:
 }
 
 We can see that this compressed $P^{(k-1)}$ contains $c =
-(\dotp{\veclo{a}}{\veclo{b}} + \dotp{\vechi{a}}{\vechi{b}})$. We can
-simplify further by defining variables $L_k$ and $R_k$:
+(\dotp{\veclo{a}}{\veclo{b}} + \dotp{\vechi{a}}{\vechi{b}})$.
+
+We can simplify further by defining variables $L_k$ and $R_k$:
 
 \eq{
 	&P^{(k-1)} &&= P_k + u^2_k \cdot L_k + u^{-2}_k \cdot R_k \\
@@ -717,8 +750,6 @@ until we get the final $P$, $P^{(0)}$:
 }
 
 Finally, $\P$ sends $(a^{(0)}, b^{(0)})$ to $\V$.
-
-\newpage
 
 The entirety of the dialogue between $\V$ and $\P$,
 the so-called \textit{transcript}, can be summarized as the following:
@@ -779,8 +810,6 @@ half of $\vec{G}^{(j)}$, and 1 if $G_i$ appears in the right half
 of $\vec{G}^{(j)}$. Therefore, $G_i$ appears in the right side of
 $\vec{G}^{(j)}$ if $(i \text{ mod } 2^j) < 2^{j-1}$.
 
-\newpage
-
 We make a similar argument for $H^{(0)}$. We want to define a vector
 $\vec{s'}$ such that $\dotp{\vec{s'}}{\vec{H}} = H^{(0)}$:
 \eqn{H0}{
@@ -815,6 +844,9 @@ $\dotp{\vec{a}}{\vec{b}} = c$:
 	        &\stackrel{?}{=} a^{(0)}G^{(0)} + b^{(0)}H^{(0)} + a^{(0)}b^{(0)}Q - \sum^k_{i=1} (L_i \ran{u}^2_i + \ran{u}^{-2}_i R_i) \\
 	        &\stackrel{?}{=} \dotp{a\vec{s}}{\vec{G}} + \dotp{b\vec{s'}}{\vec{H}} + abQ - \sum^k_{i=1} (L_i \ran{u}^2_i + \ran{u}^{-2}_i R_i)
 }
+
+\newpage
+
 \subsection{Range Proofs:} \label{range-proofs}
 
 A range proof is a zero-knowledge proof which seeks to prove that for
@@ -836,8 +868,6 @@ To start, the prover, $\P$, is given the following values:
 
 $\P$ wishes to convince the verifier, $\V$, that the value, $v$ lies
 within the range $[0,2^n)$.
-
-\newpage
 
 The first step towards this is for $\P$ to commit to $v$ using
 a Pedersen commitment $V$, and sending this to the $\V$, as well
@@ -880,17 +910,17 @@ and using $\ran{y}$ we get a new set of properties:
 	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y}^{\vec{n}}} = 0
 }
 
+\newpage
+
 Next $\P$ lets $\V$ chose another random challenge scalar $\ran{z}$,
 and using this we can combine the three properties above to the
 following single statement:
-
 \eq{
 	\ran{z^2}v = 
 	\ran{z^2}\dotp{\vecl{a}}{\vec{2^n}} +
 	\ran{z}\dotp{\vecl{a} - \vec{1} - \vecr{a}}{\vecran{y}^{\vec{n}}} +
-	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y}^{\vec{n}}} \\
+	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y}^{\vec{n}}}
 }
-
 With this, we have condensed the needed properties into a single
 equation.  We wish to rewrite this as a single inner product where
 $\vecl{a}$ appears only in the first argument of the inner product
@@ -918,9 +948,8 @@ First we can rewrite the middle term:
 	\dotp{\vecl{a}}{\vecr{a}\circ \vecran{y}^{\vec{n}}} \\
 	&\ran{z^2}v + \ran{z}\dotp{\vec{1}}{\vecran{y}^{\vec{n}}} 
 	&&= \dotp{\vecl{a}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y}^{\vec{n}} + \vecr{a}\circ \vecran{y}^{\vec{n}}} +
-	\dotp{-\ran{z}\vec{1}}{\vecr{a}\circ\vecran{y}^{\vec{n}}}
+	\dotp{-\ran{z}\vec{1}}{\vecr{a}\circ\vecran{y}^{\vec{n}}} \\
 }
-
 For the final step towards combining all the conditions into a single
 inner product we add $\dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} +
 \ran{z}\vecran{y}^{\vec{n}}}$ to both sides and simplify again:
@@ -933,7 +962,6 @@ inner product we add $\dotp{-\ran{z}\vec{1}}{\ran{z^2}\vec{2^n} +
 	\\
 	&\ran{z^2}v + (\ran{z} - \ran{z^2})\dotp{\vec{1}}{\vecran{y}^{\vec{n}}} - \ran{z^3}\dotp{\vec{1}}{\vec{2^n}} &&= \dotp{\vecl{a}- \ran{z}\vec{1}}{\ran{z^2}\vec{2^n} + \ran{z}\vecran{y}^{\vec{n}} + \vecr{a}\circ \vecran{y}^{\vec{n}}} \\
 }
-
 We define a function $\delta(y,z) = (z - z^2)\dotp{\vec{1}}{\vec{y^n}}
 - z^3\dotp{\vec{1}}{\vec{2^n}}$ and finish simplifying:
 \eq{
@@ -971,22 +999,19 @@ Now $\P$ can construct $t(x)$ as follows:
 \eq{
 	t(x) = \dotp{\vec{l}(x)}{\vec{r}(x)}
 }
-
 We group $x$ to get:
+
 \eq{
 	&t(x) = t_0 + t_1x + t_2x^2 \\
 	&\textbf{where:} \\
 	&t_0 = \dotp{\vec{l_0}}{\vec{r_0}}\\
 	&t_2 = \dotp{\vec{l_1}}{\vec{r_1}}\\
-	&t_1 = \dotp{\vec{l_0}+\vec{l_1}}{\vec{r_0} + \vec{r_1}} - t_0 - t_2
+	&t_1 = \dotp{\vec{l_0}+\vec{l_1}}{\vec{r_0} + \vec{r_1}} - t_0 - t_2 \\
 }
-
 Now $\P$ wishes to prove to $\V$ that $t_0$ and $t(x)$ are correctly
 constructed. So, $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$, and $t(x)
 = \dotp{\vec{l}(x)}{\vec{r}(x)}$ such that, $\vec{l}(x) = \vec{l_0}
 + \vec{l_1}x$, and, $\vec{r}(x) = \vec{r_0} + \vec{r_1}x$.
-
-\newpage
 
 First $\P$ wants to show that $t_0$ is correctly constructed. $\P$
 starts by making commitments to each of the coefficients of $t(x)$. Here
@@ -1035,6 +1060,8 @@ This same construction is used for the commitment to $C(\vecl{\bs},
 	&= \dotp{\vecl{a}}{\vec{G}} + \dotp{\vecran{y}^{\vec{n}}\circ \vecr{a}}{\vecran{y^{-n}}\circ \vec{H}} + \ba\bB \\
 }
 
+\newpage
+
 We define $\vec{H'} = \vecran{y^{-n}}\circ\vec{H}$, $A =
 C(\vecl{a},\vecr{a}, \ba)$ and $S = C(\vecl{\bs}, \vecr{\bs},
 \bs)$ and can now construct our argument similarly to what
@@ -1053,8 +1080,6 @@ and $\vec{r}(x)$ are correctly constructed and that $t(x) =
 \dotp{\vec{l}(x)}{\vec{r}(x)}$ and together with the previous
 commitments to $\V$, $\P$ will be able to successfully convince $\V$
 that $v$ lies in the range $[0, 2^n)$.
-
-\newpage
 
 In summary the transcript between $\V$ and $\P$, will end up being
 the following:
@@ -1095,6 +1120,8 @@ And if it does then that will convince $\V$ that $t(x) = \ran{z^2}v +
 \delta(\ran{y},\ran{z}) + t_1x + t_2\ran{x^2}$ due to the column-sum
 argument made in the Prover's Algorithm. (\ref{prover-range-proofs})
 
+\newpage
+
 Similarly to become convinced of the second property $\V$ checks if
 this equation holds:
 
@@ -1102,7 +1129,6 @@ this equation holds:
 	P &= -\be\bB &&+ A &&+ \ran{x}S &&+ \dotp{\ran{z}\vecran{y}^{\vecran{n}} + \ran{z^2}\vec{2^n}}{\vec{H'}} &&- \ran{z}\dotp{\vec{1}}{\vec{\vec{G}}} \\
 	&= -\be\bB &&+ A &&+ \ran{x}S &&+ \dotp{\ran{z}\vecran{y}^{\vecran{n}} + \ran{z^2}\vec{2^n}\circ\vecran{y^{-n}}}{\vec{H}} &&- \ran{z}\dotp{\vec{1}}{\vec{G}} \\
 }
-
 From the column-sum argument we can deduce that $P =
 \dotp{\vec{l}(x)}{\vec{G}} + \dotp{\vec{r}(x)}{\vec{H'}}$
 assuming an honest $\P$. Thus, $\V$ can use $t(x)$ and $P$ as
@@ -1189,8 +1215,6 @@ means proving that $t_{0,(j)}$ is correct as well as proving that
 $\vec{l}(x)_{(j)}$ and $\vec{r}(x)_{(j)}$ are created correctly and
 that $t(x)_{(j)} = \dotp{\vec{l}(x)_{(j)}}{\vec{r}(x)_{(j)}}$.
 
-\newpage
-
 Each $\P_{(j)}$ sends their $T_{1,(j)}$ and $T_{2,(j)}$, to the dealer,
 which can then compute:
 
@@ -1236,6 +1260,8 @@ proving the following:
 	\ran{z}\dotp{\vec{1}}{\vec{G}_{(j)}})
 }
 
+\newpage
+
 $\P_{(j)}$ will send their $\dotp{\vec{l}(\ran{x})_{(j)}}{\vec{G}_{(j)}},
 \dotp{\vec{r}(\ran{x})_{(j)}}{\vec{H'}_{(j)}}$ and $\be_{(j)}$
 which $\D$ can then combine in the following manner:
@@ -1246,8 +1272,6 @@ which $\D$ can then combine in the following manner:
 	\vec{G}    &= \vec{G}_{(0)}    &&\concat \vec{G}_{(1)}    &&\concat \dots &&\concat \vec{G}_{(m-1)}\\
 	\vec{H'}   &= \vec{H'}_{(0)}   &&\concat \vec{H'}_{(1)}   &&\concat \dots &&\concat \vec{H'}_{(m-1)}
 }
-
-\newpage
 
 Additionally, $\D$ can construct the following:
 \eq{
@@ -1286,23 +1310,26 @@ This protocol in transcript form would be the following:
 	&\D &&\rightarrow \P_{(j)} &&: \ran{x} \\
 	&\P_{(j)} &&\rightarrow \V &&: t(\ran{x})_{(j)} B, \bt(\ran{x})_{(j)}\bB, \be \\
 }
-With $t(x)_{(j)}$ and $\bt(x)_{(j)}$ both evaluated with challenge $\ran{x}$
+With $t(x)_{(j)}$ and $\bt(x)_{(j)}$ both evaluated with challenge $\ran{x}$.
+
+\newpage
 
 \subsection{Fiat-Shamir Heuristic}\label{fiat-shamir-heuristic}
 
-The Fiat-Shamir heuristic \cite{zkdocs-fiat-shamir} is a cryptographic concept, which allows
-$\P$ to compute challenges without the need to consult the verifier
-first. This is done by defining a hash function $\textbf{H}()$ which
-can hash any number of values into a single relatively unpredictable
-value. When the verifier would be needed to provide a challenge,
-instead, all public values that $\V$ would have access to are
-hashed using this hash function and the resulting value is used as
-the challenge. This way $\P$ can send all values it must generate at
-once, and $\V$ can simply reconstruct the hashes which an honest $\P$
-would have calculated and assert correctness. To show this we will
-once again look at the Schnorr Identity Protocol \cite{zkdocs-schnorr}, using it to show
-how the Fiat Shamir heuristic can be applied. We will use the same
-notation we used in section \ref{zero-knowledge-proofs}.
+The Fiat-Shamir heuristic \cite{zkdocs-fiat-shamir} is a cryptographic
+concept, which allows $\P$ to compute challenges without the need to
+consult the verifier first. This is done by defining a hash function
+$\textbf{H}()$ which can hash any number of values into a single
+relatively unpredictable value. When the verifier would be needed
+to provide a challenge, instead, all public values that $\V$ would
+have access to are hashed using this hash function and the resulting
+value is used as the challenge. This way $\P$ can send all values
+it must generate at once, and $\V$ can simply reconstruct the hashes
+which an honest $\P$ would have calculated and assert correctness. To
+show this we will once again look at the Schnorr Identity Protocol
+\cite{zkdocs-schnorr}, using it to show how the Fiat Shamir heuristic
+can be applied. We will use the same notation we used in section
+\ref{zero-knowledge-proofs}.
 
 $\P$ wishes to show $\V$ that they know the secret value $x$ such that
 $X = xG$ for the public curve-points $X$ and $G$. Ordinarily $\P$ would
@@ -1363,6 +1390,8 @@ include $V$ in the transcript, therefore our implementation also
 does not have this vulnerability. The paper has since been updated,
 but any implementation that has followed the old paper's Fiat-Shamir
 specification could still be vulnerable.
+
+\newpage
 
 \section{Our Contributions:} \label{our-contributions}
 
@@ -1442,6 +1471,8 @@ type ScalRes<T> = Result<T, u8>;
 Which would allow anyone using the library to use matrices with their
 own defined Hacspec types. Notice the \ttvar{hacspec_lib::Integer},
 this trait is implemented by all integers.
+
+\newpage
 
 \textbf{Testing:}
 
@@ -1759,7 +1790,8 @@ fn transmute_state_to_u64(state: StateU8) -> StateU64 {
 
 	new_state
 }
-
+\end{lstlisting}
+\begin{lstlisting}
 // Turns a stateU64 into a StateU8
 fn transmute_state_to_u8(state: StateU64) -> StateU8 {
 	let mut new_state = StateU8::new();
@@ -1789,8 +1821,6 @@ that the challenge bytes returned are equivalent between implementations.
 These functions are sufficient to test equivalence as they utilize all
 other functions implemented. The entire test can be seen on the
 next page:
-
-\newpage
 
 \begin{lstlisting}
 // Tests all merlin functions against the external merlin counterparts.
@@ -1829,6 +1859,8 @@ fn merl_test_all_funcs() {
 
 We ran 100000 of these tests times random \ttvar{msg}'s, \ttvar{n}'s
 and \ttvar{buf_size}'s, which took 119.81 seconds.
+
+\newpage
 
 \subsection{Implementing Inner Product Proof:} \label{implementing-inner-product-proof}
 
@@ -1917,7 +1949,7 @@ for i in 0..n {
 \end{lstlisting}
 
 We could rewrite this with vector operations, but this would not
-necessarily make the code more readable. Take for example
+necessarily make the code more readable. Take for example:
 
 \begin{lstlisting}
 a_L = v_add(v_scale(u, a_L), v_scale(u_inv, a_R));
@@ -2011,8 +2043,11 @@ use crate::errors::*;
 \end{lstlisting}
 
 But as this is not valid Hacspec code, as the only file allowed to 
-access modules in this library's src folder is \ttvar{ipp.rs}. To
-solve this we resorted to following:
+access modules in this library's src folder is \ttvar{ipp.rs}.
+
+\newpage
+
+To solve this we resorted to following:
 
 \begin{lstlisting}
 mod errors;
@@ -2090,7 +2125,9 @@ in section \ref{range-proofs} and \ref{range-proof-aggregation}. Our
 specification models the same types and functions as the Dalek
 implementation, therefore the steps performed in constructing the range
 proofs will be identical. A flow graph over the steps involved
-can be seen below:
+can be seen on the next page:
+
+\newpage
 
 \begin{figure}[H]
 	\centering
@@ -2151,6 +2188,8 @@ a simplified pseudocode representing our implementation of this graph:
 
 	\caption{Bulletproof algorithm}
 \end{algorithm}
+
+\newpage
 
 The functions called on lines 4, 12, 18, and 24 are from the
 \ttvar{dealer} module while the functions called on lines 7, 9,
@@ -2226,6 +2265,8 @@ instead of our own, as was done when testing the inner product proof
 increased the speed of our implementation and thus allowed much more
 rigorous testing.
 
+\newpage
+
 \textbf{Testing:}
 
 To test the code we created a main helper function \ttvar{test_bulletproofs()}:
@@ -2260,11 +2301,6 @@ and \ttvar{n}'s:
 #[test]
 fn m2n8() {
     test_bulletproofs(2,8);
-}
-
-#[test]
-fn m2n16() {
-    test_bulletproofs(2,16);
 }
 
 [...]
@@ -2304,6 +2340,8 @@ to run. Below is a table of what tests were done and how long they took:
 	$m = 64, n = 64$  & 67,508.52 s  & 64.59 & 1,045.18 \\ \hline 
 \end{tabular}
 \end{center}
+
+\newpage
 
 With these performance increases we ran 5,000 tests on randomized
 $n$ and $m$ values, which all successfully passed, taking 43,017.28
@@ -2365,36 +2403,10 @@ implement other cryptographic algorithms, by allowing them to use our
 Ristretto and Merlin libraries for implementing protocols that utilize
 elliptic-curve cryptography and zero-knowledge proofs respectively.
 
+\newpage
+
 \section{References} \label{references}
 \printbibliography
-
-\section{Appendix A: Notation:} \label{notation}
-
-A table of notation used throughout this report:
-
-\begin{center}
-\begin{tabular}{ c l }
-	$a$                         & A scalar \\
-	$\vec{a}$                   & A vector \\
-	$A$                         & A curve point \\
-	$\vec{A}$                   & A vector of curve points \\
-	$\ran{a}$                   & A challenge scalar \\
-	$\vecran{a}$                & A vector of challenge scalars \\
-	$\vecran{A}$                & A vector of random curve points \\
-	$\vec{A}_{[b : c]}$            & The slice $[A_b, A_{b+1}, \cdots  A_{c-1}]$ \\ 
-	$\veclo{a}$                 & The first half of vector $\vec{a}$, ($\veclo{a} = [a_{1}, \cdots, a_{n/2}]$) \\
-	$\vechi{a}$                 & The second half of vector $\vec{a}$, ($\vechi{a} = [a_{n/2+1}, \cdots, a_{n}]$) \\
-	$\vec{a^n}$                 & A vector of scalars which are made up of powers of $a$ i.e. $[1,a,a^2, \cdots, a^{n-1}]$\\
-	$\vec{a} \concat \vec{b}$   & A vector, $\vec{a}$, concatinated with another vector, $\vec{b}$\\
-	$\mathbb{A}$                & A set \\
-	$\mathbb{A}^n$              & A vector space of dimension $n$ \\ 
-	$\mathbb{A}_n$              & A set whose elements are mod $n$ \\ 
-	$a(x)$                      & A function mapping integers mod $p$ to integers mod $p$: $\Z_p \rightarrow \Z_p$ \\
-	$\vec{a}(x)$                & A function mapping integers mod $p$ to vectors containing integers mod $p$: $\Z_p \rightarrow \Z^n_p$ \\
-	$\dotp{\vec{a}}{\vec{b}}$   & Dot product of $\vec{a}$ and $\vec{b}$ \\
-	$\dotp{\vec{a}}{\vec{A}}$   & The sum of scalar-point products of $\vec{a}$ and $\vec{A}$ ($\dotp{\vec{a}}{\vec{A}} = a_1 A_1 + a_2 A_2 + \cdots + a_n A_n$) \\
-\end{tabular}
-\end{center}
 
 
 \end{document}
