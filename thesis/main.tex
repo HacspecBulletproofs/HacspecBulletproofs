@@ -159,8 +159,8 @@ Department of Computer Science, Aarhus University\\
 	done. In section \ref{future-work} and \ref{conclusions}
 	we outline the implications of our work, including how it
 	can be used to prove properties about the equivalent Rust
-	implementations and how others can use our modules to specify
-	other cryptographic protocols.
+	implementations and how our work can aid others specifiying
+	cryptographic protocols in Hacspec.
 }
 
 \subsection*{Acknowledgements:}
@@ -214,7 +214,7 @@ and Rust implementations function identically.
 
 The overall goal of this paper is to implement the zero-knowledge
 rangeproof protocol, Bulletproofs, created by Bünz et
-al. \cite{bulletproofs}, in Hacspec. The protocol creates a compact
+al.\cite{bulletproofs}, in Hacspec. The protocol creates a compact
 zero-knowledge proof to show that one or more values lie within a
 range of $[0:2^n)$ for a provided $n$, without revealing any other
 information about the values themselves. A variant of this protocol
@@ -334,7 +334,7 @@ Something important to note about this definition is that inverses in
 this kind of field are also positive whole numbers. This will come up
 again in section \ref{implementing-ristretto} in regards to the code.
 
-\subsection{Elliptic Curve:}\label{elliptic-curves}
+\subsection{Elliptic Curves:}\label{elliptic-curves}
 
 To start our explanation of elliptic curves we add a few
 definitions. Again, these definitions are mostly from
@@ -551,13 +551,12 @@ than it can infer $x$ from $X$, thus this proof is also zero-knowledge.
 Hacspec is a subset of the programming language of Rust. Its purpose is
 to be a specification language for cryptographic algorithms, with the
 special properties that it is executable (since it is valid rust code),
-but also that it is defined such that it can easily be transpiled
-into theorem solvers, namely Coq and F*. The cost for having this
-property is certain syntactic enhancements that are available in Rust
-are not defined in Hacspec. This makes the language simpler, but it
-also makes it harder to simply express some concepts due to the lack
-of syntactic sugar. The language however is still in development,
-balancing and adding features.
+but also that it is defined such that it can easily be transpiled into
+theorem solvers, namely Coq and F*. The cost for having this property
+is certain syntactic enhancements that are available in Rust are not
+defined in Hacspec. This makes the language simpler, but it also makes
+it harder to simply express some concepts. The language however is
+still in development, balancing and adding features.
 
 External crates are of course not allowed as they will inevitably
 fail to be Hacspec compliant. However, Hacspec implements various
@@ -570,18 +569,17 @@ functionality as their \texttt{Vec<T>} counterparts. When defining
 custom types, the Hacspec standard library differentiates between
 so-called \textit{secret integers}. Secret integers are protected
 from side-channel attacks, but do not implement certain operations,
-namely equality. We have used secret integers wherever possible but,
+namely equality. We have used secret integers wherever possible, but
 while they are more secure, they are not always feasible.
 
-The Hacspec repository have an array of examples of effective
-Hacspec code. These examples can serve both as a guideline for future
-implementations, but can also be used as modules. In our project we
-utilize the Sha-3 Hacspec example in our Merlin specification. It
-is our goal to merge the entirety of our Hacspec code into the main
-repository. So far, the entire the linear algebra library (section
-\ref{linear-algebra-library}) and approximately half of the ristretto
-specification (section \ref{implementing-ristretto}) have been merged 
-into Hacspec. 
+The Hacspec repository have an array of code examples. These examples
+can serve both as a guideline for future implementations, but can also
+be used as modules. In our project we utilize the Sha-3 Hacspec example
+in our Merlin specification. It is our goal to merge the entirety
+of our Hacspec code into the main repository. So far, the entire
+the linear algebra library (section \ref{linear-algebra-library})
+and approximately half of the ristretto specification (section
+\ref{implementing-ristretto}) have been merged into Hacspec.
 
 All code, except tests, written for this project was written to
 be Hacspec compliant. Our implementation is a specification meant
@@ -1326,8 +1324,10 @@ This protocol in transcript form would be the following:
 	&\D &&\rightarrow \P_{(j)} &&: \ran{y}, \ran{z}, j \\
 	&\P_{(j)} &&\rightarrow \V &&: T_{1, (j)}, T_{2,(j)} \\
 	&\D &&\rightarrow \P_{(j)} &&: \ran{x} \\
-	&\P_{(j)} &&\rightarrow \V &&: t(\ran{x})_{(j)} B, \bt(\ran{x})_{(j)}\bB, \be \hspace*{1cm}\text{($t(x)_{(j)}$ and $\bt(x)_{(j)}$ both evaluated with challenge $\ran{x}$)}\\
+	&\P_{(j)} &&\rightarrow \V &&: t(\ran{x})_{(j)} B, \bt(\ran{x})_{(j)}\bB, \be
 }
+
+With $t(x)_{(j)}$ and $\bt(x)_{(j)}$ both evaluated with challenge $\ran{x}$
 
 \subsection{Fiat-Shamir Heuristic}\label{fiat-shamir-heuristic}
 
