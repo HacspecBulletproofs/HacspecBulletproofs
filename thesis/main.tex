@@ -2313,45 +2313,43 @@ us to perform more than a single test for each of the 18 input sizes.
 \begin{center}
 \begin{tabular}{ c|c|c } 
 	& Using Hacspec Ristretto & Using Dalek Ristretto \\ \hline\hline
-	$n = 8, m = 2$   & 420.02 s    & 0.57  \\ \hline 
-	$n = 16, m = 2$  & 809.14 s    & 0.97  \\ \hline 
-	$n = 32, m = 2$  & 1563.87 s    & 1.83  \\ \hline 
-	$n = 64, m = 2$  & 2073.97 s    & 3.56  \\ \hline 
+	$n = 8, m = 2$    & 420.02 s     & 0.57  \\ \hline 
+	$n = 16, m = 2$   & 809.14 s     & 0.97  \\ \hline 
+	$n = 32, m = 2$   & 1,563.87 s   & 1.83  \\ \hline 
+	$n = 64, m = 2$   & 2,073.97 s   & 3.56  \\ \hline 
 	\hline\hline
-	$n = 8, m = 4$   & 823.68 s    & 0.97  \\ \hline 
-	$n = 16, m = 4$  & 1585.96 s    & 1.79  \\ \hline 
-	$n = 32, m = 4$  & 3075.16 s    & 3.32  \\ \hline 
-	$n = 64, m = 4$  & 6107.19 s    & 6.55  \\ \hline 
+	$n = 8, m = 4$    & 823.68 s     & 0.97  \\ \hline 
+	$n = 16, m = 4$   & 1,585.96 s   & 1.79  \\ \hline 
+	$n = 32, m = 4$   & 3,075.16 s   & 3.32  \\ \hline 
+	$n = 64, m = 4$   & 6,107.19 s   & 6.55  \\ \hline 
 	\hline\hline
-	$n = 8, m = 8$   & 1624.98 s    & 1.85  \\ \hline 
-	$n = 16, m = 8$  & 3127.60 s    & 3.49  \\ \hline 
-	$n = 32, m = 8$  & 6114.07 s    & 6.63  \\ \hline 
-	$n = 64, m = 8$  & 10418.94 s    & 12.69 \\ \hline 
+	$n = 8, m = 8$    & 1,624.98 s   & 1.85  \\ \hline 
+	$n = 16, m = 8$   & 3,127.60 s   & 3.49  \\ \hline 
+	$n = 32, m = 8$   & 6,114.07 s   & 6.63  \\ \hline 
+	$n = 64, m = 8$   & 10,418.94 s  & 12.69 \\ \hline 
 	\hline\hline
-	$n = 8, m = 16$   & 3191.85 s   & 3.63  \\ \hline 
-	$n = 16, m = 16$  & 6209.07 s   & 7.20  \\ \hline 
-	$n = 32, m = 16$  & 12246.25 s   & 13.56 \\ \hline 
-	$n = 64, m = 16$  & 24303.13 s   & 26.06 \\ \hline 
+	$n = 8, m = 16$   & 3,191.85 s   & 3.63  \\ \hline 
+	$n = 16, m = 16$  & 6,209.07 s   & 7.20  \\ \hline 
+	$n = 32, m = 16$  & 12,246.25 s  & 13.56 \\ \hline 
+	$n = 64, m = 16$  & 24,303.13 s  & 26.06 \\ \hline 
 	\hline\hline
-	$n = 64, m = 32$  & 39100.84 s   & 41.70 \\ \hline 
+	$n = 64, m = 32$  & 39,100.84 s  & 41.70 \\ \hline 
 	\hline\hline
-	$n = 64, m = 64$  & 67508.52 s   & 64.59 \\ \hline 
+	$n = 64, m = 64$  & 67,508.52 s  & 64.59 \\ \hline 
 \end{tabular}
 \end{center}
 
-With these performance increases we ran 5000 tests on 
-randomized n and m values, which all successfully passed, 
-taking \textbf{Y} seconds. The reason we did not run 100000 
-tests as we did with Inner Product Proof is because in spite 
-these increases in speed, it would take an immense amount of 
-time to run 100000 tests. This means that the bulletproofs 
-are not as thoroughly tested compared to the other modules, 
-which does make the property of equivalence between the Bulletproof 
-implementations weaker compared to the other modules. This is not a 
-major issue given how comprehensive the protocol is, a single 
-randomized test passing is solid evidence that the code functions 
-properly for that combination of $n$ and $m$. With 5000 tests we 
-have 200 tests for each combination of inputs on average. 
+With these performance increases we ran 5,000 tests on randomized
+$n$ and $m$ values, which all successfully passed, taking 43,017.28
+seconds. The reason we did not run more tests is because in spite these
+speed increases, it still runs slow compared to other modules. This
+means that the Bulletproofs module are not as thoroughly tested,
+which does make the property of equivalence between the Bulletproof
+implementations weaker compared to the other modules. This is mediated
+by how comprehensive the protocol is, therefore a single randomized
+test passing is good evidence that the code functions properly for
+that combination of $n$ and $m$. With 5,000 tests we have 200 tests
+for each combination of inputs on average.
 
 \section{Future work:} \label{future-work}
 
