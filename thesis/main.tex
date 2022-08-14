@@ -1735,37 +1735,37 @@ not be a major concern.
 
 \subsection{Implementing Merlin:} \label{implementing-merlin}
 
-Merlin \cite{merlin} is for the most part a wrapper over the Strobe
+Merlin \cite{merlin} is, for the most part, a wrapper over the Strobe
 protocol \cite{strobe}. It performs the Fiat-Shamir heuristic by keeping
 a running hash of the transcript. Importantly, it does this in such a
-way that algorithms implemented using it will appear to interact with
+way that algorithms implementing it will appear to interact with
 a verifier, while remaining non-interactive. It achieves this by only
 allowing the algorithm to commit or receive challenge scalars from the
 transcript. This allows for simpler code that is less error-prone than
 if the Fiat-Shamir heuristic were done without it.
 
-The merlin library implements supports four functions: \ttvar{new()}
+The merlin library implements four functions: \ttvar{new()}
 used for transcript instantiation, \ttvar{append_message()} used for
 appending a byte sequence to the transcript, \ttvar{append_U64()}
 for appending a 64-bit secret integer to the transcript and finally
 \ttvar{challenge_bytes()} for getting challenge bytes that can be
-converted to whatever challenge type needed.
+converted to whatever challenge type is needed.
 
 As most of these functions simply call a few Strobe functions, most
 of the work consisted of implementing the \ttvar{strobe} subset
 used in Merlin. There were no great difficulties in translating most
 functions, except that the \ttvar{Strobe} type could not be mutably
-modified. Therefore, in our implementation we return a strobe object in
+modified. Therefore, in our implementation, we return a strobe object in
 each function instead of taking one as argument and modifying it. Since
 all operations needed were supported by the Secret Integer Hacspec type,
 we naturally used this type over the less secure Public Integers.
 
-Merlin uses Keccakf1600 for its hashing, fortunately this cryptographic
+Merlin uses Keccakf1600 for its hashing. Fortunately, this cryptographic
 function was already defined in SHA-3 Hacspec library. We ran into
 issues however, since Keccakf1600 is defined for 64-bit integers
 and strobe operates on bytes. Therefore, we had to transmute the
-\ttvar{state} object, from a list of bytes into a shorter list of
-64-bit integers. In the Dalek implementation of Merlin this was simple:
+\ttvar{State} object, from a list of bytes into a shorter list of
+64-bit integers. In the Dalek Merlin crate this was simple:
 
 \begin{lstlisting}
 fn transmute_state(st: &mut AlignedKeccakState) -> &mut [u64; 25] {
@@ -1807,13 +1807,13 @@ fn transmute_state_to_u8(state: StateU64) -> StateU8 {
 \end{lstlisting}
 
 Although this method is significantly slower, it's not a big problem
-as the overall runtime of this module is quite fast compared to other
-modules, namely the Ristretto module. It is therefore not a detrimental
-bottleneck.
+as the overall runtime of this library is quite fast compared to other
+libraries, namely the Ristretto library. It is therefore not a 
+detrimental bottleneck.
 
 \textbf{Testing:}
 
-For testing the library we created a single test that runs
+For testing the library, we created a single test that runs
 the \ttvar{append_message()}, \ttvar{append_u64()} and
 \ttvar{challenge_bytes()} methods for both implementations and asserts
 that the challenge bytes returned are equivalent between implementations. 
@@ -1855,7 +1855,7 @@ fn merl_test_all_funcs() {
 }
 \end{lstlisting}
 
-We ran this test 100000 times with random \ttvar{msg}'s, \ttvar{n}'s
+We ran 100000 of these tests times random \ttvar{msg}'s, \ttvar{n}'s
 and \ttvar{buf_size}'s, which took 119.81 seconds.
 
 \subsection{Implementing Inner Product Proof:} \label{implementing-inner-product-proof}
@@ -1972,22 +1972,21 @@ is not possible in Hacspec. While Hacspec supports limited structs,
 it does \textit{not} support the \ttvar{impl} keyword required for the 
 example shown above, and its implementation is not currently on the 
 development roadmap for Hacspec, and may not ever be incorporated. 
-%NOTE: Muligvis kig på resten af det her afsnit herfra
 Even if this were solved by introducing limited binary operators for 
 structs we would still have to deal with the fact that linear algebra 
 operations are defined over two vectors of the \textit{same} type. This 
 could be solved by extending the hypothetical linear algebra vector 
 struct with a helper function that can multiply a vector by a scalar.
 
-In our implementation we also have the inputs \ttvar{G_factors}
+In our implementation, we also have the inputs \ttvar{G_factors}
 and \ttvar{H_factors}, which are simply factors applied to $\vec{G}$
-and $\vec{H}$ respectively. The reason for having these inputs is 
-because the Dalek implementation also have this input. They have 
-optimizations which make the code faster than if they simply multiply 
-the factors on before running the function. We chose for our 
-implementation to take them as an input, so that the two functions 
-take the same arguments, however we apply the factors before running 
-the loop as it simplifies and shortens the code. The performance
+and $\vec{H}$ respectively. We have these as inputs because the Dalek 
+implementation also have this input. The reason they do this is that 
+they have optimizations which make the code faster than if they simply 
+multiply the factors on before running the function. We chose for our 
+implementation to take them as an input as well, so that the two 
+functions take the same arguments, however we apply the factors before 
+running the loop as it simplifies and shortens the code. The performance
 increase resulting from this, while noticeable, was not significant 
 compared to other bottlenecks. 
 
@@ -2059,11 +2058,11 @@ methods in a single file.
 
 \textbf{Testing:}
 
-To test the inner product one big function was created. Only one
-function is needed as this function both asserts that our implementation
+To test the inner product one big test was created. Only this one
+test is needed as this test both asserts that our implementation
 constructs valid proofs by passing the verification check on valid
-inputs and that the output of each public function matches that of the
-Dalek implementation. This function creates an inner product for
+inputs and asserts that the output of each public function matches that 
+of the Dalek implementation. This test creates an inner product for
 both implementations using random values for $\vec{a}, \vec{b}, \vec{G},
 \vec{H}, Q, n$ where $n$ is randomly selected as a power of two. 
 QuickCheck was not used for this randomness, as there is a significant 
@@ -2073,27 +2072,27 @@ Since the $n \in \{2, 4, 8, 16, 32, 64\}$ is chosen randomly some tests
 take longer since there are exponentially longer loops. While $n$
 could be almost arbitrarily large having \textit{very} large inputs does
 not help much more in proving the equivalence property, hence the 
-limited range for $n$. Various helper functions were also created to 
-convert between types, so we could easily convert the random data to 
+limited range for $n$. Various smaller helper functions were also created 
+to convert between types, so we could easily convert the random data to 
 each respective implementation types.
 
 As the inner product part of the Dalek implementation is not publically
 exposed we had to fork the library, to simply change the functions to be
-globally public instead of merely public within the crate. No other
-changes were made to the library to ensure it worked identically to
-the actual Dalek implementation.
+globally public instead of only being public within the crate. No other
+changes were made to the library to ensure we did not change its 
+functionality the actual Dalek implementation.
 
-The tests using our full implementation are quite slow, reducing the 
-guarantee that the two implementations are equivalent, due to us not 
-being able to run as many tests as we would like. To remedy this, 
-a wrapper library was created which implements the same functions as 
-our Hacspec Ristretto specification, but for each operation it simply 
-calls functions from the Dalek Ristretto crate. This still gives us 
-equivalence guarantees, as we have already tested our Hacspec Ristretto 
-specification against the Dalek Ristretto implementation. This lead to 
-much more rigorous testing, as it caused a \textit{significant} 
-performance increases. The table below compares runtimes using our 
-Hacspec Ristretto module and the wrapper for the Dalek Ristretto library:
+Testing using our full implementation are quite slow, and as such does 
+not allow us to run as many tests, reducing the guarantee that the two 
+implementations are equivalent. To remedy this, we created a wrapper 
+library which implements the same functions as our Hacspec Ristretto 
+specification, but for each operation it simply calls equivalent functions 
+from the Dalek Ristretto crate. This still gives us an equivalence 
+guarantee, as we have already tested our Hacspec Ristretto specification 
+against the Dalek Ristretto crate. This lead to much more rigorous 
+testing, as it caused a \textit{significant} performance increases. The 
+table below compares runtimes using our Hacspec Ristretto module and the 
+wrapper for the Dalek Ristretto library:
 
 \begin{center}
 \begin{tabular}{ c|c|c|c } 
@@ -2113,7 +2112,7 @@ randomized $n$'s, which passed successfully, taking 17,392.57 seconds.
 \subsection{Implementing Bulletproofs:} \label{implementing-bulletproofs}
 
 The final part of the project was the implementation of the
-Bulletproofs protocol. The code is partly based on the code Dalek
+Bulletproofs protocol. The code is partly based on the code from the Dalek
 implementation and partly based on the mathematical formulas explained
 in section \ref{range-proofs} and \ref{range-proof-aggregation}. Our
 specification models the same types and functions as the Dalek
@@ -2287,12 +2286,12 @@ and \ttvar{n}'s:
 
 \begin{lstlisting}
 #[test]
-fn i2j8() {
+fn m2n8() {
     test_bulletproofs(2,8);
 }
 
 #[test]
-fn i2j16() {
+fn m2n16() {
     test_bulletproofs(2,16);
 }
 
@@ -2339,11 +2338,11 @@ $n$ and $m$ values, which all successfully passed, taking 43,017.28
 seconds. The reason we did not run more tests is because, despite
 these speed increases, it still runs slow compared to our other
 libraries. This means that the Bulletproofs library is not as
-thoroughly tested, which does make the property of equivalence
-between the Bulletproof implementations weaker compared to the other
-specifications. This is mediated by how comprehensive the protocol
-is, meaning a single randomized test passing is good evidence to
-support that the code functions properly for that combination of $n$
+thoroughly tested as we would have liked, which makes the property of 
+equivalence between the Bulletproof implementations weaker compared to 
+the other specifications. This is mediated by how comprehensive the 
+protocol is, meaning a single randomized test passing is good evidence 
+to support that the code functions properly for that combination of $n$
 and $m$. With 5,000 tests we have 200 tests for each combination of
 inputs on average.
 
