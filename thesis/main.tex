@@ -279,7 +279,7 @@ A table of notation used throughout this report:
 In this section we will be covering the necessary background
 knowledge to understand the Bulletproofs protocol. This includes
 finite field arithmetic (section \ref{finite-field-arithmetic}),
-elliptic curves (section \ref{elliptic-curves}), pedersen commitments
+elliptic curves (section \ref{elliptic-curves}), Pedersen commitments
 (section \ref{pedersen-commitments}) and finally the concept of
 zero-knowledge proofs (section \ref{zero-knowledge-proofs}).
 
@@ -385,7 +385,7 @@ a second point. However, note that the negation of $P$ here is $-P =
 (x,-0) = (x,0) = P$. Thus point doubling on these points is equivalent
 to the equation $P + (-P) = \O$.
 
-From these definitions we can extrapolate two more definitions:
+From these definitions we extrapolate two more definitions:
 
 \begin{definition}[EC Subtraction]
 	Let $P$ and $Q$ be elliptic curve points. The group operation:
@@ -405,10 +405,10 @@ anything other than integers as we cannot have something akin to $2.5
 when doing computations for elliptic curves. Multiplying by $0$ will
 naturally yield the identity element $\mathcal{O}$ by definition.
 Additionally multiplying by a negative integer, ${-m}$, is defined as
-$-m\cdot P = m\cdot ({-P})$.
+$-m\cdot P = m\cdot ({-P})$. 
 
 These definitions give rise to the concept of an elliptic
-curve's \textit{generator}.
+curve's \textit{generator points}:
 
 \begin{definition}[EC Generator]
 	A Generator for any given Elliptic curve is a point, for
