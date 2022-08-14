@@ -581,15 +581,15 @@ a library to be used with other cryptographic algorithms.
 
 \section{The Bulletproofs protocol} \label{bulletproofs}
 
-The ultimate goal of this project has been to implement
+The ultimate goal of this project is to implement
 Bulletproofs in Hacspec. Bulletproofs is a zero-knowledge range
 proof protocol that supports aggregation of proofs using a multiparty
 computation (MPC). They are based on the original Bulletproofs paper
 \cite{bulletproofs} as well as the implementation notes from the
 Dalek Bulletproofs project \cite{dalek-notes}. The following subsections
-will describe this protocol in detail on a theoretic level, which
-include the inner product proof (section \ref{inner-product-proof}),
-the range proof (section \ref{range-proofs}) and the aggregation of
+will describe this protocol in detail on a theoretic level, including 
+the inner product proof (section \ref{inner-product-proof}),
+the range proof (section \ref{range-proofs}) and the aggregation of the
 aforementioned range proofs (section \ref{range-proof-aggregation})
 
 \subsection{Inner Product Proof:} \label{inner-product-proof}
@@ -628,8 +628,8 @@ refer to exponentiation:
 	           \dotp{\vec{a}}{\vec{b}}Q \\
 } 
 
-The $Q$ introduced here is just another publically agreed point,
-like $\vec{G}$ and $\vec{H}$. This redefinition will be useful, because
+The $Q$ introduced here is just another public point,
+like $\vec{G}$ and $\vec{H}$. This redefinition will be useful, as
 it will allow us to redefine $\vec{a}, \vec{b}, \vec{G}, \vec{H}$
 ($\vec{a}^{(k)}, \vec{b}^{(k)}, \vec{G}^{(k)}, \vec{H}^{(k)}$) into a
 shorter format, while keeping the properties in equation \ref{ipp-def2}
@@ -642,7 +642,7 @@ as invariants.
 	\vec{H}^{(k-1)} &= \veclo{H^{\text{(k)}}} &&\cdot \ran{u}_k      &&+ \ran{u}^{-1}_k &&\cdot \vechi{H^{\text{(k)}}} \\
 }
 
-Notice, that these redefined vectors will have a length half of that
+Notice that these redefined vectors will have a length half that
 of the original vectors, satisfying our requirement for more compact
 vectors. The random variable, $\ran{u_k}$, will be provided by $\V$
 to ensure that it is indeed random. From these new vectors we will
