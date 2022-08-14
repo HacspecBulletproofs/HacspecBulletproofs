@@ -982,12 +982,17 @@ $[0,2^n)$.
 
 First $\P$ chooses random blinding factors $\vecran{s_L}$ and
 $\vecran{s_R}$ such that $\vecl{s},\vecr{s}\in \Z^n_p$. Using these
-$\P$ can construct two vector-function $\vec{l}(x)$ and $\vec{r}(x)$
+$\P$ can construct $\vec{l_1} = \vecl{s}$ and $\vec{r_1} = \vecr{s}\circ \vec{\ran{y}^n}$, 
+and with these, $\P$ constructs two vector-function $\vec{l}(x)$ and $\vec{r}(x)$
 in the following way:
 
 \eq{
-	\vec{l}(x) &= \vec{l_0} + \vec{l_1}x \\ &= (\vecl{a} - \ran{z}\vec{1}) + \vecl{s}x \\ &= (\vecl{a} + \vecl{s}x) - \ran{z}\vec{1}\\&\\
-	\vec{r}(x) &= \vec{r_0} + \vec{r_1}x \\ &= (\ran{z^2}\vec{2^n} + (\vecr{a} + \ran{z}\vec{1})\circ\vecran{y}^{\vec{n}}) + \vecr{s}x\circ\vecran{y}^{\vec{n}} \\ &= ((\vecr{a} + \vecr{s}x) + \ran{z}\vec{1}) \circ \vecran{y}^{\vec{n}} + \ran{z}^2\vec{2^n}
+	\vec{l}(x) &= \vec{l_0} + \vec{l_1}x \\ 
+	&= (\vecl{a} - \ran{z}\vec{1}) + \vecl{s}x \\ 
+	&= (\vecl{a} + \vecl{s}x) - \ran{z}\vec{1}\\&\\
+	\vec{r}(x) &= \vec{r_0} + \vec{r_1}x \\ 
+	&= (\ran{z^2}\vec{2^n} + (\vecr{a} + \ran{z}\vec{1})\circ\vecran{y}^{\vec{n}}) + \vecr{s}x\circ\vecran{y}^{\vec{n}} \\ 
+	&= ((\vecr{a} + \vecr{s}x) + \ran{z}\vec{1}) \circ \vecran{y}^{\vec{n}} + \ran{z}^2\vec{2^n}
 }
 
 Now $\P$ can construct $t(x)$ as follows:
@@ -1013,7 +1018,7 @@ constructed. So, $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$, and $t(x)
 
 First $\P$ wants to show that $t_0$ is correctly constructed. $\P$
 starts by making commitments to each of the coefficients of $t(x)$. Here
-we make note of the fact that $\P$ has already committed $t_0$. Namely,
+we make note of the fact that $\P$ has already committed to $t_0$. Namely,
 commitment, $V$, made at the very start, is also a commitment to $t_0$
 as per the construction of $t_0$. $\P$ makes commitments to $T_1 =
 C(t_1, \bt_1)$ and $T_2 = C(t_2, \bt_2)$. After committing these values
@@ -1044,8 +1049,8 @@ $\V$ to relate $\vec{l}(x)$ and $\vec{r}(x)$ to $\vecl{a}, \vecl{s},
 	\vec{r}(x) = \ran{z^2}\vec{2^n} + ((\vecr{a} + \vecr{s}x) + \ran{z}\vec{1})\circ\vecran{y}^{\vec{n}}
 }
 
-This means we want $\P$ to make commitments to $\vec{y^n}\circ
-\vecr{a}$ and $\vec{y^n}\circ\vecr{s}$. This is a problem as these
+This means we want $\P$ to make commitments to $\vec{\ran{y}^n}\circ
+\vecr{a}$ and $\vec{\ran{y}^n}\circ\vecr{s}$. This is a problem as these
 commitments need to be made and sent to $\V$ \textit{before} $\P$
 gets the challenge $\ran{y}$ from $\V$. To fix this issue $\P$ will
 make a special commitment to $\vecl{a}$ and $\vecr{a}$ as follows:
@@ -1074,7 +1079,7 @@ was done in the previous segment:
 	\dotp{\vec{l}(\ran{x})}{\vec{G}} + \dotp{\vec{r}(\ran{x})}{\vec{H'}} + \be\bB &= A &&+ \ran{x}S &&+ (\dotp{\ran{z}\vecran{y}^{\vec{n}} + \ran{z^2}\vec{2^n}}{\vec{H'}} - \ran{z}\dotp{\vec{1}}{\vec{G}})
 }
 
-From here, using the same argument as above $\P$ sends $\be$
+From here, using the same argument as above $\P$ commits $\be$
 to $\V$. This will be enough to convince $\V$ that $\vec{l}(x)$
 and $\vec{r}(x)$ are correctly constructed and that $t(x) =
 \dotp{\vec{l}(x)}{\vec{r}(x)}$ and together with the previous
@@ -1108,7 +1113,7 @@ $\V$ has access to the following values:
 	t(\ran{x})B, \bt(\ran{x})\bB &\in \G \hspace*{1cm} \text{(evaluated at x)}
 }
 
-$\V$ needs to make a check for the two properties that $\P$ want to
+$\V$ needs to make a check for each of the two properties that $\P$ want to
 prove to it.
 
 To check the first property $\V$ simply checks if the following
@@ -1135,8 +1140,8 @@ From the column-sum argument we can deduce that $P =
 assuming an honest $\P$. Thus, $\V$ can use $t(x)$ and $P$ as
 inputs into the inner product protocol to prove that $ t(x) =
 \dotp{\vec{l}(x)}{\vec{r}(x)}$. And if this proof is verified then
-$\V$ is now convinced that $v\in [0,2^n)$ without knowing any other
-properties of $v$, thus the range proof is complete.
+$\V$ is now convinced that $v\in [0,2^n)$, thus the range proof is 
+complete.
 
 Additionally, by looking at the transcript one can deduce that the
 only way for $\P$ to construct $A$ and $V$ such that they can convince
@@ -1145,14 +1150,13 @@ $\V$ that v lies in the range, would be if they can correctly guess
 in order to 'cheat'. This happens with a probability so small it is
 entirely negligible, and thus the proof is also sound.
 
-But the proof being sound does not necessarily mean it is
-zero-knowledge. The proof also needs to be Zero-knowledge. If we
-look at all the values available to $\V$ we can see that it has only
-two of these values have any direct relation to $v$, these being
-$V$ and $t(\ran{x})B$. It is trivial to see that $\V$ cannot learn
-anything about $v$ from $V$ without knowledge of $\bv$ which $\V$
-does not know. If we look at the definition of $t(\ran{x})B$ we can
-see that it DOES use $v$ in the calculation directly. However,
+But the proof being complete and sound does not necessarily mean it is
+zero-knowledge. If we look at all the values available to $\V$ we can 
+see that it has only two of these values have any direct relation to 
+$v$, these being $V$ and $t(\ran{x})B$. It is trivial to see that $\V$ 
+cannot learn anything about $v$ from $V$ without knowledge of $\bv$ 
+which $\V$ does not know. If we look at the definition of $t(\ran{x})B$ 
+we can see that it DOES use $v$ in the calculation directly. However,
 the definition of $t(x)$ uses $t_2$, which is blinded using
 $\vecran{s_L}$ and $\vecran{s_R}$ neither of which $\V$ has any way
 to access. Additionally, $t_1$ also uses the definition of $t_2$ and
