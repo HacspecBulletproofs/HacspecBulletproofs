@@ -1399,20 +1399,20 @@ specification could still be vulnerable.
 \section{Our Contributions:} \label{our-contributions}
 
 \subsection{Linear Algebra Library:} \label{linear-algebra-library}
-It was decided that the specification should of course consist of what
-we need, but also of some general linear algebra functions that could
-be used by other specifications. The implemented operations included
-matrix instantiation, slicing, transposition, scalar multiplication,
-addition, subtraction, Hadamard product and matrix multiplication. These
-operations were tested against the Rust Nalgebra crate \cite{nalgebra}
-to ensure that they had equivalent functionality.
+It was decided that the specification should, of course, consist of what
+we need, but should also include some general linear algebra functions 
+that could be used by other specifications. The implemented operations 
+included matrix instantiation, slicing, transposition, scalar 
+multiplication, addition, subtraction, Hadamard product and matrix 
+multiplication. These operations were tested against the Rust Nalgebra 
+crate \cite{nalgebra} to ensure that they had equivalent functionality.
 
 Since we were not able to find any general linear algebra
 specification, we simply implemented the desired functionality,
 consulting \cite{linear-algebra} when necessary. All functions were
 only defined over matrices, because any vector operation can also
 be performed if modelling the vector as a matrix. This simplified
-our library somewhat. These matrices consisted of a pair of number
+our library somewhat. These matrices consist of a pair of numbers
 representing dimension and a list of scalars:
 
 \begin{lstlisting}
@@ -1428,9 +1428,9 @@ We model matrices as a \ttvar{Seq<Scalar>} instead of a
 \ttvar{Seq<Seq<Scalar>>} since we had problems with the Hacspec type
 checker when double indexing (\ttvar{list[i][j]}), and it is more
 efficient. Since this part was intended to be a library we wanted to
-generalize over the \ttvar{Scalar} type. We wanted to at least have
-it be generalizable over any type that can be defined using Hacspec
-macros, for example the following Scalar:
+generalize over the \ttvar{Scalar} type. We wanted the implementation to
+be generalizable over any type that can be defined using Hacspec
+macros, at the very least. For example the following Scalar:
 
 \begin{lstlisting}
 public_nat_mod!(
@@ -1443,9 +1443,9 @@ public_nat_mod!(
 
 This turned out to be a problem though, as Hacspec does not support
 generics. Luckily, generics is on the roadmap and after discussion
-with the Hacspec Team, it was decided that we would generalize our
+with the Hacspec team, it was decided that we would generalize our
 library with generics such that the Hacspec developers can use it
-as an example of how generics might be needed. Take following matrix
+as an example of how generics might be needed. Take the following matrix
 initialization function:
 
 \begin{lstlisting}
@@ -1472,18 +1472,18 @@ type ScalRes<T> = Result<T, u8>;
 \end{lstlisting}
 
 Which would allow anyone using the library to use matrices with their
-own defined hacspec types. Notice the \ttvar{hacspec_lib::Integer},
+own defined Hacspec types. Notice the \ttvar{hacspec_lib::Integer},
 this trait is implemented by all integers.
 
 \textbf{Testing:}
 
 We utilized QuickCheck to do property based testing in order to ensure
-that our specification had the same functionality as Nalgebra. All
-the these tests followed the same standard pattern, where we create a
-helper function that does the following: Construct two random matrices
-of random dimensions, make sure no dimension is set to 0, run equivalent
+that our specification had the same functionality as Nalgebra. All tests 
+followed the same standard pattern, where we create a helper function 
+that does the following: Construct two random matrices of random 
+dimensions, make sure no dimension is set to 0, run equivalent
 operations on them and finally assert that the operations had the same
-effect. This was done for every function implemented. A simple example 
+result. This was done for every function implemented. A simple example 
 is the \ttvar{zeros} function:
 
 \begin{lstlisting}
@@ -1506,8 +1506,8 @@ fn test_nalg_zeros() {
 
 Here, the only operation that is performed is the construction of the
 vectors. The \ttvar{assert_matrices} function is simply a function
-that checks each element in the two vectors and assert them all to
-be equal. We ran 100000 equivalence tests, taking 4.63 seconds in
+that checks each element in the two vectors and asserts that they are 
+all equal. We ran 100000 equivalence tests, taking 4.63 seconds in
 total. We also have simple unit tests that check our implementation
 against manually derived results.
 
