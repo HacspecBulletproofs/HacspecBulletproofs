@@ -307,14 +307,13 @@ One of the most commonly used types of finite fields, and those used
 throughout this report are \textit{Prime Fields:} 
 
 \begin{definition}[Prime Field]
-	A prime field $\F_p$ is a finite field with elements $[0,p-1]$
-	where each operation is performed over integers modulo $p$
-	with $p$ being a prime number.
+	A prime field $\F_p$ is a finite field with elements $\{0, 1,
+	\cdots, p-1\}$ where each operation is performed over integers
+	modulo $p$ with $p$ being a prime number.
 \end{definition}
 
 Something important to note about this definition is that inverses in
-this kind of field are also positive whole numbers. This will come up
-again in section \ref{implementing-ristretto} in regards to the code.
+this kind of field are also positive whole numbers. This will also be brought up in section \ref{implementing-ristretto}.
 
 \subsection{Elliptic Curves:}\label{elliptic-curves}
 
@@ -331,7 +330,7 @@ definitions. Again, these definitions are mostly from
 \begin{definition}[EC Additive Identity]
 	Let $\O$ be the point where $y = \infty$. For every point, $P$,
 	on $E$ the following property holds:
-	$P + \O = \O + P = P$.
+	$$P + \O = \O + P = P$$
 \end{definition}
 
 \begin{definition}[EC Negation]
@@ -347,9 +346,8 @@ definitions. Again, these definitions are mostly from
 \end{definition}
 
 \begin{definition}[EC Doubling]
-	let $\ell$ be the tangent to the point $P$ on $E$, which intersects
-	points $P$ and $-R$. The group operation: point doubling on P is
-	defined as:
+	let $\ell$ be the tangent to the point $P$ on $E$, which
+	intersects points $P$ and $-R$. Doubling $P$ can bedefined as:
 	$$2P = P + P = R$$
 \end{definition}
 
@@ -372,9 +370,9 @@ From these definitions we extrapolate two more definitions:
 \end{definition}
 
 \begin{definition}[EC Scalar Multiplication]
-	Let $m$ be a scalar and let $P$ be a point on $E$. The group
-	operation: Scalar multiplication is defined by adding $P$
-	to itself $m$ times and denoted a $m\cdot P$.
+	Let $m$ be a scalar and let $P$ be a point on $E$. Scalar
+	multiplication is defined by adding $P$ to itself $m$ times
+	and denoted a $m\cdot P$.
 \end{definition}
 
 Due to the absence of scalar division it is impossible to multiply by
@@ -402,11 +400,11 @@ Torben Pryds Pedersen \cite{pedersen}. The essence of Pedersen
 commitments is the so-called \textit{Additive Homomorphism}
 (def. \ref{pedersen-additive-homomorphism}). For our purposes we
 redefine the scheme to work with commitments to elliptic curve points
-rather than a value. Firstly, two generator points $B$ and $\bB$ on an elliptic
-curve are chosen. $B$ will be the standard generator, called the
-base point, with $\bB$ being the so-called \textit{blinding point}
-to $B$. These two points are agreed upon by both the sender of the
-commitments and the receiver.
+rather than a value. Firstly, two generator points $B$ and $\bB$
+on an elliptic curve are chosen. $B$ will be the standard generator,
+called the base point, with $\bB$ being the so-called \textit{blinding
+point} to $B$. These two points are agreed upon by both the sender of
+the commitments and the receiver.
 
 \begin{definition}[Pedersen Commitment]
 	A Pedersen commitment, to some message, $a$, with a randomly chosen
@@ -423,10 +421,10 @@ is many possible combinations of two points that can add to any given
 point. However, it does not provide \textit{perfect binding}, because
 multiple $a$'s can map to multiple $P$'s. It is important to note that
 the person constructing the Pedersen commitment cannot \textit{predict}
-the other valid $a$'s that maps to $P$. And by the same logic the 
-reciever of the commitment cannot infer neither $a$ nor $\ba$. A crucial 
-property of Pedersen commitments as mentioned previously is the property 
-of \textit{Additive Homomorphism}:
+the other valid $a$'s that maps to $P$, without using brute force. And
+by the same logic the reciever of the commitment cannot infer neither
+$a$ nor $\ba$. A crucial property of Pedersen commitments as mentioned
+previously is the property of \textit{Additive Homomorphism}:
 
 \begin{definition}[Additive Homomorphism] \label{pedersen-additive-homomorphism}
 	For any two Pedersen commitments $C(a_1,\ba_1), C(a_2,\ba_2)$ we have:
@@ -449,12 +447,12 @@ commitment to the sum.
 
 \subsection{Zero-Knowledge Proofs:}\label{zero-knowledge-proofs}
 
-A zero-knowledge proof is a cryptographical concept in which a prover,
-$\P$, will convince a verifier, $\V$, that a certain property holds,
-usually in the form of a mathematical equation, and $\P$ will do so
-without $\V$ gaining any additional information. To exemplify this we
-will show the simplest example of a zero-knowledge proof, using the
-so-called Schnorr Identity Protocol \cite{zkdocs-schnorr}.
+A zero-knowledge proof is a cryptographic concept in which a prover,
+$\P$, will convince a verifier, $\V$, that a certain property
+holds, and $\P$ will do so without $\V$ gaining any additional
+information. To exemplify this we will show a simple example of
+a zero-knowledge proof, using the so-called Schnorr Identity Protocol
+\cite{zkdocs-schnorr}.
 
 The crux of the Schnorr Identity Protocol is for $\P$ to show that
 they know the secret value $x$. This secret value has the following
@@ -467,22 +465,22 @@ relation to the public elliptic curve points $X$ and $G$:
 $\V$ knows both $X$ and $G$ but not $x$. $\P$ wishes to show $\V$ that 
 they know $x$ without simply revealing it directly.
 
-The protocol is rather simple. First $\P$ chooses a random value $k$ and
-commits to this value by sending $K$, such that $K = kG$, to $\V$. $\V$
-then chooses a random value $e$ and sends it to $\P$. Finally, $\P$
-sends $s$ such that $s = k + ex$. Written out as a transcript this
-would be:
+The protocol is rather simple. First $\P$ chooses a secret random
+value $k$ and commits to this value by sending $K$, such that $K =
+kG$, to $\V$. $\V$ then chooses a random challenge value $\ran{e}$
+and sends it to $\P$. Finally, $\P$ sends $s$ such that $s = k +
+ex$. Written out as a transcript this would be:
 
 \eq{
 	\P \rightarrow \V &: K \\
-	\V \rightarrow \P &: e \\
+	\V \rightarrow \P &: \ran{e} \\
 	\P \rightarrow \V &: s \\
 }
 
 From here $\V$ can do a simple check to see if $\P$ truly knows $x$:
 
 \eq{
-	sG \stackrel{?}{=} K + eX
+	sG \stackrel{?}{=} K + \ran{e}X
 }
 
 
@@ -493,41 +491,42 @@ an honest $\V$ that the statement they wish to prove holds. The Schnorr
 Identity protocol is complete because of the following:
 
 \eq{
-	sG &= K + eX \\
-	   &= kG + e(xG) \\
-	   &= (k + ex)G \\
+	sG &= K + \ran{e}X \\
+	   &= kG + \ran{e}(xG) \\
+	   &= (k + \ran{e}x)G \\
 	   &= sG
 }
 
 \textbf{Soundness:}
 
 For a proof to be sound it means that a \textit{dishonest} $\P$
-\textit{cannot} convince an honest $\V$ that their statement is true. For the 
-Schnorr Identity protocol it means that $\P$ does not know $x$ 
-but wishes to convince $\V$ that it does, and for the protocol to be 
-sound this should not be possible. In order for $\P$ to convince $\V$ 
-that it knows $x$ without knowing $x$ it must create a $K$ and $s$ 
-such that $sG = K + eX$ without knowing $x$, which is used in the 
-creation of $s$. This \textit{could} be done if $\P$ had knowledge of 
+\textit{cannot} convince an honest $\V$ that their statement is
+true. For the Schnorr Identity protocol it means that $\P$ does not know
+$x$ but wishes to convince $\V$ that it does, and for the protocol to
+be sound this should not be possible. In order for $\P$ to convince
+$\V$ that it knows $x$ without knowing $x$ it must create a $K$ and
+$s$ such that $sG = K + eX$ without knowing $x$, which is used in the
+creation of $s$. This \textit{could} be done if $\P$ had knowledge of
 $e$ by constructing $K$ as follows:
 
 \eq{
-	K = s(G - eX)
+	K = s(G - \ran{e}X)
 }
 
 and then choosing a random value $s$. If the verifier then did the
 check they would find that it holds. However, this is \textit{not}
 a possibility because $\P$ must commit to a $K$ before they are given
 $e$. There is a small probability that $\P$ could randomly guess $e$
-correctly, but this is miniscule, and therefore the proof is still sound. 
+correctly, but this is miniscule, and does not nullify soundness for
+a zero-knowledge proof.
 
 \textbf{Zero-knowledge:}
 
-For a proof to be zero-knowledge it must hold that $\V$ did not gain
+For the propery of zero-knowledgeness to hold $\V$ must not have gained
 any additional information. To see this we look at the transcript
 and see that $K$ does not include $x$ in its calculations, but $s$
-does. However, $s$ is blinded by $k$ meaning that $\V$ cannot infer $x$
-without knowing $k$. And $\V$ cannot infer $k$ from $K$ any easier
+does. However, $s$ is blinded by $k$ meaning that $\V$ cannot infer
+$x$ without knowing $k$. And $\V$ cannot infer $k$ from $K$ any easier
 than it can infer $x$ from $X$, thus this proof is also zero-knowledge.
 
 \subsection{Hacspec:} \label{hacspec}
@@ -552,7 +551,7 @@ Some types and functions from the Rust standard library are not
 available, for example \ttvar{Vec<T>}, however some helpful wrapper 
 types are defined in the Hacpsec standard library. \ttvar{Seq<T>}, 
 as an example implements most of the same functionality as 
-\ttvar{Vec<T>} and functions as a Hacspec counterpart to it. When 
+\ttvar{Vec<T>} and serves as a Hacspec counterpart to it. When 
 defining custom types, the Hacspec standard library differentiates 
 between so-called \textit{secret integers} and \textit{public integers}.
 Secret integers are protected from side-channel attacks, but do not 
@@ -1593,6 +1592,8 @@ and as such there is no guarantee that the inputted byte-strings are
 legal points. To this end the standard defines a list of properties
 that the inputted byte-string must satisfy in order for the decoding
 to be canonical and thus give a proper point as a result.
+
+Divisions over fields did not function correctly in Hacspec, since regular integer division was performed instead of the desired $a/b = a \cdot b^{-1}$. This was luckily not a problem for our implementation since the result of both divisions are the same in our case.
 
 While the IETF-standard was used for the implementation of nearly every
 operation implemented, the scalar multiplication was not specified,
