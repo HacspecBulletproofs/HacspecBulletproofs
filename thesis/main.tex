@@ -255,7 +255,7 @@ compile this report can be found on our GitHub repository
 
 \newpage
 
-\section{Appendix A: Notation:} \label{notation}
+\section{Notation:} \label{notation}
 
 A table of notation used throughout this report:
 
@@ -272,7 +272,7 @@ A table of notation used throughout this report:
 	$\veclo{a}$                 & The first half of vector $\vec{a}$, ($\veclo{a} = [a_{1}, \cdots, a_{n/2}]$) \\
 	$\vechi{a}$                 & The second half of vector $\vec{a}$, ($\vechi{a} = [a_{n/2+1}, \cdots, a_{n}]$) \\
 	$\vec{a^n}$                 & A vector of scalars which are made up of powers of $a$ i.e. $[1,a,a^2, \cdots, a^{n-1}]$\\
-	$\vec{a} \concat \vec{b}$   & A vector, $\vec{a}$, concatinated with another vector, $\vec{b}$\\
+	$\vec{a} \concat \vec{b}$   & A vector, $\vec{a}$, concatenated with another vector, $\vec{b}$\\
 	$\mathbb{A}$                & A set \\
 	$\mathbb{A}^n$              & A vector space of dimension $n$ \\ 
 	$\mathbb{A}_n$              & A set whose elements are mod $n$ \\ 
@@ -282,7 +282,6 @@ A table of notation used throughout this report:
 	$\dotp{\vec{a}}{\vec{A}}$   & The sum of scalar-point products of $\vec{a}$ and $\vec{A}$ ($\dotp{\vec{a}}{\vec{A}} = a_1 A_1 + a_2 A_2 + \cdots + a_n A_n$) \\
 \end{tabular}
 \end{center}
-
 
 \section{Prerequisites:} \label{prerequisites}
 
@@ -380,8 +379,8 @@ definitions. Again, these definitions are mostly from
 \end{definition}
 
 \begin{definition}[EC Doubling]
-	let $\ell$ be the tangent to the point $P$ on $E$, which
-	intersects points $P$ and $-R$. Doubling $P$ can bedefined as:
+	Let $\ell$ be the tangent to the point $P$ on $E$, which
+	intersects points $P$ and $-R$. Doubling $P$ can be defined as:
 	$$2P = P + P = R$$
 \end{definition}
 
@@ -458,7 +457,7 @@ point. However, it does not provide \textit{perfect binding}, because
 multiple $a$'s can map to multiple $P$'s. It is important to note that
 the person constructing the Pedersen commitment cannot \textit{predict}
 the other valid $a$'s that maps to $P$, without using brute force. And
-by the same logic the reciever of the commitment cannot infer neither
+by the same logic the receiver of the commitment cannot infer neither
 $a$ nor $\ba$. A crucial property of Pedersen commitments as mentioned
 previously is the property of \textit{Additive Homomorphism}:
 
@@ -555,7 +554,7 @@ a zero-knowledge proof.
 
 \textbf{Zero-knowledge:}
 
-For the propery of zero-knowledgeness to hold $\V$ must not have gained
+For the property of zero-knowledgeness to hold $\V$ must not have gained
 any additional information. To see this we look at the transcript
 and see that $K$ does not include $x$ in its calculations, but $s$
 does. However, $s$ is blinded by $k$ meaning that $\V$ cannot infer
@@ -751,7 +750,7 @@ until we get the final $P$, $P^{(0)}$:
 
 Finally, $\P$ sends $(a^{(0)}, b^{(0)})$ to $\V$.
 
-The entirety of the dialogue between $\V$ and $\P$,
+The entirety of the dialogue between $\P$ and $\V$,
 the so-called \textit{transcript}, can be summarized as the following:
 
 \eq{
@@ -1014,14 +1013,14 @@ constructed. So, $t_0 = \ran{z^2}v + \delta(\ran{y},\ran{z})$, and $t(x)
 + \vec{l_1}x$, and, $\vec{r}(x) = \vec{r_0} + \vec{r_1}x$.
 
 First $\P$ wants to show that $t_0$ is correctly constructed. $\P$
-starts by making commitments to each of the coefficients of $t(x)$. Here
-we make note of the fact that $\P$ has already committed to $t_0$. Namely,
-commitment, $V$, made at the very start, is also a commitment to $t_0$
-as per the construction of $t_0$. $\P$ makes commitments to $T_1 =
-C(t_1, \bt_1)$ and $T_2 = C(t_2, \bt_2)$. After committing these values
-to $\V$, $\V$ sends back a challenge scalar $\ran{x}$. We know from
-the definitions of $V, T_1, T_2$ that these commitments relate in the
-following manner:
+starts by making commitments to each of the coefficients of
+$t(x)$. Here we make note of the fact that $\P$ has already committed
+to $t_0$. Specifically, commitment $V$, made at the very start, is also
+a commitment to $t_0$ as per the construction of $t_0$. $\P$ makes
+commitments to $T_1 = C(t_1, \bt_1)$ and $T_2 = C(t_2, \bt_2)$. After
+committing these values to $\V$, $\V$ sends back a challenge scalar
+$\ran{x}$. We know from the definitions of $V$, $T_1$ and $T_2$ that these
+commitments relate in the following manner:
 
 \eq{
 	t(\ran{x})B                   &= \ran{z^2}vB      &&+ \delta(\ran{y},\ran{z})B &&+ \ran{x}t_1B       &&+ \ran{x^2}t_2B \\
@@ -1040,11 +1039,11 @@ $\vec{r}(x)$ are both constructed correctly and that $t(x) =
 \dotp{\vec{l}(x)}{\vec{r}(x)}$. To achieve this $\P$ will use a similar
 construction as seen above. We want $\P$ to make commitments that allows
 $\V$ to relate $\vec{l}(x)$ and $\vec{r}(x)$ to $\vecl{a}, \vecl{\bs},
-\vecr{a}$ and $\vecr{\bs}$. It is not that simple, however. As seen here:
+\vecr{a}$ and $\vecr{\bs}$. Recall the definition of $\vec{r}(x)$:
 \eq{
 	\vec{r}(x) = \ran{z^2}\vec{2^n} + ((\vecr{a} + \vecr{\bs}x) + \ran{z}\vec{1})\circ\vecran{y}^{\vec{n}}
 }
-This means we want $\P$ to make commitments to $\vec{\ran{y}^n}\circ
+We want $\P$ to make commitments to $\vec{\ran{y}^n}\circ
 \vecr{a}$ and $\vec{\ran{y}^n}\circ\vecr{\bs}$. This is a problem as these
 commitments need to be made and sent to $\V$ \textit{before} $\P$
 gets the challenge $\ran{y}$ from $\V$. To fix this issue $\P$ will
@@ -1074,14 +1073,14 @@ was done in the previous segment:
 	\dotp{\vec{l}(\ran{x})}{\vec{G}} + \dotp{\vec{r}(\ran{x})}{\vec{H'}} + \be\bB &= A &&+ \ran{x}S &&+ (\dotp{\ran{z}\vecran{y}^{\vec{n}} + \ran{z^2}\vec{2^n}}{\vec{H'}} - \ran{z}\dotp{\vec{1}}{\vec{G}}) \\
 }
 
-From here, using the same argument as above $\P$ commits $\be$
+From here, using the same argument as above, $\P$ commits $\be$
 to $\V$. This will be enough to convince $\V$ that $\vec{l}(x)$
 and $\vec{r}(x)$ are correctly constructed and that $t(x) =
 \dotp{\vec{l}(x)}{\vec{r}(x)}$ and together with the previous
 commitments to $\V$, $\P$ will be able to successfully convince $\V$
 that $v$ lies in the range $[0, 2^n)$.
 
-In summary the transcript between $\V$ and $\P$, will end up being
+In summary the transcript between $\P$ and $\V$, will end up being
 the following:
 
 \eq{
@@ -1107,8 +1106,8 @@ $\V$ has access to the following values:
 	t(\ran{x})B, \bt(\ran{x})\bB &\in \G \hspace*{1cm} \text{(evaluated at x)}
 }
 
-$\V$ needs to make a check for each of the two properties that $\P$ want to
-prove to it.
+$\V$ needs to make a check for each of the two properties that $\P$
+wants to prove.
 
 To check the first property $\V$ simply checks if the following
 equation holds:
@@ -1118,7 +1117,7 @@ equation holds:
 
 And if it does then that will convince $\V$ that $t(x) = \ran{z^2}v +
 \delta(\ran{y},\ran{z}) + t_1x + t_2\ran{x^2}$ due to the column-sum
-argument made in the Prover's Algorithm. (\ref{prover-range-proofs})
+argument made in section \ref{prover-range-proofs}.
 
 \newpage
 
@@ -1137,12 +1136,12 @@ inputs into the inner product protocol to prove that $ t(x) =
 $\V$ is now convinced that $v\in [0,2^n)$, thus the range proof is 
 complete.
 
-Additionally, by looking at the transcript one can deduce that the
-only way for $\P$ to construct $A$ and $V$ such that they can convince
-$\V$ that $v$ lies in the range, would be if they can correctly guess
-\textit{all} three challenge scalars, $\ran{y}, \ran{z}$ and $\ran{x}$
-in order to 'cheat'. This happens with a probability so small it is
-entirely negligible, and thus the proof is also sound.
+Additionally, by looking at the transcript one can deduce that the only
+way for $\P$ to construct $A$ and $V$ such that they can convince $\V$
+that $v$ lies in the range, even if it does not, would be if they
+can correctly guess \textit{all} three challenge scalars $\ran{y},
+\ran{z}$ and $\ran{x}$. This happens with a probability so small it
+is entirely negligible, and thus the proof is also sound.
 
 But the proof being complete and sound does not necessarily mean it is
 zero-knowledge. If we look at all the values available to $\V$ we can 
@@ -1239,7 +1238,7 @@ by performing the following check:
 	\delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
 }
 we know that $z_{(j)} = z^j$ we can make a small rewrite:
-\eq{
+\eqn{aggregation-check-t0}{
 	t(\ran{x})B + \bt (\ran{x})\bB \stackrel{?}{=}
 	\sum^{m-1}_{j = 0} \ran{z}^{j+2} \cdot V_{(j)} +
 	\delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
@@ -1286,20 +1285,20 @@ Note that $\D$ has already received $A_{(j)}$ and $S_{(j)}$ from the
 first step of the transcript. $\D$ can then use the following check
 to convince itself that all $\vec{l}(x)_{(j)}$ and $\vec{r}(x)_{(j)}$
 are correctly constructed:
-\eq{
+\eqn{aggregation-check-lx-rx}{
 	\vec{l}(\ran{x})_{(j)} + \vec{r}(\ran{x})_{(j)} \stackrel{?}{=}
 	-\be\bB + A + \ran{x}S - \ran{z}\dotp{\vec{1}}{\vec{G}} +
 	\ran{z}\dotp{\vecran{y}^{\vec{n \cdot m}}}{\vec{H'}} +
 	\sum^{m-1}_{j = 0}\dotp{\ran{z^{j+2}} \cdot \vec{2^n}}{\vec{H'}_{[j \cdot n: (j+1) \cdot n]}}
 }
 And if this holds then $\D$ is convinced that $\vec{l}(x)_{(j)}$ and
-$\vec{r}(x)_{(j)}$ are correctly constructed and that $t(x)_{(j)}
-= \dotp{\vec{l}(x)_{(j)}}{\vec{r}(x)_{(j)}}$. This, along with
-the previous part on top $\D$ is now convinced that all parties'
-$v_{(j)}$ are within the range (\ref{agg-range}) and thus the proof
-is complete. Additionally, using the same arguments as in section
-\ref{verifier-range-proof} for each $\P_{(j)}$, this is also sound
-and zero-knowledge.
+$\vec{r}(x)_{(j)}$ are correctly constructed and that $t(x)_{(j)} =
+\dotp{\vec{l}(x)_{(j)}}{\vec{r}(x)_{(j)}}$. After checking that equation
+\ref{aggregation-check-t0} and \ref{aggregation-check-lx-rx} hold, $\D$
+is now convinced that all parties' $v_{(j)}$ are within the range
+(equation \ref{agg-range}) and thus the proof is complete. Additionally, using
+the same arguments as in section \ref{verifier-range-proof} for each
+$\P_{(j)}$, this is also sound and zero-knowledge.
 
 This protocol in transcript form would be the following: 
 
@@ -1318,23 +1317,23 @@ With $t(x)_{(j)}$ and $\bt(x)_{(j)}$ both evaluated with challenge $\ran{x}$.
 
 The Fiat-Shamir heuristic \cite{zkdocs-fiat-shamir} is a cryptographic
 concept, which allows $\P$ to compute challenges without the need to
-consult the verifier first. This is done by defining a hash function
+consult $\V$ first. This is done by defining a hash function
 $\textbf{H}()$ which can hash any number of values into a single
-relatively unpredictable value. When the verifier would be needed
+relatively unpredictable value. When $\V$ would be needed
 to provide a challenge, instead, all public values that $\V$ would
 have access to are hashed using this hash function and the resulting
 value is used as the challenge. This way $\P$ can send all values
 it must generate at once, and $\V$ can simply reconstruct the hashes
 which an honest $\P$ would have calculated and assert correctness. To
 show this we will once again look at the Schnorr Identity Protocol
-\cite{zkdocs-schnorr}, using it to show how the Fiat Shamir heuristic
+\cite{zkdocs-schnorr}, using it to show how the Fiat-Shamir heuristic
 can be applied. We will use the same notation we used in section
 \ref{zero-knowledge-proofs}.
 
 $\P$ wishes to show $\V$ that they know the secret value $x$ such that
 $X = xG$ for the public curve-points $X$ and $G$. Ordinarily $\P$ would
 send a commitment $K$, to a randomly chosen $k$, to $\V$, who would
-then send back a challenge $e$. However with the Fiat-Shamir heuristic,
+then send back a challenge $e$. However, with the Fiat-Shamir heuristic,
 $\P$ will instead compute:
 \eq{
 	e = \textbf{H}(X,P,K)
@@ -1342,9 +1341,10 @@ $\P$ will instead compute:
 
 From here $\P$ can compute $s = k + ex$ and send $K$ and $s$ to $\V$.
 
-Then $\V$ can compute $e = \textbf{H}(X,P,K)$ and at this
-point the rest of the protocol functions the same as it does in
-\ref{zero-knowledge-proofs}. The transcript for this proof would thus go from:
+Then $\V$ can compute $e = \textbf{H}(X,P,K)$ and at this point
+the rest of the protocol functions the same as it does in section
+\ref{zero-knowledge-proofs}. The transcript for this proof would thus
+go from:
 \eq{
 	\P \rightarrow \V &: K \\
 	\V \rightarrow \P &: e \\
@@ -1359,28 +1359,28 @@ interacting with $\V$. The proof is still sound as $\P$ cannot get $e$
 without committing to a $K$ first.
 
 Our Fiat-Shamir heuristic for the Bulletproofs algorithm requires
-an \textit{overseer} for the parties who can gather all the $V$'s
-to create the challenges. In essence when a challenge is needed all
-parties will send their $V$'s to this local overseer who can then
-generate the challenges using the Fiat-Shamir heuristic. Specifically
-$\ran{y} = \textbf{H}(\vec{V},\vec{A},\vec{S}), \ \ran{z} =
-\textbf{H}(\vec{V},\vec{A},\vec{S}, \ran{y})$ and $\ran{x}
-= \textbf{H}(\vec{V},\vec{A},\vec{S}, \ran{y}, \ran{z},
+an \textit{overseer} for the parties who can gather all their
+commitments to create the challenges. In essence, when a challenge
+is needed all parties will send their commitments to this local
+overseer who can then generate the challenges using the Fiat-Shamir
+heuristic. Specifically $\ran{y} = \textbf{H}(\vec{V},\vec{A},\vec{S}),
+\ \ran{z} = \textbf{H}(\vec{V},\vec{A},\vec{S}, \ran{y})$ and
+$\ran{x} = \textbf{H}(\vec{V},\vec{A},\vec{S}, \ran{y}, \ran{z},
 \vec{T_1},\vec{T_2})$. This will result in the following final
 transcript:
 \eq{
 	&\P_{(j)} &&\rightarrow \D &&: V_{(j)}, n, A_{(j)}, S_{(j)}, j, T_{1, (j)}, T_{2,(j)}, t_{(j)}(\ran{x})B, \bt_{(j)}(\ran{x})\bB, \be
 }
 
-Worth noting is that a recently found vulnerability, the Frozen
+Worth noting is that a recently disclosed vulnerability, the Frozen
 Heart vulnerability \cite{frozen-heart}, describes how in the
 Fiat-Shamir heuristic suggested in the original Bulletproofs paper
-\cite{bulletproofs}, a malicious prover could cheat successfully. This
-was because in the original paper the Fiat-Shamir heuristic did not
-include $V$ in their hash function which allowed a malicious $\P$
-to get a proof verified even if $v$ did not lie within the range.
+\cite{bulletproofs}, a malicious $\P$ could successfully convince $\V$
+that $v$ is in range when it is \textit{not}. This is because the
+Fiat-Shamir heuristic suggested did not include $V$ in their hash
+function which allowed a malicious $\P$ to cheat.
 
-This could be done by commiting an $A$ which was constructed from
+This could be done by committing an $A$ which was constructed from
 a $v$ which lies in the range, but the Fiat-Shamir heuristic did
 not require the use of $V$ in its hashing, therefore this $V$
 could then be forged from a $v$ outside of the desired range while
@@ -1408,9 +1408,10 @@ Since we were not able to find any general linear algebra
 specification, we simply implemented the desired functionality,
 consulting \cite{linear-algebra} when necessary. All functions were
 only defined over matrices, because any vector operation can also
-be performed if modelling the vector as a matrix. This simplified
-our library somewhat. These matrices consist of a pair of numbers
-representing dimension and a list of scalars:
+be performed as a matrix operation, if the vector is modelled as a
+matrix with one dimension set to one. This simplified our library
+somewhat. These matrices consist of a pair of numbers, representing
+the dimension, and a list of scalars, representing the matrix elements:
 
 \begin{lstlisting}
 pub type DimType = usize;
@@ -1423,10 +1424,10 @@ pub type ScalRes = Result<Scalar, u8>;
 
 We model matrices as a \ttvar{Seq<Scalar>} instead of a
 \ttvar{Seq<Seq<Scalar>>} since we had problems with the Hacspec type
-checker when double indexing (\ttvar{list[i][j]}), and it is more
-efficient. Since this part was intended to be a library we wanted to
-generalize over the \ttvar{Scalar} type. We wanted the implementation to
-be generalizable over any type that can be defined using Hacspec
+checker when double indexing (\ttvar{list[i][j]}), and because it is
+more efficient. Since this part was intended to be a library we wanted
+to generalize over the \ttvar{Scalar} type. We wanted the implementation
+to be generalizable over any type that can be defined using Hacspec
 macros, at the very least. For example the following Scalar:
 
 \begin{lstlisting}
