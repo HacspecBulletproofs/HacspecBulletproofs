@@ -1,10 +1,14 @@
 #![allow(non_snake_case)]
 extern crate quickcheck;
 
-use curve25519_dalek::ristretto::RistrettoPoint as DalekRistrettoPoint;
+use curve25519_dalek_ng::ristretto::RistrettoPoint as DalekRistrettoPoint;
+use curve25519_dalek_ng::scalar::Scalar as DalekScalar;
 use hacspec_lib::*;
 use hacspec_ristretto::*;
 use quickcheck::*;
+
+const ALL_TESTS: u64 = 100;
+const MUL_TESTS: u64 = 10;
 
 // === Helper Functions === //
 
@@ -63,14 +67,14 @@ fn vec_to_scalar_hac(xs: &Vec<u8>) -> Scalar {
     Scalar::from_byte_seq_le(seq)
 }
 
-fn vec_to_scalar_dal(vec: &Vec<u8>) -> curve25519_dalek::scalar::Scalar {
+fn vec_to_scalar_dal(vec: &Vec<u8>) -> DalekScalar {
     let mut arr: [u8; 32] = [0; 32];
 
     for i in 0..arr.len() {
         arr[i] = vec[i];
     }
 
-    curve25519_dalek::scalar::Scalar::from_bytes_mod_order(arr)
+    DalekScalar::from_bytes_mod_order(arr)
 }
 
 // === Tests === //
@@ -86,11 +90,11 @@ fn test_dalek_one_way_map() {
 
         TestResult::from_bool(cmp_points(hac_map, dal_map))
     }
-    quickcheck(100, helper as fn(Vec<u8>) -> TestResult)
+    quickcheck(ALL_TESTS, helper as fn(Vec<u8>) -> TestResult)
 }
 
 #[test]
-fn test_encode_decode() {
+fn test_prop_encode_decode() {
     fn helper(v: Vec<u8>) -> TestResult {
         if v.len() < 64 {
             return TestResult::discard();
@@ -109,7 +113,7 @@ fn test_encode_decode() {
 
         TestResult::from_bool(is_same_enc && is_same_dec)
     }
-    quickcheck(100, helper as fn(Vec<u8>) -> TestResult)
+    quickcheck(ALL_TESTS, helper as fn(Vec<u8>) -> TestResult)
 }
 
 #[test]
@@ -129,11 +133,11 @@ fn test_dalek_decode_encode() {
 
         TestResult::from_bool(cmp_points(hac_dec, dal_dec))
     }
-    quickcheck(100, helper as fn(Vec<u8>) -> TestResult)
+    quickcheck(ALL_TESTS, helper as fn(Vec<u8>) -> TestResult)
 }
 
 #[test]
-fn test_dalek_point_addition() {
+fn test_dalek_point_addition_subtraction() {
     fn helper(v: Vec<u8>, u: Vec<u8>) -> TestResult {
         if v.len() < 64 || u.len() < 64 {
             return TestResult::discard();
@@ -150,7 +154,7 @@ fn test_dalek_point_addition() {
 
         TestResult::from_bool(cmp_points(hac_add, dal_add) && cmp_points(hac_sub, dal_sub))
     }
-    quickcheck(100, helper as fn(Vec<u8>, Vec<u8>) -> TestResult)
+    quickcheck(ALL_TESTS, helper as fn(Vec<u8>, Vec<u8>) -> TestResult)
 }
 
 #[test]
@@ -168,7 +172,7 @@ fn test_dalek_scalar_multiplication() {
 
         TestResult::from_bool(cmp_points(hac_scal, dal_scal))
     }
-    quickcheck(20, helper as fn(Vec<u8>, Vec<u8>) -> TestResult)
+    quickcheck(MUL_TESTS, helper as fn(Vec<u8>, Vec<u8>) -> TestResult)
 }
 
 #[test]
@@ -185,5 +189,5 @@ fn test_dalek_point_negation() {
 
         TestResult::from_bool(cmp_points(hac_neg, dal_neg))
     }
-    quickcheck(100, helper as fn(Vec<u8>) -> TestResult)
+    quickcheck(ALL_TESTS, helper as fn(Vec<u8>) -> TestResult)
 }

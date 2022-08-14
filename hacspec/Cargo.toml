@@ -18,7 +18,6 @@ members = [
     "examples/chacha20poly1305",
     "examples/gimli",
     "examples/linalg",
-    "examples/linalg-field",
     "examples/pedersen",
     "examples/inner-product-proof/",
     "examples/merlin/",
@@ -39,7 +38,7 @@ members = [
     "examples/aes128-gcm",
     "examples/bls12-381-hash",
     "examples/ed25519",
-    "examples/ristretto25519",
+    "examples/ristretto",
     
 ]
 default-members = [

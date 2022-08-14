@@ -9,8 +9,7 @@ path = "src/ipp.rs"
 
 [dependencies]
 hacspec-lib = { path = "../../lib" }
-hacspec-ristretto = { path = "../ristretto25519" }
-hacspec-linalg-field = { path = "../linalg-field" }
+hacspec-ristretto = { path = "../ristretto" }
 hacspec-merlin = { path = "../merlin" }
 
 [dev-dependencies]

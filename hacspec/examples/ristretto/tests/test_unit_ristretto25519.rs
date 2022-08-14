@@ -4,22 +4,7 @@ use hacspec_ristretto::*;
 // === Positive Tests === //
 
 #[test]
-fn unit_test_scalar_mul_one() {
-    let point = BASE_POINT();
-    let one = Scalar::from_literal(1);
-    let res = mul(one, point);
-    assert!(equals(point, res))
-}
-
-#[test]
-fn unit_test_inverse_sub() {
-    let point = BASE_POINT();
-    let res = sub(point, point);
-    assert!(equals(res, IDENTITY_POINT()))
-}
-
-#[test]
-fn unit_test_add_zero() {
+fn test_unit_add_zero() {
     let point = BASE_POINT();
     let zero = IDENTITY_POINT();
     let res = add(point, zero);
@@ -27,7 +12,30 @@ fn unit_test_add_zero() {
 }
 
 #[test]
-fn unit_test_add_to_self_double() {
+fn test_unit_inverse_sub() {
+    let point = BASE_POINT();
+    let res = sub(point, point);
+    assert!(equals(res, IDENTITY_POINT()))
+}
+
+#[test]
+fn test_unit_scalar_mul_one() {
+    let point = BASE_POINT();
+    let one = Scalar::from_literal(1);
+    let res = mul(one, point);
+    assert!(equals(point, res))
+}
+
+#[test]
+fn test_unit_scalar_mul_identity() {
+    let point = IDENTITY_POINT();
+    let scalar = Scalar::from_literal(1234);
+    let res = mul(scalar, point);
+    assert!(equals(point, res))
+}
+
+#[test]
+fn test_unit_add_to_self_double() {
     let point = BASE_POINT();
     let double_res = double(point);
     let add_res = add(point, point);
@@ -35,7 +43,7 @@ fn unit_test_add_to_self_double() {
 }
 
 #[test]
-fn unit_test_add_encode() {
+fn test_unit_add_encode() {
     let hexs = Seq::<&str>::from_vec(vec![
         //Non-canonical field encodings.
         "0000000000000000000000000000000000000000000000000000000000000000",
@@ -100,22 +108,6 @@ fn test_unit_one_way_map() {
     for i in 0..res_hacspec.len() {
         assert!(equals(res_hacspec[i], exp_res[i]));
     }
-}
-
-#[test]
-fn unit_test_same_point_map() {
-    let input_hexs = Seq::<&str>::from_vec(vec![
-        "edffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1200000000000000000000000000000000000000000000000000000000000000",
-        "edffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        "0000000000000000000000000000000000000000000000000000000000000080ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
-        "00000000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000000080",
-    ]);
-    let result_hex = "304282791023b73128d277bdcb5c7746ef2eac08dde9f2983379cb8e5ef0517f";
-    let result_point = decode(RistrettoPointEncoded::from_hex(result_hex)).unwrap();
-
-    input_hexs
-        .iter()
-        .for_each(|x| assert!(equals(result_point, one_way_map(ByteString::from_hex(x)))))
 }
 
 // === Negative Tests === //

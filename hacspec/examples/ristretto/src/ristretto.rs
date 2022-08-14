@@ -20,8 +20,12 @@
 *
 * For more information see the aforementioned IETF-standard here:
 * https://www.ietf.org/archive/id/draft-irtf-cfrg-ristretto255-00.html#name-negative-field-elements/
+*
 * And the ristretto documentation:
 * https://ristretto.group/ristretto.html/
+*
+* Information about Twisted Edwards curves, see the "Twisted Edwards Curves Revisited" (TECR, henceforth):
+* https://eprint.iacr.org/2008/522
 */
 
 use hacspec_lib::*;
@@ -55,7 +59,7 @@ public_nat_mod!(
 
 // === Constants === //
 
-const DECODING_ERROR: u8 = 10;
+const DECODING_ERROR: u8 = 20u8;
 
 fn P() -> FieldElement {
     FieldElement::from_byte_seq_be(&byte_seq!(
@@ -128,27 +132,14 @@ pub fn BASE_POINT() -> RistrettoPoint {
 }
 
 pub fn IDENTITY_POINT() -> RistrettoPoint {
-    (fe(0u128), fe(1u128), fe(1u128), fe(0u128))
+    (fe(0), fe(1), fe(1), fe(0))
 }
 
 // === Helper functions === //
 
 // Creates a field element from the given literal.
-fn fe(x: u128) -> FieldElement {
-    FieldElement::from_literal(x)
-}
-
-// Computes the leading zeroes of the given field element.
-fn leading_zeros(k: Scalar) -> usize {
-    let mut acc = 256usize;
-    let mut done = false;
-    for i in 0..256 {
-        if !done && k.get_bit(256 - i - 1) == Scalar::from_literal(1u128) {
-            done = true;
-            acc = i - 1;
-        }
-    }
-    acc
+fn fe(x: usize) -> FieldElement {
+    FieldElement::from_literal(x as u128)
 }
 
 // Checks if a secret byte_seq is greater than or equal to p.
@@ -174,16 +165,18 @@ fn geq_p(x: Seq<U8>) -> bool {
 
 // Checks if a given field element is negative. A negative field element is defined as an odd number.
 fn is_negative(e: FieldElement) -> bool {
-    e % fe(2u128) == fe(1u128)
+    e % fe(2) == fe(1)
 }
 
 // Checks if two given field elements are equal.
-fn ct_eq(u: FieldElement, v: FieldElement) -> bool {
+// Should run constant time, which will be possible if FieldElement is changed to Secret Ints
+fn eq(u: FieldElement, v: FieldElement) -> bool {
     u == v
 }
 
 // Given a condition it selects u if the condition is true and v if it is false.
-fn ct_select(u: FieldElement, cond: bool, v: FieldElement) -> FieldElement {
+// Should run constant time, which will be possible if FieldElement is changed to Secret Ints
+fn select(u: FieldElement, cond: bool, v: FieldElement) -> FieldElement {
     if cond {
         u
     } else {
@@ -193,12 +186,13 @@ fn ct_select(u: FieldElement, cond: bool, v: FieldElement) -> FieldElement {
 
 // Computes the additive negation of the given field element.
 fn neg_fe(u: FieldElement) -> FieldElement {
-    fe(0u128) - u
+    fe(0) - u
 }
 
 // Returns the absolute value of the given field element.
-fn ct_abs(u: FieldElement) -> FieldElement {
-    ct_select(neg_fe(u), is_negative(u), u)
+// Should run constant time, which will be possible if FieldElement is changed to Secret Ints
+fn abs(u: FieldElement) -> FieldElement {
+    select(neg_fe(u), is_negative(u), u)
 }
 
 // Computes if the division of the two given field elements is square and returns said square.
@@ -210,18 +204,18 @@ fn ct_abs(u: FieldElement) -> FieldElement {
 fn sqrt_ratio_m1(u: FieldElement, v: FieldElement) -> (bool, FieldElement) {
     let v3 = v.pow(2u128) * v;
     let v7 = v3.pow(2u128) * v;
-    let mut r = (u * v3) * (u * v7).pow_felem((P() - fe(5u128)) / fe(8u128));
+    let mut r = (u * v3) * (u * v7).pow_felem((P() - fe(5)) / fe(8));
     let check = v * r.pow(2u128);
 
-    let correct_sign_sqrt = ct_eq(check, u);
-    let flipped_sign_sqrt = ct_eq(check, neg_fe(u));
-    let flipped_sign_sqrt_i = ct_eq(check, neg_fe(u) * SQRT_M1());
+    let correct_sign_sqrt = eq(check, u);
+    let flipped_sign_sqrt = eq(check, neg_fe(u));
+    let flipped_sign_sqrt_i = eq(check, neg_fe(u) * SQRT_M1());
 
     let r_prime = SQRT_M1() * r;
-    r = ct_select(r_prime, flipped_sign_sqrt || flipped_sign_sqrt_i, r);
+    r = select(r_prime, flipped_sign_sqrt || flipped_sign_sqrt_i, r);
 
     // Choose the nonnegative square root.
-    r = ct_abs(r);
+    r = abs(r);
 
     let was_square = correct_sign_sqrt || flipped_sign_sqrt;
 
@@ -231,20 +225,20 @@ fn sqrt_ratio_m1(u: FieldElement, v: FieldElement) -> (bool, FieldElement) {
 // A helper function for the one-way-map function.
 // Computes a Ristretto point using the given field element.
 fn map(t: FieldElement) -> RistrettoPoint {
-    let one = fe(1u128);
+    let one = fe(1);
     let minus_one = neg_fe(one);
     let r = SQRT_M1() * t.pow(2u128);
     let u = (r + one) * ONE_MINUS_D_SQ();
     let v = (minus_one - r * D()) * (r + D());
 
     let (was_square, mut s) = sqrt_ratio_m1(u, v);
-    let s_prime = neg_fe(ct_abs(s * t));
-    s = ct_select(s, was_square, s_prime);
-    let c = ct_select(minus_one, was_square, r);
+    let s_prime = neg_fe(abs(s * t));
+    s = select(s, was_square, s_prime);
+    let c = select(minus_one, was_square, r);
 
     let N = c * (r - one) * D_MINUS_ONE_SQ() - v;
 
-    let w0 = fe(2u128) * s * v;
+    let w0 = fe(2) * s * v;
     let w1 = N * SQRT_AD_MINUS_ONE();
     let w2 = one - s.pow(2u128);
     let w3 = one + s.pow(2u128);
@@ -279,16 +273,48 @@ pub fn one_way_map(b: ByteString) -> RistrettoPoint {
     add(P1, P2)
 }
 
+/// Encodes the given point
+pub fn encode(u: RistrettoPoint) -> RistrettoPointEncoded {
+    let (x0, y0, z0, t0) = u;
+
+    let u1 = (z0 + y0) * (z0 - y0);
+    let u2 = x0 * y0;
+
+    // Ignore was_square since this is always square
+    let (_, invsqrt) = sqrt_ratio_m1(fe(1), u1 * u2.pow(2u128));
+
+    let den1 = invsqrt * u1;
+    let den2 = invsqrt * u2;
+    let z_inv = den1 * den2 * t0;
+
+    let ix0 = x0 * SQRT_M1();
+    let iy0 = y0 * SQRT_M1();
+    let enchanted_denominator = den1 * INVSQRT_A_MINUS_D();
+
+    let rotate = is_negative(t0 * z_inv);
+
+    let x = select(iy0, rotate, x0);
+    let mut y = select(ix0, rotate, y0);
+    let z = z0;
+    let den_inv = select(enchanted_denominator, rotate, den2);
+
+    y = select(neg_fe(y), is_negative(x * z_inv), y);
+
+    let s = abs(den_inv * (z - y));
+
+    RistrettoPointEncoded::new().update_start(&s.to_byte_seq_le())
+}
+
 /// Decodes the given point in accordance with the IETF standard.
 /// Note: There are many byte-strings resulting in incorrect decodings.
-/// These all checked for, in accordance with the IETF standards.
+/// These all checked for, in accordance with the IETF standard.
 pub fn decode(u: RistrettoPointEncoded) -> DecodeResult {
     let mut ret = DecodeResult::Err(DECODING_ERROR);
 
     let s = FieldElement::from_byte_seq_le(u);
 
     if !geq_p(u.to_le_bytes()) && !is_negative(s) {
-        let one = fe(1u128);
+        let one = fe(1);
         let ss = s.pow(2u128);
         let u1 = one - ss;
         let u2 = one + ss;
@@ -301,47 +327,15 @@ pub fn decode(u: RistrettoPointEncoded) -> DecodeResult {
         let den_x = invsqrt * u2;
         let den_y = invsqrt * den_x * v;
 
-        let x = ct_abs((s + s) * den_x);
+        let x = abs((s + s) * den_x);
         let y = u1 * den_y;
         let t = x * y;
 
-        if !(!was_square || is_negative(t) || y == fe(0u128)) {
+        if !(!was_square || is_negative(t) || y == fe(0)) {
             ret = DecodeResult::Ok((x, y, one, t));
         }
     }
     ret
-}
-
-/// Encodes the given point
-pub fn encode(u: RistrettoPoint) -> RistrettoPointEncoded {
-    let (x0, y0, z0, t0) = u;
-
-    let u1 = (z0 + y0) * (z0 - y0);
-    let u2 = x0 * y0;
-
-    // Ignore was_square since this is always square
-    let (_, invsqrt) = sqrt_ratio_m1(fe(1u128), u1 * u2.pow(2u128));
-
-    let den1 = invsqrt * u1;
-    let den2 = invsqrt * u2;
-    let z_inv = den1 * den2 * t0;
-
-    let ix0 = x0 * SQRT_M1();
-    let iy0 = y0 * SQRT_M1();
-    let enchanted_denominator = den1 * INVSQRT_A_MINUS_D();
-
-    let rotate = is_negative(t0 * z_inv);
-
-    let x = ct_select(iy0, rotate, x0);
-    let mut y = ct_select(ix0, rotate, y0);
-    let z = z0;
-    let den_inv = ct_select(enchanted_denominator, rotate, den2);
-
-    y = ct_select(neg_fe(y), is_negative(x * z_inv), y);
-
-    let s = ct_abs(den_inv * (z - y));
-
-    RistrettoPointEncoded::new().update_start(&s.to_byte_seq_le())
 }
 
 /// Checks that two points are equivalent.
@@ -352,51 +346,32 @@ pub fn equals(u: RistrettoPoint, v: RistrettoPoint) -> bool {
 }
 
 /// Adds two points together.
+// See section 3.2 of the TECR paper
 pub fn add(u: RistrettoPoint, v: RistrettoPoint) -> RistrettoPoint {
-    let d = D();
-    let (X1, Y1, Z1, T1) = u;
-    let (X2, Y2, Z2, T2) = v;
+    let (x1, y1, z1, t1) = u;
+    let (x2, y2, z2, t2) = v;
 
-    let A = (Y1 - X1) * (Y2 - X2);
-    let B = (Y1 + X1) * (Y2 + X2);
-    let C = T1 * fe(2u128) * d * T2;
-    let D = Z1 * fe(2u128) * Z2;
-    let E = B - A;
-    let F = D - C;
-    let G = D + C;
-    let H = B + A;
-    let X3 = E * F;
-    let Y3 = G * H;
-    let T3 = E * H;
-    let Z3 = F * G;
+    let a = (y1 - x1) * (y2 + x2);
+    let b = (y1 + x1) * (y2 - x2);
+    let c = fe(2) * z1 * t2;
+    let d = fe(2) * t1 * z2;
+    let e = d + c;
+    let f = b - a;
+    let g = b + a;
+    let h = d - c;
+    let x3 = e * f;
+    let y3 = g * h;
+    let t3 = e * h;
+    let z3 = f * g;
 
-    (X3, Y3, Z3, T3)
-}
-
-/// Doubles the given point. Note, this is faster than
-/// adding a point to itself.
-pub fn double(u: RistrettoPoint) -> RistrettoPoint {
-    let (X1, Y1, Z1, _) = u;
-
-    let A = X1.pow(2u128);
-    let B = Y1.pow(2u128);
-    let C = fe(2u128) * (Z1.pow(2u128));
-    let H = A + B;
-    let E = H - ((X1 + Y1).pow(2u128));
-    let G = A - B;
-    let F = C + G;
-    let X2 = E * F;
-    let Y2 = G * H;
-    let T2 = E * H;
-    let Z2 = F * G;
-
-    (X2, Y2, Z2, T2)
+    (x3, y3, z3, t3)
 }
 
 /// Computes the negation of the given point.
+// See section 3 of the TECR paper
 pub fn neg(u: RistrettoPoint) -> RistrettoPoint {
-    let (X1, Y1, Z1, T1) = u;
-    (neg_fe(X1), Y1, neg_fe(Z1), T1)
+    let (x1, y1, z1, t1) = u;
+    (neg_fe(x1), y1, neg_fe(z1), t1)
 }
 
 /// Subtracts v from u, using negation on v and then adding.
@@ -404,15 +379,36 @@ pub fn sub(u: RistrettoPoint, v: RistrettoPoint) -> RistrettoPoint {
     add(u, neg(v))
 }
 
+/// Doubles the given point. Note, this is faster than
+/// adding a point to itself.
+// See section 3.3 of TECR
+pub fn double(u: RistrettoPoint) -> RistrettoPoint {
+    let (x1, y1, z1, _) = u;
+
+    let a = x1.pow(2u128);
+    let b = y1.pow(2u128);
+    let c = fe(2) * (z1.pow(2u128));
+    let h = a + b;
+    let e = h - ((x1 + y1).pow(2u128));
+    let g = a - b;
+    let f = c + g;
+    let x2 = e * f;
+    let y2 = g * h;
+    let t2 = e * h;
+    let z2 = f * g;
+
+    (x2, y2, z2, t2)
+}
+
 /// Performs scalar multiplication on a point.
-pub fn mul(k: Scalar, p: RistrettoPoint) -> RistrettoPoint {
-    let mut acc = IDENTITY_POINT();
-    let mut q = p;
-    for i in 0..256 - leading_zeros(k) {
+pub fn mul(k: Scalar, P: RistrettoPoint) -> RistrettoPoint {
+    let mut res = IDENTITY_POINT();
+    let mut temp = P;
+    for i in 0..256 {
         if k.get_bit(i) == Scalar::from_literal(1u128) {
-            acc = add(acc, q)
+            res = add(res, temp)
         }
-        q = double(q)
+        temp = double(temp)
     }
-    acc
+    res
 }
