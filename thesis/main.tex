@@ -122,7 +122,7 @@
 
 % === Header === %
 
-\title{Property based testing of Rust Bulletproofs using Hacspec}
+\title{High Assurance Cryptography: Implementing Bulletproofs in Hacspec}
 \author{ 
 Rasmus Kirk Jakobsen -- 201907084\\
 Anders Wibrand Larsen -- 201906147\\
@@ -149,7 +149,7 @@ Department of Computer Science, Aarhus University\\
 {\itshape
 	Bulletproofs is a zero-knowledge range proof protocol. In this
 	thesis we shall describe the implementation of this protocol
-	in Hacspec, a cryptographic specification language,	defined to 
+	in Hacspec, a cryptographic specification language, defined to
 	be a subset of Rust. Hacspec allows the programs
 	written in it to be transpiled to so-called proof assistants
 	such as Coq, which can be used to prove various properties
@@ -197,18 +197,20 @@ the project. Your assistance is greatly appreciated.
 
 \section{Introduction:} \label{Introduction}
 
-Privacy-enhanced cryptocurrencies use cryptographic protocols to hide
-sender, receiver and amount sent. Zero-knowledge proofs are a
+Privacy-enhanced cryptocurrencies use cryptographic protocols to
+hide sender, receiver and amount sent. Zero-knowledge proofs are a
 popular tool to solve some of these problems and are increasingly
 used today. However, these protocols can also carry vulnerabilities,
-potentially leading to particularly severe inflation bugs, which
-allows malicious actors to double-spend currency. Two of the currently
-most popular privacy-enhanced cryptocurrencies, Monero and Zcash, have
-already had such vulnerabilities \cite{cryptonote} \cite{zcash}. Both of
-these cryptocurrencies have marketcaps over a billion dollars, therefore
-it is crucial to minimize the attack surface. One way of doing this
-is by using proof assistants, such as Coq, on the implementations of
-these protocols, proving that necessary properties hold.
+potentially leading to particularly severe inflation bugs, which allows
+malicious actors to double-spend currency. Two of the currently most
+popular privacy-enhanced cryptocurrencies, Monero and Zcash, have
+already had such vulnerabilities \cite{cryptonote} \cite{zcash}. Both
+of these cryptocurrencies have marketcaps over a billion dollars,
+therefore it is crucial to minimize the attack surface. This gives rise
+to the concept of high assurance cryptography, where we want to minimize
+assumptions and acquire guarantees about our software. One way of doing
+this is by using proof assistants, such as Coq, on the implementations
+of these protocols, proving that necessary properties hold.
 
 However, efficient implementations are often infeasible to implement
 and run in proof assistant languages. A relatively new tool in this
