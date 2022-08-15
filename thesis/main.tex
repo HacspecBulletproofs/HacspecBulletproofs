@@ -157,7 +157,7 @@ Department of Computer Science, Aarhus University\\
 	testing which will ensure that our implementation functions
 	identically to a much more efficient Rust implementation. Thus,
 	if a property is proven for our Hacspec specification, it is
-	very plausible that it also holds for the Rust implementation.
+	plausible that it also holds for the Rust implementation.
 
 	In section \ref{prerequisites} we will go through the
 	prerequisites required to understand the Bulletproofs
@@ -198,7 +198,7 @@ the project. Your assistance is greatly appreciated.
 \section{Introduction:} \label{Introduction}
 
 Privacy-enhanced cryptocurrencies use cryptographic protocols to hide
-sender, receiver and amount sent. Zero-knowledge proofs are a very
+sender, receiver and amount sent. Zero-knowledge proofs are a
 popular tool to solve some of these problems and are increasingly
 used today. However, these protocols can also carry vulnerabilities,
 potentially leading to particularly severe inflation bugs, which
@@ -397,8 +397,7 @@ to the equation $P + (-P) = \O$.
 From these definitions we extrapolate two more definitions:
 
 \begin{definition}[EC Subtraction]
-	Let $P$ and $Q$ be elliptic curve points. The group operation:
-	Subtraction is defined by:
+	Let $P$ and $Q$ be elliptic curve points. Subtraction is defined by:
 	$$P-Q = P + (-Q)$$
 \end{definition}
 
@@ -497,7 +496,7 @@ relation to the public elliptic curve points $X$ and $G$:
 }
 
 $\V$ knows both $X$ and $G$ but not $x$. $\P$ wishes to show $\V$ that 
-they know $x$ without simply revealing it directly.
+they know $x$ without revealing it directly.
 
 The protocol is rather simple. First, $\P$ chooses a secret random
 value $k$ and commits to this value by sending $K$, such that $K =
@@ -570,28 +569,27 @@ to be a specification language for cryptographic algorithms, with the
 special properties that it is executable (since it is valid rust code),
 but also that it is defined such that it can easily be transpiled into
 theorem solvers, namely Coq and F*. The cost for having this property
-is that certain syntactic enhancements available in Rust are not
+is that certain language features available in Rust are not
 defined in Hacspec. This makes the language simpler, but it also makes
 it harder to express certain concepts. However, the language is 
 currently still in development, so some features are still being 
 balanced or added. Most notably generics are currently on the roadmap, 
 and these would be useful for our purposes.
 
-External crates are, of course, not allowed in Hacspec as they will 
-inevitably cause the code to fail the Hacspec compliance check. 
-However, Hacspec implements various cryptographic primitives, such as 
-field elements, which allow for easier cryptographic specification. 
-Some types and functions from the Rust standard library are not 
-available, for example \ttvar{Vec<T>}, however some helpful wrapper 
-types are defined in the Hacpsec standard library. \ttvar{Seq<T>}, 
-as an example implements most of the same functionality as 
-\ttvar{Vec<T>} and serves as a Hacspec counterpart to it. When 
-defining custom types, the Hacspec standard library differentiates 
-between so-called \textit{secret integers} and \textit{public integers}.
-Secret integers are protected from side-channel attacks, but do not 
-implement certain operations, namely equality. We have used secret 
-integers wherever possible, but while they are more secure, they are 
-not always feasible.
+External crates are not allowed in Hacspec as they cannot be
+automatically translated to any of the Hacspec target languages.
+However, Hacspec implements various cryptographic primitives, such as
+field elements, which allow for easier cryptographic specification.
+Some types and functions from the Rust standard library are not
+available, however some helpful wrapper types are defined in the
+Hacpsec standard library. \ttvar{Seq<T>}, for example, implements most
+of the same functionality as \ttvar{Vec<T>} and serves as a Hacspec
+counterpart to it. When defining custom types, the Hacspec standard
+library differentiates between so-called \textit{secret integers}
+and \textit{public integers}.  Secret integers are protected from
+side-channel attacks, but do not implement certain operations, namely
+equality. We have used secret integers wherever possible, but while
+they are more secure, they are not always feasible.
 
 The Hacspec repository have an array of code examples. These examples
 can serve as a guideline for future implementations, but can also
@@ -631,7 +629,7 @@ knowledge of two vectors $\vec{a}$, $\vec{b}$ and know their inner
 product $\dotp{\vec{a}}{\vec{b}} = c$. The prover could simply send
 the verifier $\vec{a}, \vec{b}, c$, but this would take up $O(n)$
 bandwidth and time to verify. Instead, we will use a compression
-technique included in the Bulletproofs paper which allows for just
+technique included in the Bulletproofs paper which allows for
 $O(\log_2(n))$ bandwidth and time to verify.
 
 \newpage
@@ -660,7 +658,7 @@ refer to exponentiation:
 	           \dotp{\vec{b}}{\vec{H}} +
 	           \dotp{\vec{a}}{\vec{b}}Q
 } 
-The $Q$ introduced here is just another public point,
+The $Q$ introduced here is another public point,
 like $\vec{G}$ and $\vec{H}$. This redefinition will be useful, as
 it will allow us to redefine $\vec{a}, \vec{b}, \vec{G}, \vec{H}$
 ($\vec{a}^{(k)}, \vec{b}^{(k)}, \vec{G}^{(k)}, \vec{H}^{(k)}$) into a
@@ -824,7 +822,7 @@ To construct $\vec{s'}$:
 		\text{1}  &\quad  \lnot g(i,j) = \bot \\
 	\end{cases}
 }
-But this is indeed just:
+But this is indeed:
 \eq{
 	\vec{s'} = \frac{1}{s_1}, \frac{1}{s_2}, \cdots \frac{1}{s_n}
 }
@@ -834,7 +832,7 @@ Leading us to our desired $G^{(0)}, H^{(0)}$:
 	H^{(0)} &= \dotp{\vec{s'}}{\vec{H}}
 }
 
-Now, $\V$ can simply check if $P^{(k)} \stackrel{?}{=} P^{\V}$,
+Now, $\V$ can check if $P^{(k)} \stackrel{?}{=} P^{\V}$,
 if the former statement is true, then the $\V$ concludes that
 $\dotp{\vec{a}}{\vec{b}} = c$:
 
@@ -972,7 +970,7 @@ as $\vec{l_0}$ and the second argument as $\vec{r_0}$:
 	\ran{z^2}v + \delta(\ran{y},\ran{z}) = \dotp{\vec{l_0}}{\vec{r_0}}
 }
 If the goal was simply to construct a single inner product which
-would prove that $v$ lies in $[0,2^n)$, then $\P$ could simply send
+would prove that $v$ lies in $[0,2^n)$, then $\P$ could send
 these values to $\V$ and be done. However, we wish for the proof to be
 zero-knowledge and therefore this inner product needs to be blinded. To
 do this, $\P$ constructs a polynomial $t(x)$. This polynomial will
@@ -1109,7 +1107,7 @@ $\V$ has access to the following values:
 $\V$ needs to make a check for each of the two properties that $\P$
 wants to prove.
 
-To check the first property $\V$ simply checks if the following
+To check the first property $\V$ checks if the following
 equation holds:
 \eq{
 	t(\ran{x})B + \bt(\ran{x})\bB \stackrel{?}{=} \ran{z^2} + \delta(\ran{y},\ran{z})B + \ran{x}T_1 + \ran{x^2}T_2
@@ -1323,7 +1321,7 @@ relatively unpredictable value. When $\V$ would be needed
 to provide a challenge, instead, all public values that $\V$ would
 have access to are hashed using this hash function and the resulting
 value is used as the challenge. This way $\P$ can send all values
-it must generate at once, and $\V$ can simply reconstruct the hashes
+it must generate at once, and $\V$ can reconstruct the hashes
 which an honest $\P$ would have calculated and assert correctness. To
 show this we will once again look at the Schnorr Identity Protocol
 \cite{zkdocs-schnorr}, using it to show how the Fiat-Shamir heuristic
@@ -1506,11 +1504,11 @@ fn test_nalg_zeros() {
 \end{lstlisting}
 
 Here, the only operation that is performed is the construction of the
-vectors. The \ttvar{assert_matrices} function is simply a function
-that checks each element in the two vectors and asserts that they are 
-all equal. We ran 100000 equivalence tests, taking 4.63 seconds in
-total. We also have simple unit tests that check our implementation
-against manually derived results.
+vectors. The \ttvar{assert_matrices} function checks each element in
+the two vectors and asserts that they are all equal. We ran 100000
+equivalence tests, taking 4.63 seconds in total. We also have simple
+unit tests that check our implementation against manually derived
+results.
 
 \subsection{Implementing Ristretto:} \label{implementing-ristretto}
 
@@ -1990,10 +1988,10 @@ hypothetical linear algebra matrix struct, with a method that can
 multiply a vector of points with a vector of scalars.
 
 In our implementation, we also have the inputs \ttvar{G_factors}
-and \ttvar{H_factors}, which are simply factors applied to $\vec{G}$
+and \ttvar{H_factors}, which are merely factors applied to $\vec{G}$
 and $\vec{H}$ respectively. We have these as inputs because the
 Dalek implementation also has them. The reason they do this is that they
-have optimizations which make the code faster than if they simply
+have optimizations which make the code faster than if they
 multiply the factors on before running the function. We chose for
 our implementation to take them as an input as well, so that the
 two functions take the same arguments, however we apply the factors
@@ -2085,7 +2083,7 @@ specific requirements.
 
 Since the $n \in \{2, 4, 8, 16, 32, 64\}$ is chosen randomly some tests
 take longer since there are exponentially longer loops. While $n$
-could be almost arbitrarily large having \textit{very} large inputs
+could be almost arbitrarily large, having \textit{very} large inputs
 does not help much more in proving the equivalence property, hence the
 limited range for $n$ in our tests. Various smaller helper functions
 were also created to convert between types, so we could easily convert
@@ -2101,7 +2099,7 @@ Testing using our full implementation is quite slow, and as such
 does not allow us to run as many tests, reducing the guarantee that
 the two implementations function equivalently. To remedy this, we
 created a wrapper library which implements the same functions as our
-Hacspec Ristretto specification, but for each operation it simply calls
+Hacspec Ristretto specification, but for each operation it instead calls
 equivalent functions from the Dalek Ristretto crate. This still gives
 us an equivalence guarantee, as we have already tested our Hacspec
 Ristretto specification against the Dalek Ristretto crate. This lead
