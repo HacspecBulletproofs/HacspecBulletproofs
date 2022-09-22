@@ -5,7 +5,7 @@ use hacspec_merlin::*;
 
 use quickcheck::*;
 
-// === Helper functions ===
+// === Helper functions === //
 
 fn quickcheck(helper: impl Testable) {
 	QuickCheck::new()
@@ -35,6 +35,8 @@ fn to_seq(xs: Vec<u8>) -> Seq<U8> {
 	ret
 }
 
+// === Tests === //
+
 // Tests all merlin functions against the external merlin counterparts.
 #[test]
 fn merl_test_all_funcs() {
@@ -46,7 +48,7 @@ fn merl_test_all_funcs() {
 		buf.resize(buf_size as usize, 0);
 
 		t1 = append_message(t1, b("msg"), to_seq(msg.clone()));
-		t1 = append_u64(t1, b("n"), U64::classify(n));
+		t1 = append_U64(t1, b("n"), U64::classify(n));
 
 		t2.append_message(b"msg", &msg);
 		t2.append_u64(b"n", n);

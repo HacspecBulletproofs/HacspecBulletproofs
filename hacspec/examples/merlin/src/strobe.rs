@@ -1,10 +1,11 @@
 #![allow(unused_assignments)]
 #![allow(non_snake_case)]
 /*
- * This is a subset of strobe needed to implement Merlin. Some functions are
- * therefore missing. See the Strobe specification for details:
- * https://strobe.sourceforge.io/specs/
- * Or see the original research paper
+ * This is a subset of strobe needed to implement Merlin. Some functions
+ * are therefore missing. See the Strobe specification for details:
+ * https://strobe.sourceforge.io/specs/ 
+ *
+ * Or see the original research paper:
  * https://strobe.sourceforge.io/papers/strobe-latest.pdf
  */
 
@@ -12,6 +13,7 @@ use hacspec_lib::*;
 use hacspec_sha3::*;
 
 // === Constants === //
+
 const STROBE_R: u8 = 166u8;
 
 const FLAG_I: u8 = 1u8;
@@ -22,6 +24,7 @@ const FLAG_M: u8 = 1u8 << 4;
 const FLAG_K: u8 = 1u8 << 5;
 
 // === Types === //
+
 type StateU64 = State;
 array!(StateU8, 200, U8);
 
@@ -30,8 +33,6 @@ pub type Strobe = (StateU8, u8, u8, u8);
 
 // === Helper Functions === //
 
-
-// Turns a stateU8 into a StateU64
 fn transmute_state_to_u64(state: StateU8) -> StateU64 {
 	let mut new_state = StateU64::new();
 
@@ -46,7 +47,6 @@ fn transmute_state_to_u64(state: StateU8) -> StateU64 {
 	new_state
 }
 
-// Turns a stateU64 into a StateU8
 fn transmute_state_to_u8(state: StateU64) -> StateU8 {
 	let mut new_state = StateU8::new();
 
@@ -62,9 +62,6 @@ fn transmute_state_to_u8(state: StateU64) -> StateU8 {
 
 // === Internal Functions === //
 
-// Calls the keccakf1600 function, using s standard Strobe object.
-// Due to the nature of the keccakf1600 function the information contained in pos and pos_begin needs to be absorbed into the state.
-// This is done in the first three lines, and the state is properly transmuted to call the method, and transmute it back.
 fn run_f(strobe: Strobe) -> Strobe {
 	let (mut state, mut pos, mut pos_begin, cur_fl) = strobe;
 
@@ -79,11 +76,6 @@ fn run_f(strobe: Strobe) -> Strobe {
 
 	(state, pos, pos_begin, cur_fl)
 }
-
-// This is an implementation of strobe's duplex method which XORs the given data into the state. 
-// This is a special case for the duplex method as seen in the Strobe specification.
-// Ordinarily this would take a series of binary arguments, however these are foregoed, instead simply having two methods. 
-
 
 fn absorb(strobe: Strobe, data: Seq::<U8>) -> Strobe {
 	let (mut state, mut pos, mut pos_begin, mut cur_fl) = strobe;
@@ -103,9 +95,6 @@ fn absorb(strobe: Strobe, data: Seq::<U8>) -> Strobe {
 	(state, pos, pos_begin, cur_fl)
 }
 
-// Copies the state into the given buffer and sets the state to 0. 
-// 'data` is assumed to be the all-zeros string. 
-// This is precisely the case when the current operation is PRF.
 fn squeeze(strobe: Strobe, mut data: Seq<U8>) -> (Strobe, Seq<U8>) {
 	let (mut state, mut pos, mut pos_begin, mut cur_fl) = strobe;
 
@@ -125,9 +114,6 @@ fn squeeze(strobe: Strobe, mut data: Seq<U8>) -> (Strobe, Seq<U8>) {
 	((state, pos, pos_begin, cur_fl), data)
 }
 
-// If this is not an operation that needs to be appended to the previous, nothing is done and the input is simply returned.
-
-// If it is an appended operation, the function updates pos_begin to be where where the current operation begins, and then absorbs the operation.
 fn begin_op(strobe: Strobe, flags: u8, more: bool) -> Strobe {
 	let (mut state, mut pos, mut pos_begin, mut cur_fl) = strobe;
 	let mut ret = (state, pos, pos_begin, cur_fl);
@@ -164,7 +150,6 @@ fn begin_op(strobe: Strobe, flags: u8, more: bool) -> Strobe {
 
 // === Public Functions === //
 
-//initializes a Strobe object from a protocol label.
 pub fn new_strobe(protocol_label: Seq<U8>) -> Strobe {
 	let mut st = StateU8::new();
 
@@ -188,7 +173,6 @@ pub fn ad(mut strobe: Strobe, data: Seq<U8>, more: bool) -> Strobe {
 	strobe = begin_op(strobe, FLAG_A, more);
 	absorb(strobe, data)
 }
-
 
 pub fn prf(mut strobe: Strobe, data: Seq<U8>, more: bool) -> (Strobe, Seq<U8>) {
 	strobe = begin_op(strobe, FLAG_I | FLAG_A | FLAG_C, more);
