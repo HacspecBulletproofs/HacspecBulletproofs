@@ -743,7 +743,7 @@ $\V$ responds with $\ran{u}_k$. This is repeated $k = \log_2(n)$ times,
 until we get the final $P$, $P^{(0)}$:
 
 \eq{
-	P^{(0)} &= a^{(0)}_0 G^{(0)}_0 + b^{(0)}_0 H^{(0)}_0 + a^{(0)}_0 b^{(0)}_0 Q \\
+	P^{(0)} &= a^{(0)} G^{(0)} + b^{(0)} H^{(0)} + a^{(0)} b^{(0)} Q \\
 	P^{(0)} &= P^{(k)} + \sum^k_{i=1}(L_i u^2_i + u^{-2}_i R_i)
 }
 
@@ -1490,13 +1490,15 @@ is the \ttvar{zeros()} function:
 #[test]
 fn test_nalg_zeros() {
 	fn helper(n: u8, m: u8) -> TestResult {
-		let n = n as usize; let m = m as usize;
+		let n = n as usize;
+		let m = m as usize;
 
 		if n * m == 0 {
 		    return TestResult::discard();
 		}
 
-		let hac = zeros(n, m); let ext = DMatrix::zeros(n, m);
+		let hac = zeros(n, m);
+		let ext = DMatrix::zeros(n, m);
 
 		TestResult::from_bool(assert_matrices(hac, ext))
 	}
