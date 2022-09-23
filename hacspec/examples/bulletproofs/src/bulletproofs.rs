@@ -21,21 +21,21 @@ type VerifyRes = Result<(),u8>;
 
 pub type RangeProof = (
     /* Commitment to the bits of the value*/
-    /*A:*/ RistrettoPointEncoded,
+    RistrettoPointEncoded, // A
     /*Commitment to the blinding factors*/
-    /*S:*/ RistrettoPointEncoded,
+    RistrettoPointEncoded, // S
     /* Commitment to the \\(t_1\\) coefficient of \\( t(x) \\)*/
-    /*T_1:*/ RistrettoPointEncoded,
+    RistrettoPointEncoded, // T_1
     /* Commitment to the \\(t_2\\) coefficient of \\( t(x) \\)*/
-    /*T_2:*/ RistrettoPointEncoded,
+    RistrettoPointEncoded, // T_2
     /* Evaluation of the polynomial \\(t(x)\\) at the challenge point \\(x\\)*/
-    /*t_x:*/ Scalar,
+    Scalar, // t_x
     /*Blinding factor for the synthetic commitment to \\(t(x)\\)*/
-    /*t_x_blinding:*/ Scalar,
+    Scalar, // t_x_blinding
     /* Blinding factor for the synthetic commitment to the inner-product arguments*/
-    /*e_blinding:*/ Scalar,
+    Scalar, // e_blinding
     /* Proof data for the inner-product argument.*/
-    /*ipp_proof:*/ InnerProductProof
+    InnerProductProof
 );
 
 /* --- MAIN METHODS --- */
